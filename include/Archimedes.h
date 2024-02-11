@@ -62,8 +62,8 @@ typedef struct _audioClip {
 
 extern App app;
 
-void aInit( void );
-void aQuit( void );
+extern void aInit( void );
+extern void aQuit( void );
 
 /*
 ---------------------------------------------------------------
@@ -71,9 +71,9 @@ void aQuit( void );
 ---------------------------------------------------------------
 */
 
-void aInitAudio( void );
-void aLoadSounds(char *filename, AudioClip *clip);
-void aPlaySoundEffect(AudioClip *clip);
+extern void aInitAudio( void );
+extern void aLoadSounds(char *filename, AudioClip *clip);
+extern void aPlaySoundEffect(AudioClip *clip);
 
 /*
 ---------------------------------------------------------------
@@ -88,10 +88,10 @@ enum {
 };
 
 extern SDL_Texture *fontTexture;
-
 static char drawTextBuffer[MAX_LINE_LENGTH];
-void aInitFont( void );
-void aDrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... );
+
+extern void aInitFont( void );
+extern void aDrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... );
 
 /*
 ---------------------------------------------------------------
@@ -99,9 +99,9 @@ void aDrawText( int x, int y, int r, int g, int b, int align, int scale, char *f
 ---------------------------------------------------------------
 */
 
-void aDoInput( void );
-void aDoKeyDown( SDL_KeyboardEvent *event );
-void aDoKeyUp( SDL_KeyboardEvent *event );
+extern void aDoInput( void );
+extern void aDoKeyDown( SDL_KeyboardEvent *event );
+extern void aDoKeyUp( SDL_KeyboardEvent *event );
 
 /*
 ---------------------------------------------------------------
@@ -109,19 +109,19 @@ void aDoKeyUp( SDL_KeyboardEvent *event );
 ---------------------------------------------------------------
 */
 
-void aPrepareScene(void);
-void aPresentScene(void);
+extern void aPrepareScene( void );
+extern void aPresentScene( void );
 
-void aDrawPoint( int x, int y, Color color );
-void aDrawLine( int x1, int y1, int x2, int y2, Color color );
-void aDrawHoriLine( int x1, int x2, int y );
-void aDrawVertLine( int y1, int y2, int x );
-void aDrawCircle( int x, int y, int radius );
-void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color );
-void aFillTriangle( int x1, int y1, int x2, int y2, int x3, int y3, Color color );
-void aDrawRect( SDL_Rect* src, int value );
+extern void aDrawPoint( int x, int y, Color color );
+extern void aDrawLine( int x1, int y1, int x2, int y2, Color color );
+extern void aDrawHoriLine( int x1, int x2, int y );
+extern void aDrawVertLine( int y1, int y2, int x );
+extern void aDrawCircle( int x, int y, int radius );
+extern void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color );
+extern void aFillTriangle( int x1, int y1, int x2, int y2, int x3, int y3, Color color );
+extern void aDrawRect( SDL_Rect* src, int value );
 
-void aBlit( SDL_Surface* surf, int x, int y );
-void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
+extern void aBlit( SDL_Surface* surf, int x, int y );
+extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
 
 #endif

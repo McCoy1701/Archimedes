@@ -19,6 +19,9 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
+#define GLYPH_WIDTH  7
+#define GLYPH_HEIGHT 9
+
 /*
 ---------------------------------------------------------------
 ---                         Structs                         ---
@@ -111,6 +114,8 @@ extern void aDoKeyUp( SDL_KeyboardEvent *event );
 
 extern void aPrepareScene( void );
 extern void aPresentScene( void );
+
+static int crossProduct(float *v1, float *v2);
 
 extern void aDrawPoint( int x, int y, Color color );
 extern void aDrawLine( int x1, int y1, int x2, int y2, Color color );

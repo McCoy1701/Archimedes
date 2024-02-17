@@ -13,9 +13,6 @@
 #define FPS 60
 
 #define MAX_KEYBOARD_KEYS   350
-#define MAX_NAME_LENGTH     100
-#define MAX_LINE_LENGTH     1024
-#define MAX_FILENAME_LENGTH 256
 
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
@@ -49,10 +46,11 @@ typedef struct _app {
   int keyboard[MAX_KEYBOARD_KEYS];
   Uint32 lastTime;
   Uint32 currentTime;
+  dLinkedList* surfaceHead;
 } App;
 
 typedef struct _audioClip {
-  char filename[MAX_NAME_LENGTH];
+  char filename[MAX_FILENAME_LENGTH];
   SDL_AudioSpec spec;
   uint32_t length;
   uint8_t* buffer;
@@ -96,8 +94,6 @@ extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
 */
 
 extern SDL_Surface* aImageLoad( char *filename );
-extern SDL_Surface* aGetCachedImage( char *imageName );
-extern void aAddImageToCache( char *imageName, SDL_Surface *surf );
 
 /*
 ---------------------------------------------------------------

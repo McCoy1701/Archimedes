@@ -3,6 +3,13 @@
 
 #include "Archimedes.h"
 
+void aInitGame( void );
+void aDoLoop( void );
+void aRenderLoop( void );
+void aGameLoop( void );
+void aMainloop( void );
+int main( int argc, char* argv[] );
+
 Color black   = {  0,   0,   0, 255};
 Color blue    = {  0,   0, 255, 255};
 Color green   = {  0, 255,   0, 255};
@@ -29,10 +36,9 @@ Color gray2  = { 55,  55,  55, 255};
 Color gray1  = { 35,  35,  35, 255};
 Color gray0  = {  0,   0,   0, 255};
 
-void aGameLoop( void )
+void aInitGame( void )
 {
-  aDoLoop();
-  aRenderLoop();
+  printf( "shit\n" );
 }
 
 void aDoLoop( void )
@@ -50,9 +56,10 @@ void aRenderLoop( void )
   aDrawLine( 100, 100, 512, 256, blue );
 }
 
-void aInitGame( void )
+void aGameLoop( void )
 {
-  printf( "shit\n" );
+  aDoLoop();
+  aRenderLoop();
 }
 
 void aMainloop( void )
@@ -64,7 +71,7 @@ void aMainloop( void )
   aPresentScene();
 }
 
-int main( int argc, char** argv )
+int main( int argc, char* argv[] )
 {
   aInit();
 

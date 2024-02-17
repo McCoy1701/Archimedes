@@ -13,13 +13,15 @@ void aInit( void )
   IMG_Init(IMG_INIT_PNG);
   SDL_SetWindowTitle(app.window, "3D-Test");
   SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &app.window, &app.renderer);
+  
+  app.lastTime = 0;
+  app.currentTime = 0;
+
+  
 
   //aInitAudio();
 
   //aInitFont();
-
-  app.lastTime = 0;
-  app.currentTime = 0;
 
   srand(time(NULL));
 }

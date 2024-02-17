@@ -9,7 +9,7 @@ static char drawTextBuffer[MAX_LINE_LENGTH];
 
 void aInitFont( void )
 {
-  SDL_Surface* surface = aImageLoad("assets/font/font.png");
+  SDL_Surface* surface = aImageLoad("resources/font/font.png");
 
   fontTexture = SDL_CreateTextureFromSurface(app.renderer, surface);
   

@@ -7,7 +7,7 @@ AudioClip playerSnd;
 
 void aInitAudio( void )
 {
-  loadSounds("assets/soundEffects/laser1.wav", &playerSnd);
+  aLoadSounds("assets/soundEffects/laser1.wav", &playerSnd);
   
   app.deviceID = SDL_OpenAudioDevice(NULL, 0, &(playerSnd.spec), NULL, 0);
 

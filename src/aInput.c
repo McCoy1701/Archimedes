@@ -14,13 +14,13 @@ void aDoInput( void )
       case SDL_QUIT:
         exit(0);
         break;
-          
+
       case SDL_KEYDOWN:
-        doKeyDown(&event.key);
+        aDoKeyDown(&event.key);
         break;
           
       case SDL_KEYUP:
-        doKeyUp(&event.key);
+        aDoKeyUp(&event.key);
         break;
 
       default:

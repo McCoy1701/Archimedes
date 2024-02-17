@@ -2,6 +2,7 @@
 #define __ARCHIMEDES_H__
 
 #include <SDL2/SDL.h>
+#include <daedalus.h>
 
 /*
 ---------------------------------------------------------------
@@ -59,6 +60,47 @@ typedef struct _audioClip {
 
 /*
 ---------------------------------------------------------------
+---                          Audio                          ---
+---------------------------------------------------------------
+*/
+
+extern void aInitAudio( void );
+extern void aLoadSounds(char *filename, AudioClip *clip);
+extern void aPlaySoundEffect(AudioClip *clip);
+
+/*
+---------------------------------------------------------------
+---                          Draw                           ---
+---------------------------------------------------------------
+*/
+
+extern void aPrepareScene( void );
+extern void aPresentScene( void );
+
+extern void aDrawPoint( int x, int y, Color color );
+extern void aDrawLine( int x1, int y1, int x2, int y2, Color color );
+extern void aDrawHoriLine( int x1, int x2, int y );
+extern void aDrawVertLine( int y1, int y2, int x );
+extern void aDrawCircle( int x, int y, int radius );
+extern void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color );
+extern void aFillTriangle( int x1, int y1, int x2, int y2, int x3, int y3, Color color );
+extern void aDrawRect( SDL_Rect* src, int value );
+
+extern void aBlit( SDL_Surface* surf, int x, int y );
+extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
+
+/*
+---------------------------------------------------------------
+---                          Image                          ---
+---------------------------------------------------------------
+*/
+
+extern SDL_Surface* aImageLoad( char *filename );
+extern SDL_Surface* aGetCachedImage( char *imageName );
+extern void aAddImageToCache( char *imageName, SDL_Surface *surf );
+
+/*
+---------------------------------------------------------------
 ---                       Initialize                        ---
 ---------------------------------------------------------------
 */
@@ -68,15 +110,16 @@ extern App app;
 extern void aInit( void );
 extern void aQuit( void );
 
+
 /*
 ---------------------------------------------------------------
----                          Audio                          ---
+---                          Input                          ---
 ---------------------------------------------------------------
 */
 
-extern void aInitAudio( void );
-extern void aLoadSounds(char *filename, AudioClip *clip);
-extern void aPlaySoundEffect(AudioClip *clip);
+extern void aDoInput( void );
+extern void aDoKeyDown( SDL_KeyboardEvent *event );
+extern void aDoKeyUp( SDL_KeyboardEvent *event );
 
 /*
 ---------------------------------------------------------------
@@ -91,42 +134,9 @@ enum {
 };
 
 extern SDL_Texture *fontTexture;
-static char drawTextBuffer[MAX_LINE_LENGTH];
 
 extern void aInitFont( void );
 extern void aDrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... );
 
-/*
----------------------------------------------------------------
----                          Input                          ---
----------------------------------------------------------------
-*/
-
-extern void aDoInput( void );
-extern void aDoKeyDown( SDL_KeyboardEvent *event );
-extern void aDoKeyUp( SDL_KeyboardEvent *event );
-
-/*
----------------------------------------------------------------
----                          Draw                           ---
----------------------------------------------------------------
-*/
-
-extern void aPrepareScene( void );
-extern void aPresentScene( void );
-
-static int crossProduct(float *v1, float *v2);
-
-extern void aDrawPoint( int x, int y, Color color );
-extern void aDrawLine( int x1, int y1, int x2, int y2, Color color );
-extern void aDrawHoriLine( int x1, int x2, int y );
-extern void aDrawVertLine( int y1, int y2, int x );
-extern void aDrawCircle( int x, int y, int radius );
-extern void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color );
-extern void aFillTriangle( int x1, int y1, int x2, int y2, int x3, int y3, Color color );
-extern void aDrawRect( SDL_Rect* src, int value );
-
-extern void aBlit( SDL_Surface* surf, int x, int y );
-extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
 
 #endif

@@ -8,7 +8,7 @@ void aPrepareScene( void )
   SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255);
   SDL_RenderClear(app.renderer);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
-  doInput();
+  aDoInput();
 }
 
 void aPresentScene( void )
@@ -54,13 +54,9 @@ void aDrawCircle( int x, int y, int radius )
 
 void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color )
 {
-  drawLine(x0, y0, x1, y1, color);
-  drawLine(x1, y1, x2, y2, color);
-  drawLine(x2, y2, x0, y0, color);
-}
-
-static int crossProduct(float *v1, float *v2) {
-    return (v1[0] * v2[1] - v1[1] * v2[0]);
+  aDrawLine(x0, y0, x1, y1, color);
+  aDrawLine(x1, y1, x2, y2, color);
+  aDrawLine(x2, y2, x0, y0, color);
 }
 
 void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color )
@@ -79,11 +75,11 @@ void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color 
     {
       float q[2] = {x - x0, y - y0};
 
-      float s = (float)crossProduct(q, v2) / crossProduct(v1, v2);
-      float t = (float)crossProduct(v1, q) / crossProduct(v1, v2);
+      float s = dCross2f(q, v2) / dCross2f(v1, v2);
+      float t = dCross2f(v1, q) / dCross2f(v1, v2);
 
       if ( (s >= 0) && (t >= 0) && (s + t <= 1)) {
-        drawPoint(x, y, color);
+        aDrawPoint(x, y, color);
       }
     }
   }

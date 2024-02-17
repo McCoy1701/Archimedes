@@ -14,9 +14,9 @@ void aInit( void )
   SDL_SetWindowTitle(app.window, "3D-Test");
   SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &app.window, &app.renderer);
 
-  aInitAudio();
+  //aInitAudio();
 
-  aInitFont();
+  //aInitFont();
 
   app.lastTime = 0;
   app.currentTime = 0;

@@ -1,6 +1,8 @@
 {
   "files.associations": {
     "*.c": "c",
-    "archimedes.h": "c"
+    "archimedes.h": "c",
+    "daedalus.h": "c",
+    "sdl.h": "c"
   }
 }

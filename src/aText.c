@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL2/SDL_image.h>
 
 #include "Archimedes.h"
 
 SDL_Texture *fontTexture;
+static char drawTextBuffer[MAX_LINE_LENGTH];
 
 void aInitFont( void )
 {
-  SDL_Surface* surface = loadImage("assets/font/font.png");
+  SDL_Surface* surface = aImageLoad("assets/font/font.png");
 
   fontTexture = SDL_CreateTextureFromSurface(app.renderer, surface);
   

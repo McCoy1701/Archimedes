@@ -54,6 +54,7 @@ void aDoLoop( void )
 void aRenderLoop( void )
 {
   aDrawLine( 100, 100, 512, 256, blue );
+  aDrawText( 200, 200, 255, 255, 255, TEXT_CENTER, 0, "FUCKING BITCH" );
 }
 
 void aGameLoop( void )

@@ -17,11 +17,11 @@ void aInit( void )
   app.lastTime = 0;
   app.currentTime = 0;
 
-  
+  app.surfaceHead = NULL;
 
   //aInitAudio();
 
-  //aInitFont();
+  aInitFont();
 
   srand(time(NULL));
 }

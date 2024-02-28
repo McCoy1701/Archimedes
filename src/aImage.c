@@ -27,7 +27,7 @@ SDL_Surface* aImageLoad( char *filename )
   return surf;
 }
 
-int aScreenshot( const char *filename, SDL_Renderer *renderer )
+int aScreenshot( SDL_Renderer *renderer, const char *filename )
 {
   SDL_Rect aViewport;
   SDL_Surface *aSurface = NULL;

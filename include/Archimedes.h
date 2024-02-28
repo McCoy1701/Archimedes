@@ -125,7 +125,7 @@ extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
 */
 
 extern SDL_Surface* aImageLoad( char *filename );
-extern int aScreenshot( const char *filename, SDL_Renderer *renderer );
+extern int aScreenshot( SDL_Renderer *renderer, const char *filename );
 
 /*
 ---------------------------------------------------------------

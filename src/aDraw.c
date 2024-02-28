@@ -30,25 +30,75 @@ void aDrawLine( int x1, int y1, int x2, int y2, Color color )
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawHoriLine( int x1, int x2, int y )
+void aDrawHoriLine( int x1, int x2, int y, Color color )
 {
+  SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawVertLine( int y1, int y2, int x )
+void aDrawVertLine( int y1, int y2, int x, Color color )
 {
+  SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawCircle( int x, int y, int radius )
+void aDrawCircle( int posX, int posY, int radius, Color color )
 {
-  int centerX;
-  int centerY;
+  int x = 0;
+  int y = radius;
+  int decision = 5 - ( 4 * radius );
 
-  for (int i = 0; i < 360; i++)  {
-    centerX = x + radius * cos(i);
-    centerY = y + radius * sin(i);
-    SDL_RenderDrawPoint(app.renderer, centerX, centerY);
+  while ( x <= y )
+  {
+    SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
+    SDL_RenderDrawPoint( app.renderer, posX + x, posY - y );
+    SDL_RenderDrawPoint( app.renderer, posX + x, posY + y );
+    SDL_RenderDrawPoint( app.renderer, posX - x, posY - y );
+    SDL_RenderDrawPoint( app.renderer, posX - x, posY + y );
+    SDL_RenderDrawPoint( app.renderer, posX + y, posY - x );
+    SDL_RenderDrawPoint( app.renderer, posX + y, posY + x );
+    SDL_RenderDrawPoint( app.renderer, posX - y, posY - x );
+    SDL_RenderDrawPoint( app.renderer, posX - y, posY + x );
+    SDL_SetRenderDrawColor( app.renderer, 255, 255, 255, 255 );
+   
+    if ( decision > 0 )
+    {
+      y--;
+      decision -= 8 *  y;
+    }
+
+    x++;
+    
+    decision += 8 * x + 4;
+  }
+}
+
+void aDrawFilledCircle( int posX, int posY, int radius, Color color )
+{
+  int x = 0;
+  int y = radius;
+  int decision = 5 - ( 4 * radius );
+
+  while ( x <= y )
+  {
+    SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderDrawLine(app.renderer, posX - x, posY - y, posX + x, posY - y);
+    SDL_RenderDrawLine(app.renderer, posX - y, posY - x, posX + y, posY - x);
+    SDL_RenderDrawLine(app.renderer, posX - y, posY + x, posX + y, posY + x);
+    SDL_RenderDrawLine(app.renderer, posX - x, posY + y, posX + x, posY + y);
+    SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+
+    if ( decision > 0 )
+    {
+      y--;
+      decision -= 8 *  y;
+    }
+
+    x++;
+    
+    decision += 8 * x + 4;
   }
 }
 
@@ -143,3 +193,27 @@ void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y )
 
   SDL_RenderCopy(app.renderer, img, &src, &dest);
 }
+
+Color black   = {  0,   0,   0, 255};
+Color blue    = {  0,   0, 255, 255};
+Color green   = {  0, 255,   0, 255};
+Color cyan    = {  0, 255, 255, 255};
+Color red     = {255,   0,   0, 255};
+Color magenta = {255,   0, 255, 255};
+Color yellow  = {255, 255,   0, 255};
+Color white   = {255, 255, 255, 255};
+Color shit0   = {128, 128, 128, 255};
+Color shit1   = {128, 255, 255, 255};
+Color shit2   = {128, 128, 255, 255};
+Color shit3   = {  0, 255, 128, 255};
+
+Color gray9 = {235, 235, 235, 255};
+Color gray8  = {215, 215, 215, 255};
+Color gray7  = {195, 195, 195, 255};
+Color gray6  = {175, 175, 175, 255};
+Color gray5  = {155, 155, 155, 255};
+Color gray4  = {135, 135, 135, 255};
+Color gray3  = {115, 115, 115, 255};
+Color gray2  = { 95,  95,  95, 255};
+Color gray1  = { 55,  55,  55, 255};
+Color gray0  = { 35,  35,  35, 255};

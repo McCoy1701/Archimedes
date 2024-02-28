@@ -68,6 +68,36 @@ extern void aPlaySoundEffect(AudioClip *clip);
 
 /*
 ---------------------------------------------------------------
+---                         Colors                          ---
+---------------------------------------------------------------
+*/
+
+extern Color black;
+extern Color blue;
+extern Color green;
+extern Color cyan;
+extern Color red;
+extern Color magenta;
+extern Color yellow;
+extern Color white;
+extern Color shit0;
+extern Color shit1;
+extern Color shit2;
+extern Color shit3;
+
+extern Color gray9;
+extern Color gray8;
+extern Color gray7;
+extern Color gray6;
+extern Color gray5;
+extern Color gray4;
+extern Color gray3;
+extern Color gray2;
+extern Color gray1;
+extern Color gray0;
+
+/*
+---------------------------------------------------------------
 ---                          Draw                           ---
 ---------------------------------------------------------------
 */
@@ -77,9 +107,10 @@ extern void aPresentScene( void );
 
 extern void aDrawPoint( int x, int y, Color color );
 extern void aDrawLine( int x1, int y1, int x2, int y2, Color color );
-extern void aDrawHoriLine( int x1, int x2, int y );
-extern void aDrawVertLine( int y1, int y2, int x );
-extern void aDrawCircle( int x, int y, int radius );
+extern void aDrawHoriLine( int x1, int x2, int y, Color color );
+extern void aDrawVertLine( int y1, int y2, int x, Color color );
+extern void aDrawCircle( int posX, int posY, int radius, Color color );
+extern void aDrawFilledCircle( int posX, int posY, int radius, Color color );
 extern void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color );
 extern void aFillTriangle( int x1, int y1, int x2, int y2, int x3, int y3, Color color );
 extern void aDrawRect( SDL_Rect* src, int value );

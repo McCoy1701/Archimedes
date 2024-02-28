@@ -71,7 +71,7 @@ install:
 	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
 
 uninstall:
-	sudo rm /usr/lib/libarchimedes.so
+	sudo rm /usr/lib/libArchimedes.so
 	sudo rm /usr/include/Archimedes.h
 
 clean:

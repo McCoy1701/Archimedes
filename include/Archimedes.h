@@ -2,7 +2,7 @@
 #define __ARCHIMEDES_H__
 
 #include <SDL2/SDL.h>
-#include <daedalus.h>
+#include <Daedalus.h>
 
 /*
 ---------------------------------------------------------------

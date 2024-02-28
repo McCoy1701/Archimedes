@@ -19,7 +19,7 @@ void aInit( void )
 
   app.surfaceHead = NULL;
 
-  //aInitAudio();
+  aInitAudio();
 
   aInitFont();
 
@@ -28,7 +28,9 @@ void aInit( void )
 
 void aQuit( void )
 {
-	SDL_DestroyRenderer(app.renderer);
-	SDL_DestroyWindow(app.window);
+	SDL_DestroyRenderer( app.renderer );
+	SDL_DestroyWindow( app.window );
+  dClearLinkedList( app.surfaceHead );
+  free( app.surfaceHead );
 	SDL_Quit();
 }

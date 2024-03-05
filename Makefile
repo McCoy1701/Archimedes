@@ -7,7 +7,7 @@ INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
 
-.PHONY: all clean
+.PHONY: all clean updateHeader install uninstall
 
 
 all: native shared
@@ -73,6 +73,9 @@ install:
 uninstall:
 	sudo rm /usr/lib/libArchimedes.so
 	sudo rm /usr/include/Archimedes.h
+
+updateHeader:
+	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)

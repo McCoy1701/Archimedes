@@ -16,35 +16,35 @@ void aPresentScene( void )
   SDL_RenderPresent(app.renderer);
 }
 
-void aDrawPoint( int x, int y, Color color )
+void aDrawPoint( int x, int y, aColor color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawPoint(app.renderer, x, y);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawLine( int x1, int y1, int x2, int y2, Color color )
+void aDrawLine( int x1, int y1, int x2, int y2, aColor color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawHoriLine( int x1, int x2, int y, Color color )
+void aDrawHoriLine( int x1, int x2, int y, aColor color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawVertLine( int y1, int y2, int x, Color color )
+void aDrawVertLine( int y1, int y2, int x, aColor color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawCircle( int posX, int posY, int radius, Color color )
+void aDrawCircle( int posX, int posY, int radius, aColor color )
 {
   int x = 0;
   int y = radius;
@@ -75,7 +75,7 @@ void aDrawCircle( int posX, int posY, int radius, Color color )
   }
 }
 
-void aDrawFilledCircle( int posX, int posY, int radius, Color color )
+void aDrawFilledCircle( int posX, int posY, int radius, aColor color )
 {
   int x = 0;
   int y = radius;
@@ -102,14 +102,14 @@ void aDrawFilledCircle( int posX, int posY, int radius, Color color )
   }
 }
 
-void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color )
+void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color )
 {
   aDrawLine(x0, y0, x1, y1, color);
   aDrawLine(x1, y1, x2, y2, color);
   aDrawLine(x2, y2, x0, y0, color);
 }
 
-void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, Color color )
+void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color )
 {
   int maxX = MAX(x0, MAX(x1, x2));
   int minX = MIN(x0, MIN(x1, x2));
@@ -194,26 +194,26 @@ void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y )
   SDL_RenderCopy(app.renderer, img, &src, &dest);
 }
 
-Color black   = {  0,   0,   0, 255};
-Color blue    = {  0,   0, 255, 255};
-Color green   = {  0, 255,   0, 255};
-Color cyan    = {  0, 255, 255, 255};
-Color red     = {255,   0,   0, 255};
-Color magenta = {255,   0, 255, 255};
-Color yellow  = {255, 255,   0, 255};
-Color white   = {255, 255, 255, 255};
-Color shit0   = {128, 128, 128, 255};
-Color shit1   = {128, 255, 255, 255};
-Color shit2   = {128, 128, 255, 255};
-Color shit3   = {  0, 255, 128, 255};
+aColor black   = {  0,   0,   0, 255};
+aColor blue    = {  0,   0, 255, 255};
+aColor green   = {  0, 255,   0, 255};
+aColor cyan    = {  0, 255, 255, 255};
+aColor red     = {255,   0,   0, 255};
+aColor magenta = {255,   0, 255, 255};
+aColor yellow  = {255, 255,   0, 255};
+aColor white   = {255, 255, 255, 255};
+aColor shit0   = {128, 128, 128, 255};
+aColor shit1   = {128, 255, 255, 255};
+aColor shit2   = {128, 128, 255, 255};
+aColor shit3   = {  0, 255, 128, 255};
 
-Color gray9 = {235, 235, 235, 255};
-Color gray8  = {215, 215, 215, 255};
-Color gray7  = {195, 195, 195, 255};
-Color gray6  = {175, 175, 175, 255};
-Color gray5  = {155, 155, 155, 255};
-Color gray4  = {135, 135, 135, 255};
-Color gray3  = {115, 115, 115, 255};
-Color gray2  = { 95,  95,  95, 255};
-Color gray1  = { 55,  55,  55, 255};
-Color gray0  = { 35,  35,  35, 255};
+aColor gray9 = {235, 235, 235, 255};
+aColor gray8  = {215, 215, 215, 255};
+aColor gray7  = {195, 195, 195, 255};
+aColor gray6  = {175, 175, 175, 255};
+aColor gray5  = {155, 155, 155, 255};
+aColor gray4  = {135, 135, 135, 255};
+aColor gray3  = {115, 115, 115, 255};
+aColor gray2  = { 95,  95,  95, 255};
+aColor gray1  = { 55,  55,  55, 255};
+aColor gray0  = { 35,  35,  35, 255};

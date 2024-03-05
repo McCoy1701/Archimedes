@@ -3,7 +3,7 @@
 
 #include "Archimedes.h"
 
-AudioClip playerSnd;
+aAudioClip playerSnd;
 
 void aInitAudio( void )
 {
@@ -18,7 +18,7 @@ void aInitAudio( void )
   SDL_PauseAudioDevice(app.deviceID, 0);
 }
 
-void aLoadSounds(char *filename, AudioClip *clip)
+void aLoadSounds(char *filename, aAudioClip *clip)
 {
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
   
@@ -30,7 +30,7 @@ void aLoadSounds(char *filename, AudioClip *clip)
   }
 }
 
-void aPlaySoundEffect(AudioClip *clip)
+void aPlaySoundEffect( aAudioClip *clip )
 {
   int success = SDL_QueueAudio(app.deviceID, clip->buffer, clip->length);
   

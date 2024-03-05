@@ -5,7 +5,7 @@
 
 #include "Archimedes.h"
 
-App app;
+aApp app;
 
 void aInit( void )
 {

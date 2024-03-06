@@ -5,27 +5,27 @@
 
 aMesh cubeMesh = {
   {
-    { { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f } } },
-    { { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f } } },
+    { { { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f } } },
+    { { { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } } },
   
-    { { { 1.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f } } },
-    { { { 1.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 1.0f, 0.0f } } },
+    { { { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } } },
+    { { { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f, 1.0f } } },
   
-    { { { 1.0f, 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 1.0f, 0.0f } } },
-    { { { 1.0f, 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 0.0f } } },
+    { { { 1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } } },
+    { { { 1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } } },
   
-    { { { 0.0f, 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f } } },
-    { { { 0.0f, 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } } },
+    { { { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f } } },
+    { { { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } } },
   
-    { { { 0.0f, 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f } } },
-    { { { 0.0f, 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f } } },
+    { { { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } } },
+    { { { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } } },
   
-    { { { 1.0f, 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } } },
-    { { { 1.0f, 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f } } },
+    { { { 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } } },
+    { { { 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } } },
   }
 };
 
-float matrixProjection[16] = {0};
+dMat4x4_t projectionMatrix = {0};
 
 void aDoLoop( void )
 {
@@ -42,14 +42,11 @@ void aRenderLoop( void )
   for ( int i = 0; i < 12; i++ )
   {
     aTriangle tri = cubeMesh.triangles[i];
-    /* for ( int j = 0; j < 3; j++ )
-    {
-    printf( "triangle %d x: %.02f y: %.02f z: %.02f w: %.02f \n", i, tri.points[j].x, tri.points[j].y, tri.points[j].z, tri.points[j].w );
-    } */
     aTriangle triProjected;
-    dMatrixMultiplyVec3f( &triProjected.points[0], matrixProjection, tri.points[0] );
-    dMatrixMultiplyVec3f( &triProjected.points[1], matrixProjection, tri.points[1] );
-    dMatrixMultiplyVec3f( &triProjected.points[2], matrixProjection, tri.points[2] ); 
+
+    d_matrix_multiply_dVec3f( &triProjected.points[0], projectionMatrix, tri.points[0] );
+    d_matrix_multiply_dVec3f( &triProjected.points[1], projectionMatrix, tri.points[1] );
+    d_matrix_multiply_dVec3f( &triProjected.points[2], projectionMatrix, tri.points[2] ); 
 
     triProjected.points[0].x += 1.0f; triProjected.points[0].y += 1.0f;
     triProjected.points[1].x += 1.0f; triProjected.points[1].y += 1.0f;
@@ -72,7 +69,7 @@ void aInitGame( void )
   float near = 0.1f;
   float aspectRatio = (float)SCREEN_HEIGHT/SCREEN_WIDTH;
 
-  dMatrixProjectionf( matrixProjection, aspectRatio, fov, near, far );
+  d_matrix_create_projectionf( &projectionMatrix, aspectRatio, fov, near, far );
 }
 
 void aMainloop( void )

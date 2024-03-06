@@ -28,7 +28,7 @@
 
 typedef struct _aTriangle
 {
-  dVec4 points[3];
+  dVec3_t points[3];
 } aTriangle;
 
 typedef struct _aMesh
@@ -59,7 +59,7 @@ typedef struct _aApp
   int keyboard[MAX_KEYBOARD_KEYS];
   Uint32 lastTime;
   Uint32 currentTime;
-  dLinkedList* surfaceHead;
+  dLinkedList_t* surfaceHead;
 } aApp;
 
 typedef struct _aAudioClip

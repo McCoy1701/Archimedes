@@ -30,7 +30,7 @@ void aQuit( void )
 {
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );
-  dClearLinkedList( app.surfaceHead );
+  d_clear_linked_list( app.surfaceHead );
   free( app.surfaceHead );
 	SDL_Quit();
 }

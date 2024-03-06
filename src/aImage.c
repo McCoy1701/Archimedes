@@ -8,7 +8,7 @@ SDL_Surface* aImageLoad( char *filename )
 {
   SDL_Surface *surf;
 
-  surf = ( SDL_Surface* )dGetDataInLinkedListByName( app.surfaceHead, filename );
+  surf = ( SDL_Surface* )d_get_data_in_linked_list_by_name( app.surfaceHead, filename );
 
   if ( surf == NULL )
   {
@@ -21,7 +21,7 @@ SDL_Surface* aImageLoad( char *filename )
       return NULL;
     }
     
-    dPushBack( app.surfaceHead, surf, filename, sizeof( SDL_Surface ) );
+    d_push_back( app.surfaceHead, surf, filename, sizeof( SDL_Surface ) );
   }
 
   return surf;

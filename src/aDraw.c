@@ -116,17 +116,17 @@ void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color
   int maxY = MAX(y0, MAX(y1, y2));
   int minY = MIN(y0, MIN(y1, y2));
 
-  float v1[2] = {x1 - x0, y1 - y0};
-  float v2[2] = {x2 - x0, y2 - y0};
+  dVec2_t v1 = {x1 - x0, y1 - y0};
+  dVec2_t v2 = {x2 - x0, y2 - y0};
 
   for (int x = minX; x <= maxX; x++)
   {
     for (int y = minY; y <= maxY; y++)
     {
-      float q[2] = {x - x0, y - y0};
+      dVec2_t q = {x - x0, y - y0};
 
-      float s = dCross2f(q, v2) / dCross2f(v1, v2);
-      float t = dCross2f(v1, q) / dCross2f(v1, v2);
+      float s = d_cross_product_dVec2f(q, v2) / d_cross_product_dVec2f(v1, v2);
+      float t = d_cross_product_dVec2f(v1, q) / d_cross_product_dVec2f(v1, v2);
 
       if ( (s >= 0) && (t >= 0) && (s + t <= 1)) {
         aDrawPoint(x, y, color);

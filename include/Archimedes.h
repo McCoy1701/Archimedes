@@ -26,19 +26,14 @@
 ---------------------------------------------------------------
 */
 
-typedef struct _aPoint
-{
-  float vec4f[4];
-} aPoint;
-
 typedef struct _aTriangle
 {
-  aPoint points[3];
+  dVec4 points[3];
 } aTriangle;
 
 typedef struct _aMesh
 {
-  dLinkedList *triangles;
+  aTriangle triangles[12];
 } aMesh;
 
 typedef struct _aColor

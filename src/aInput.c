@@ -3,7 +3,7 @@
 
 #include "Archimedes.h"
 
-void aDoInput( void )
+void a_do_input( void )
 {
   SDL_Event event;
   
@@ -16,11 +16,11 @@ void aDoInput( void )
         break;
 
       case SDL_KEYDOWN:
-        aDoKeyDown(&event.key);
+        a_do_key_down(&event.key);
         break;
           
       case SDL_KEYUP:
-        aDoKeyUp(&event.key);
+        a_do_key_up(&event.key);
         break;
 
       default:
@@ -29,14 +29,14 @@ void aDoInput( void )
   }
 }
 
-void aDoKeyDown( SDL_KeyboardEvent *event )
+void a_do_key_down( SDL_KeyboardEvent *event )
 {
   if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
     app.keyboard[event->keysym.scancode] = 1;
   }
 }
 
-void aDoKeyUp( SDL_KeyboardEvent *event )
+void a_do_key_up( SDL_KeyboardEvent *event )
 {
   if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
     app.keyboard[event->keysym.scancode] = 0;

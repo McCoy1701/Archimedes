@@ -3,9 +3,9 @@
 
 #include "Archimedes.h"
 
-aAudioClip playerSnd;
+aAudioClip_t playerSnd;
 
-void aInitAudio( void )
+void a_init_audio( void )
 {
   //aLoadSounds("resources/soundEffects/laser1.wav", &playerSnd);
   
@@ -18,7 +18,7 @@ void aInitAudio( void )
   SDL_PauseAudioDevice(app.deviceID, 0);
 }
 
-void aLoadSounds(char *filename, aAudioClip *clip)
+void a_load_sounds(char *filename, aAudioClip_t *clip)
 {
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
   
@@ -30,7 +30,7 @@ void aLoadSounds(char *filename, aAudioClip *clip)
   }
 }
 
-void aPlaySoundEffect( aAudioClip *clip )
+void a_play_sound_effect(aAudioClip_t *clip)
 {
   int success = SDL_QueueAudio(app.deviceID, clip->buffer, clip->length);
   

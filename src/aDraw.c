@@ -3,48 +3,48 @@
 
 #include "Archimedes.h"
 
-void aPrepareScene( void )
+void a_prepare_scene( void )
 {
   SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255);
   SDL_RenderClear(app.renderer);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
-  aDoInput();
+  a_do_input();
 }
 
-void aPresentScene( void )
+void a_present_scene( void )
 {
   SDL_RenderPresent(app.renderer);
 }
 
-void aDrawPoint( int x, int y, aColor color )
+void a_draw_point( int x, int y, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawPoint(app.renderer, x, y);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawLine( int x1, int y1, int x2, int y2, aColor color )
+void a_draw_line( int x1, int y1, int x2, int y2, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawHoriLine( int x1, int x2, int y, aColor color )
+void a_draw_horizontal_line( int x1, int x2, int y, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawVertLine( int y1, int y2, int x, aColor color )
+void a_draw_vertical_line( int y1, int y2, int x, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void aDrawCircle( int posX, int posY, int radius, aColor color )
+void a_draw_circle( int posX, int posY, int radius, aColor_t color )
 {
   int x = 0;
   int y = radius;
@@ -75,7 +75,7 @@ void aDrawCircle( int posX, int posY, int radius, aColor color )
   }
 }
 
-void aDrawFilledCircle( int posX, int posY, int radius, aColor color )
+void a_draw_filled_circle( int posX, int posY, int radius, aColor_t color )
 {
   int x = 0;
   int y = radius;
@@ -102,14 +102,14 @@ void aDrawFilledCircle( int posX, int posY, int radius, aColor color )
   }
 }
 
-void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color )
+void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
 {
-  aDrawLine(x0, y0, x1, y1, color);
-  aDrawLine(x1, y1, x2, y2, color);
-  aDrawLine(x2, y2, x0, y0, color);
+  a_draw_line(x0, y0, x1, y1, color);
+  a_draw_line(x1, y1, x2, y2, color);
+  a_draw_line(x2, y2, x0, y0, color);
 }
 
-void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color )
+void a_fill_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
 {
   int maxX = MAX(x0, MAX(x1, x2));
   int minX = MIN(x0, MIN(x1, x2));
@@ -129,13 +129,13 @@ void aFillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color
       float t = d_cross_product_dVec2f(v1, q) / d_cross_product_dVec2f(v1, v2);
 
       if ( (s >= 0) && (t >= 0) && (s + t <= 1)) {
-        aDrawPoint(x, y, color);
+        a_draw_point(x, y, color);
       }
     }
   }
 }
 
-void aDrawRect( SDL_Rect* src, int value )
+void a_draw_rect( SDL_Rect* src, int value )
 {
   if (!value) 
   {
@@ -148,7 +148,7 @@ void aDrawRect( SDL_Rect* src, int value )
   }
 }
 
-void aBlit( SDL_Surface* surf, int x, int y )
+void a_blit( SDL_Surface* surf, int x, int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -170,7 +170,7 @@ void aBlit( SDL_Surface* surf, int x, int y )
   SDL_DestroyTexture(img);
 }
 
-void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y )
+void a_blit_rect( SDL_Surface* surf, SDL_Rect src, int x, int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -194,26 +194,26 @@ void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y )
   SDL_RenderCopy(app.renderer, img, &src, &dest);
 }
 
-aColor black   = {  0,   0,   0, 255};
-aColor blue    = {  0,   0, 255, 255};
-aColor green   = {  0, 255,   0, 255};
-aColor cyan    = {  0, 255, 255, 255};
-aColor red     = {255,   0,   0, 255};
-aColor magenta = {255,   0, 255, 255};
-aColor yellow  = {255, 255,   0, 255};
-aColor white   = {255, 255, 255, 255};
-aColor shit0   = {128, 128, 128, 255};
-aColor shit1   = {128, 255, 255, 255};
-aColor shit2   = {128, 128, 255, 255};
-aColor shit3   = {  0, 255, 128, 255};
+aColor_t black   = {   0,   0,   0, 255 };
+aColor_t blue    = {   0,   0, 255, 255 };
+aColor_t green   = {   0, 255,   0, 255 };
+aColor_t cyan    = {   0, 255, 255, 255 };
+aColor_t red     = { 255,   0,   0, 255 };
+aColor_t magenta = { 255,   0, 255, 255 };
+aColor_t yellow  = { 255, 255,   0, 255 };
+aColor_t white   = { 255, 255, 255, 255 };
+aColor_t shit0   = { 128, 128, 128, 255 };
+aColor_t shit1   = { 128, 255, 255, 255 };
+aColor_t shit2   = { 128, 128, 255, 255 };
+aColor_t shit3   = {   0, 255, 128, 255 };
 
-aColor gray9 = {235, 235, 235, 255};
-aColor gray8  = {215, 215, 215, 255};
-aColor gray7  = {195, 195, 195, 255};
-aColor gray6  = {175, 175, 175, 255};
-aColor gray5  = {155, 155, 155, 255};
-aColor gray4  = {135, 135, 135, 255};
-aColor gray3  = {115, 115, 115, 255};
-aColor gray2  = { 95,  95,  95, 255};
-aColor gray1  = { 55,  55,  55, 255};
-aColor gray0  = { 35,  35,  35, 255};
+aColor_t gray9   = { 235, 235, 235, 255 };
+aColor_t gray8   = { 215, 215, 215, 255 };
+aColor_t gray7   = { 195, 195, 195, 255 };
+aColor_t gray6   = { 175, 175, 175, 255 };
+aColor_t gray5   = { 155, 155, 155, 255 };
+aColor_t gray4   = { 135, 135, 135, 255 };
+aColor_t gray3   = { 115, 115, 115, 255 };
+aColor_t gray2   = {  95,  95,  95, 255 };
+aColor_t gray1   = {  55,  55,  55, 255 };
+aColor_t gray0   = {  35,  35,  35, 255 };

@@ -13,13 +13,16 @@ OBJ_DIR=obj
 all: native shared
 
 
-shared: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o
+shared: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o
 	mkdir -p $(BIN_DIR)
-	$(CC) -shared $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o -lDaedalus -o $(BIN_DIR)/libArchimedes.so $(CFLAGS)
+	$(CC) -shared $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o -lDaedalus -o $(BIN_DIR)/libArchimedes.so $(CFLAGS)
 
 
 $(OBJ_DIR)/aAudio.o: $(SRC_DIR)/aAudio.c
 	mkdir -p $(OBJ_DIR)
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(OBJ_DIR)/aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/aDraw.o: $(SRC_DIR)/aDraw.c
@@ -38,9 +41,9 @@ $(OBJ_DIR)/aText.o: $(SRC_DIR)/aText.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 
-native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
+native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
 	mkdir -p $(BIN_DIR)
-	$(CC) $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o -ggdb -lDaedalus $(CFLAGS) -o $(BIN_DIR)/$@
+	$(CC) $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o -ggdb -lDaedalus $(CFLAGS) -o $(BIN_DIR)/$@
 
 
 $(OBJ_DIR)/n_main.o: $(SRC_DIR)/main.c
@@ -48,6 +51,9 @@ $(OBJ_DIR)/n_main.o: $(SRC_DIR)/main.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(OBJ_DIR)/n_aAudio.o: $(SRC_DIR)/aAudio.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(OBJ_DIR)/n_aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(OBJ_DIR)/n_aDraw.o: $(SRC_DIR)/aDraw.c

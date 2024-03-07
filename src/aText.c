@@ -7,16 +7,16 @@
 SDL_Texture *fontTexture;
 static char drawTextBuffer[MAX_LINE_LENGTH];
 
-void aInitFont( void )
+void a_init_font( void )
 {
-  SDL_Surface* surface = aImageLoad("resources/font/font.png");
+  SDL_Surface* surface = a_image_load("resources/font/font.png");
 
   fontTexture = SDL_CreateTextureFromSurface(app.renderer, surface);
   
   SDL_FreeSurface(surface);
 }
 
-void aDrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... )
+void a_draw_text( int x, int y, int r, int g, int b, int align, int scale, char *format, ... )
 {
   int i, len, c;
   SDL_Rect rect;

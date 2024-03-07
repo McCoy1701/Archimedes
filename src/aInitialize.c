@@ -5,9 +5,9 @@
 
 #include "Archimedes.h"
 
-aApp app;
+aApp_t app;
 
-void aInit( void )
+void a_init( void )
 {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
   IMG_Init(IMG_INIT_PNG);
@@ -19,14 +19,14 @@ void aInit( void )
 
   app.surfaceHead = NULL;
 
-  aInitAudio();
+  a_init_audio();
 
-  aInitFont();
+  a_init_font();
 
   srand(time(NULL));
 }
 
-void aQuit( void )
+void a_quit( void )
 {
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );

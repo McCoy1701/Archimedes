@@ -26,48 +26,54 @@
 ---------------------------------------------------------------
 */
 
-typedef struct _aTriangle
+typedef struct _aTriangle_t
 {
   dVec3_t points[3];
-} aTriangle;
+} aTriangle_t;
 
-typedef struct _aMesh
+typedef struct _aMesh_t
 {
-  aTriangle triangles[12];
-} aMesh;
+  aTriangle_t triangles[12];
+} aMesh_t;
 
-typedef struct _aColor
+typedef struct _aColor_t
 {
   Uint8 r;
   Uint8 g;
   Uint8 b;
   Uint8 a;
-} aColor;
+} aColor_t;
 
-typedef struct _aDelegate
+typedef struct _aDeltaTime_t
+{
+  unsigned int lastTime;
+  unsigned int currentTime;
+} aDeltaTime_t;
+
+typedef struct _aDelegate_t
 {
   void (*logic)(void);
   void (*draw)(void);
-} aDelegate;
+} aDelegate_t;
 
-typedef struct _aApp
+typedef struct _aApp_t
 {
   SDL_Window* window;
   SDL_Renderer* renderer;
   SDL_AudioDeviceID deviceID;
-  aDelegate delegate;
+  aDelegate_t delegate;
   int keyboard[MAX_KEYBOARD_KEYS];
-  dDeltaTime_t time;
+  aDeltaTime_t time;
   dLinkedList_t* surfaceHead;
-} aApp;
+} aApp_t;
 
-typedef struct _aAudioClip
+typedef struct _aAudioClip_t
 {
   char filename[MAX_FILENAME_LENGTH];
   SDL_AudioSpec spec;
   uint32_t length;
   uint8_t* buffer;
-} aAudioClip;
+} aAudioClip_t;
 
 /*
 ---------------------------------------------------------------
@@ -75,9 +81,9 @@ typedef struct _aAudioClip
 ---------------------------------------------------------------
 */
 
-extern void aInitAudio( void );
-extern void aLoadSounds(char *filename, aAudioClip *clip);
-extern void aPlaySoundEffect(aAudioClip *clip);
+extern void a_init_audio( void );
+extern void a_load_sounds(char *filename, aAudioClip_t *clip);
+extern void a_play_sound_effect(aAudioClip_t *clip);
 
 /*
 ---------------------------------------------------------------
@@ -85,29 +91,37 @@ extern void aPlaySoundEffect(aAudioClip *clip);
 ---------------------------------------------------------------
 */
 
-extern aColor black;
-extern aColor blue;
-extern aColor green;
-extern aColor cyan;
-extern aColor red;
-extern aColor magenta;
-extern aColor yellow;
-extern aColor white;
-extern aColor shit0;
-extern aColor shit1;
-extern aColor shit2;
-extern aColor shit3;
+extern aColor_t black;
+extern aColor_t blue;
+extern aColor_t green;
+extern aColor_t cyan;
+extern aColor_t red;
+extern aColor_t magenta;
+extern aColor_t yellow;
+extern aColor_t white;
+extern aColor_t shit0;
+extern aColor_t shit1;
+extern aColor_t shit2;
+extern aColor_t shit3;
 
-extern aColor gray9;
-extern aColor gray8;
-extern aColor gray7;
-extern aColor gray6;
-extern aColor gray5;
-extern aColor gray4;
-extern aColor gray3;
-extern aColor gray2;
-extern aColor gray1;
-extern aColor gray0;
+extern aColor_t gray9;
+extern aColor_t gray8;
+extern aColor_t gray7;
+extern aColor_t gray6;
+extern aColor_t gray5;
+extern aColor_t gray4;
+extern aColor_t gray3;
+extern aColor_t gray2;
+extern aColor_t gray1;
+extern aColor_t gray0;
+
+/*
+---------------------------------------------------------------
+---                      Delta Time                         ---
+---------------------------------------------------------------
+*/
+
+extern float a_get_delta_time( void );
 
 /*
 ---------------------------------------------------------------
@@ -115,21 +129,21 @@ extern aColor gray0;
 ---------------------------------------------------------------
 */
 
-extern void aPrepareScene( void );
-extern void aPresentScene( void );
+extern void a_prepare_scene( void );
+extern void a_present_scene( void );
 
-extern void aDrawPoint( int x, int y, aColor color );
-extern void aDrawLine( int x1, int y1, int x2, int y2, aColor color );
-extern void aDrawHoriLine( int x1, int x2, int y, aColor color );
-extern void aDrawVertLine( int y1, int y2, int x, aColor color );
-extern void aDrawCircle( int posX, int posY, int radius, aColor color );
-extern void aDrawFilledCircle( int posX, int posY, int radius, aColor color );
-extern void aDrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor color );
-extern void aFillTriangle( int x1, int y1, int x2, int y2, int x3, int y3, aColor color );
-extern void aDrawRect( SDL_Rect* src, int value );
+extern void a_draw_point( int x, int y, aColor_t color );
+extern void a_draw_line( int x1, int y1, int x2, int y2, aColor_t color );
+extern void a_draw_horizontal_line( int x1, int x2, int y, aColor_t color );
+extern void a_draw_vertical_line( int y1, int y2, int x, aColor_t color );
+extern void a_draw_circle( int posX, int posY, int radius, aColor_t color );
+extern void a_draw_filled_circle( int posX, int posY, int radius, aColor_t color );
+extern void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
+extern void a_fill_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
+extern void a_draw_rect( SDL_Rect* src, int value );
 
-extern void aBlit( SDL_Surface* surf, int x, int y );
-extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
+extern void a_blit( SDL_Surface* surf, int x, int y );
+extern void a_blit_rect( SDL_Surface* surf, SDL_Rect src, int x, int y );
 
 /*
 ---------------------------------------------------------------
@@ -137,8 +151,8 @@ extern void aBlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
 ---------------------------------------------------------------
 */
 
-extern SDL_Surface* aImageLoad( char *filename );
-extern int aScreenshot( SDL_Renderer *renderer, const char *filename );
+extern SDL_Surface* a_image_load( char *filename );
+extern int a_screenshot( SDL_Renderer *renderer, const char *filename );
 
 /*
 ---------------------------------------------------------------
@@ -146,10 +160,10 @@ extern int aScreenshot( SDL_Renderer *renderer, const char *filename );
 ---------------------------------------------------------------
 */
 
-extern aApp app;
+extern aApp_t app;
 
-extern void aInit( void );
-extern void aQuit( void );
+extern void a_init( void );
+extern void a_quit( void );
 
 
 /*
@@ -158,9 +172,9 @@ extern void aQuit( void );
 ---------------------------------------------------------------
 */
 
-extern void aDoInput( void );
-extern void aDoKeyDown( SDL_KeyboardEvent *event );
-extern void aDoKeyUp( SDL_KeyboardEvent *event );
+extern void a_do_input( void );
+extern void a_do_key_down( SDL_KeyboardEvent *event );
+extern void a_do_key_up( SDL_KeyboardEvent *event );
 
 /*
 ---------------------------------------------------------------
@@ -176,8 +190,8 @@ enum {
 
 extern SDL_Texture *fontTexture;
 
-extern void aInitFont( void );
-extern void aDrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... );
+extern void a_init_font( void );
+extern void a_draw_text( int x, int y, int r, int g, int b, int align, int scale, char *format, ... );
 
 
 #endif

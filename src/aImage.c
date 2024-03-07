@@ -4,7 +4,7 @@
 
 #include "Archimedes.h"
 
-SDL_Surface* aImageLoad( char *filename )
+SDL_Surface* a_image_load( char *filename )
 {
   SDL_Surface *surf;
 
@@ -27,7 +27,7 @@ SDL_Surface* aImageLoad( char *filename )
   return surf;
 }
 
-int aScreenshot( SDL_Renderer *renderer, const char *filename )
+int a_screenshot( SDL_Renderer *renderer, const char *filename )
 {
   SDL_Rect aViewport;
   SDL_Surface *aSurface = NULL;

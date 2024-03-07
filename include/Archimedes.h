@@ -57,8 +57,7 @@ typedef struct _aApp
   SDL_AudioDeviceID deviceID;
   aDelegate delegate;
   int keyboard[MAX_KEYBOARD_KEYS];
-  Uint32 lastTime;
-  Uint32 currentTime;
+  dDeltaTime_t time;
   dLinkedList_t* surfaceHead;
 } aApp;
 

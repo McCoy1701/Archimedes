@@ -14,8 +14,8 @@ void aInit( void )
   SDL_SetWindowTitle(app.window, "3D-Test");
   SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &app.window, &app.renderer);
   
-  app.lastTime = 0;
-  app.currentTime = 0;
+  app.time.lastTime = 0;
+  app.time.currentTime = 0;
 
   app.surfaceHead = NULL;
 

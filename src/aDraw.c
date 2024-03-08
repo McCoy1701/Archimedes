@@ -109,7 +109,7 @@ void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t c
   a_draw_line(x2, y2, x0, y0, color);
 }
 
-void a_fill_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
+void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
 {
   int maxX = MAX(x0, MAX(x1, x2));
   int minX = MIN(x0, MIN(x1, x2));

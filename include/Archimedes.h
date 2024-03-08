@@ -26,16 +26,6 @@
 ---------------------------------------------------------------
 */
 
-typedef struct _aTriangle_t
-{
-  dVec3_t points[3];
-} aTriangle_t;
-
-typedef struct _aMesh_t
-{
-  aTriangle_t triangles[12];
-} aMesh_t;
-
 typedef struct _aColor_t
 {
   Uint8 r;
@@ -43,6 +33,17 @@ typedef struct _aColor_t
   Uint8 b;
   Uint8 a;
 } aColor_t;
+
+typedef struct _aTriangle_t
+{
+  dVec3_t points[3];
+  aColor_t color;
+} aTriangle_t;
+
+typedef struct _aMesh_t
+{
+  aTriangle_t triangles[12];
+} aMesh_t;
 
 typedef struct _aDeltaTime_t
 {

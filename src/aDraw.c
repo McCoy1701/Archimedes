@@ -5,7 +5,7 @@
 
 void a_prepare_scene( void )
 {
-  SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255);
+  SDL_SetRenderDrawColor(app.renderer, app.background.r, app.background.g, app.background.b, app.background.a);
   SDL_RenderClear(app.renderer);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
   a_do_input();

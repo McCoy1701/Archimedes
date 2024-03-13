@@ -67,6 +67,7 @@ typedef struct _aApp_t
   int keyboard[MAX_KEYBOARD_KEYS];
   aDeltaTime_t time;
   dLinkedList_t* surfaceHead;
+  aColor_t background;
 } aApp_t;
 
 typedef struct _aAudioClip_t

@@ -42,7 +42,8 @@ typedef struct _aTriangle_t
 
 typedef struct _aMesh_t
 {
-  aTriangle_t triangles[12];
+  aTriangle_t *triangles;
+  int numberOfTriangles;
 } aMesh_t;
 
 typedef struct _aDeltaTime_t

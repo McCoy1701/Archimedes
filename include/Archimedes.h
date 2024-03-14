@@ -54,8 +54,8 @@ typedef struct _aDeltaTime_t
 
 typedef struct _aDelegate_t
 {
-  void (*logic)(void);
-  void (*draw)(void);
+  void (*logic)( float elapsedTime );
+  void (*draw)( float elapsedTime );
 } aDelegate_t;
 
 typedef struct _aApp_t

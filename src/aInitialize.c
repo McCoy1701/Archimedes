@@ -19,6 +19,8 @@ void a_init( void )
 
   app.surfaceHead = NULL;
 
+  app.running = 1;
+
   a_init_audio();
 
   a_init_font();
@@ -28,6 +30,7 @@ void a_init( void )
 
 void a_quit( void )
 {
+  if ( app.delegate.onExit ) app.delegate.onExit();
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );
   d_clear_linked_list( app.surfaceHead );

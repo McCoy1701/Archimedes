@@ -56,6 +56,7 @@ typedef struct _aDelegate_t
 {
   void (*logic)( float elapsedTime );
   void (*draw)( float elapsedTime );
+  void (*onExit)( void );
 } aDelegate_t;
 
 typedef struct _aApp_t
@@ -64,10 +65,11 @@ typedef struct _aApp_t
   SDL_Renderer* renderer;
   SDL_AudioDeviceID deviceID;
   aDelegate_t delegate;
-  int keyboard[MAX_KEYBOARD_KEYS];
   aDeltaTime_t time;
-  dLinkedList_t* surfaceHead;
   aColor_t background;
+  dLinkedList_t* surfaceHead;
+  int keyboard[MAX_KEYBOARD_KEYS];
+  int running;
 } aApp_t;
 
 typedef struct _aAudioClip_t

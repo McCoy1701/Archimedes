@@ -145,7 +145,9 @@ extern void a_draw_circle( int posX, int posY, int radius, aColor_t color );
 extern void a_draw_filled_circle( int posX, int posY, int radius, aColor_t color );
 extern void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
 extern void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
-extern void a_draw_rect( SDL_Rect* src, int value );
+extern void a_draw_rect(int x, int y, int w, int h, aColor_t color );
+extern void a_draw_filled_rect( int x, int y, int w, int h, aColor_t color );
+extern void a_draw_sdl_rect( SDL_Rect* src, int value );
 
 extern void a_blit( SDL_Surface* surf, int x, int y );
 extern void a_blit_rect( SDL_Surface* surf, SDL_Rect src, int x, int y );

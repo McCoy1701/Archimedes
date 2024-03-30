@@ -135,7 +135,23 @@ void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aCo
   }
 }
 
-void a_draw_rect( SDL_Rect* src, int value )
+void a_draw_rect(int x, int y, int w, int h, aColor_t color )
+{
+  a_draw_line(x, y, x+w, y, color );
+  a_draw_line(x+w, y, x+w, y+h, color );
+  a_draw_line(x+w, y+h, x, y+h, color );
+  a_draw_line(x, y+h, x, y, color );
+}
+
+void a_draw_filled_rect( int x, int y, int w, int h, aColor_t color )
+{
+  for ( int i = x; i < x+w; i++ )
+  {
+    a_draw_vertical_line( y, y+h, i, color );
+  }
+}
+
+void a_draw_sdl_rect( SDL_Rect* src, int value )
 {
   if (!value) 
   {

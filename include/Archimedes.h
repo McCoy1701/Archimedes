@@ -14,6 +14,21 @@
 
 #define MAX_KEYBOARD_KEYS   350
 
+#define SCREEN_WIDTH_16_9_1  1600
+#define SCREEN_HEIGHT_16_9_1 900
+#define SCREEN_WIDTH_16_9_0  1280
+#define SCREEN_HEIGHT_16_9_0 720
+
+#define SCREEN_WIDTH_5_4  1280
+#define SCREEN_HEIGHT_5_4 1024
+
+#define SCREEN_WIDTH_4_3_2  1024
+#define SCREEN_HEIGHT_4_3_2 768
+#define SCREEN_WIDTH_4_3_1  800
+#define SCREEN_HEIGHT_4_3_1 600
+#define SCREEN_WIDTH_4_3_0  640
+#define SCREEN_HEIGHT_4_3_0 480
+
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
@@ -48,8 +63,13 @@ typedef struct _aMesh_t
 
 typedef struct _aDeltaTime_t
 {
+  unsigned int currentTime; //Delta time
   unsigned int lastTime;
-  unsigned int currentTime;
+
+  unsigned int frameStart; //Frame time to calculate fps
+  unsigned int frameTime; //Length of each frame
+  unsigned int lastFrameCounterClear; //This keeps count of how long it has been since the last time frames was set to 0
+  int frames; //acutal count of how many frames happen over one second
 } aDeltaTime_t;
 
 typedef struct _aDelegate_t
@@ -147,10 +167,11 @@ extern void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aCo
 extern void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
 extern void a_draw_rect(int x, int y, int w, int h, aColor_t color );
 extern void a_draw_filled_rect( int x, int y, int w, int h, aColor_t color );
-extern void a_draw_sdl_rect( SDL_Rect* src, int value );
 
 extern void a_blit( SDL_Surface* surf, int x, int y );
 extern void a_blit_rect( SDL_Surface* surf, SDL_Rect src, int x, int y );
+
+extern void a_update_title( const char *title );
 
 /*
 ---------------------------------------------------------------
@@ -169,7 +190,7 @@ extern int a_screenshot( SDL_Renderer *renderer, const char *filename );
 
 extern aApp_t app;
 
-extern void a_init( void );
+extern void a_init( const int width, const int height, const char *title );
 extern void a_quit( void );
 
 

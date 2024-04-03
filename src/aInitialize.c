@@ -7,15 +7,20 @@
 
 aApp_t app;
 
-void a_init( void )
+void a_init( const int width, const int height, const char *title )
 {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
   IMG_Init(IMG_INIT_PNG);
-  SDL_SetWindowTitle(app.window, "3D-Test");
-  SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &app.window, &app.renderer);
+  SDL_SetWindowTitle(app.window, title);
+  SDL_CreateWindowAndRenderer(width, height, 0, &app.window, &app.renderer);
   
   app.time.lastTime = 0;
   app.time.currentTime = 0;
+
+  app.time.frameStart = 0;
+  app.time.frameTime = 0;
+  app.time.lastFrameCounterClear = 0;
+  app.time.frames = 0;
 
   app.surfaceHead = NULL;
 

@@ -1,8 +1,9 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <Daedalus.h>
+
 #ifndef __ARCHIMEDES_H__
 #define __ARCHIMEDES_H__
-
-#include <SDL2/SDL.h>
-#include <Daedalus.h>
 
 /*
 ---------------------------------------------------------------
@@ -49,6 +50,25 @@ typedef struct _aColor_t
   Uint8 a;
 } aColor_t;
 
+typedef struct
+{
+  int x, y;
+  int w, h;
+  char* text;
+  SDL_Surface* text_surf;
+  SDL_Texture* text_tex;
+} Text_t;
+
+typedef struct
+{
+  int x;
+  int y;
+  uint8_t pressed;
+  uint8_t button;
+  uint8_t state;
+  uint8_t clicks;
+} Mouse_t;
+
 typedef struct _aTriangle_t
 {
   dVec3_t points[3];
@@ -89,7 +109,9 @@ typedef struct _aApp_t
   aColor_t background;
   dLinkedList_t* surfaceHead;
   int keyboard[MAX_KEYBOARD_KEYS];
+  Mouse_t mouse;
   int running;
+  TTF_Font* g_Font;
 } aApp_t;
 
 typedef struct _aAudioClip_t

@@ -27,7 +27,6 @@ void a_Init( const int width, const int height, const char *title )
   app.running = 1;
 
   a_InitAudio();
-  a_InitFont();
 
   srand(time(NULL));
 }

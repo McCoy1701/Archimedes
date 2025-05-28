@@ -4,79 +4,115 @@
 
 #include "Archimedes.h"
 
-SDL_Texture *fontTexture;
-static char drawTextBuffer[MAX_LINE_LENGTH];
-
-void a_InitFont( void )
+Text_t* a_TextConstructor( void )
 {
-  SDL_Surface* surface = a_ImageLoad("resources/font/font.png");
+  Text_t* new_text = ( Text_t* )malloc( sizeof( Text_t ) );
+  if ( new_text == NULL )
+  {
+    printf("Failed to allocate memory for text\n");
+    return NULL;
+  }
 
-  fontTexture = SDL_CreateTextureFromSurface(app.renderer, surface);
-  
-  SDL_FreeSurface(surface);
+  new_text->text      = NULL;
+  new_text->text_tex  = NULL;
+  new_text->text_surf = NULL;
+
+  new_text->x = 0;
+  new_text->y = 0;
+  new_text->w = 0;
+  new_text->h = 0;
+
+  return new_text;
 }
 
-void a_DrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... )
+void a_TextDestructor( Text_t* text )
 {
-  int i, len, c;
-  SDL_Rect rect;
-  SDL_Rect dest;
-  va_list args;
-
-  memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
-
-  va_start(args, format);
-  vsprintf(drawTextBuffer, format, args);
-  va_end(args);
-
-  len = strlen(drawTextBuffer);
-
-  switch(align)
+  if ( text == NULL )
   {
-    case TEXT_RIGHT:
-      x -= (len * GLYPH_WIDTH);
-      break;
-      
-    case TEXT_CENTER:
-      x -= (len * GLYPH_WIDTH) / 2;
-      break;
+    return;
   }
 
-  rect.w = GLYPH_WIDTH;
-  rect.h = GLYPH_HEIGHT;
-  rect.y = 0;
-  if (scale) {
-    dest.w = GLYPH_WIDTH * 3;
-    dest.h = GLYPH_HEIGHT * 3;
-    dest.y = y;
-    dest.x = x;
-  } 
-
-  else {
-    dest.w = GLYPH_WIDTH;
-    dest.h = GLYPH_HEIGHT;
-    dest.y = y;
-    dest.x = x;
-  }
-
-  SDL_SetTextureColorMod(fontTexture, r, g, b);
-
-  for (i = 0; i < len; i++)
+  if ( text->text != NULL )
   {
-    c = drawTextBuffer[i];
-
-    if (c >= ' ' && c <= 'Z') {
-      rect.x = (c - ' ') * GLYPH_WIDTH;
-      if (!scale) {
-          SDL_RenderCopy(app.renderer, fontTexture, &rect, &dest);
-          dest.x += GLYPH_WIDTH;
-        } 
-        
-      else {
-          SDL_RenderCopy(app.renderer, fontTexture, &rect, &dest);
-          dest.x += (GLYPH_WIDTH * 3);
-      }
-    }
+    free( text->text );
   }
+
+  if ( text->text_tex != NULL )
+  {
+    SDL_DestroyTexture( text->text_tex );
+  }
+
+  if ( text->text_surf != NULL )
+  {
+    SDL_FreeSurface( text->text_surf );
+  }
+
+  if ( text != NULL )
+  {  
+    free( text );
+  }
+
+  return;
+}
+
+void a_RenderText( aApp_t* app, Text_t* text, int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
+{
+  SDL_Rect render_quad = { x, y, text->w, text->h };
+  if ( clip != NULL )
+  {
+    render_quad.w = clip->w;
+    render_quad.h = clip->h;
+  }
+
+  SDL_RenderCopyEx( app->renderer, text->text_tex, clip, &render_quad, angle, center, flip );
+}
+
+int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
+{
+  int success = 0;
+  if ( text->text_tex != NULL )
+  {
+    SDL_DestroyTexture( text->text_tex );
+    text->text_tex = NULL;
+  }
+
+  text->text_surf = TTF_RenderText_Solid( app->g_Font, string, color );
+
+  if ( text->text_surf == NULL )
+  {
+    printf( "Failed to render text: %s\n", TTF_GetError() );
+    success = 1;
+  }
+
+  text->text_tex = SDL_CreateTextureFromSurface( app->renderer, text->text_surf );
+  
+  if ( text->text_tex == NULL )
+  {
+    printf( "Failed to create texture from surface: %s\n", SDL_GetError() );
+    success = 1;
+  }
+
+  text->w = text->text_surf->w;
+  text->h = text->text_surf->h;
+
+  SDL_FreeSurface( text->text_surf );
+  text->text_surf = NULL;
+
+  if ( text->text != NULL )
+  {
+    free( text->text );
+    text->text = NULL;
+  }
+
+  text->text = ( char* )malloc( strlen( string ) + 1 );
+  if ( text->text == NULL )
+  {
+    printf( "Failed to allocate memory for text->text" );
+    success = 1;
+  }
+
+  memcpy( text->text, string, strlen( string ) + 1 );
+
+  return success;
 }
 

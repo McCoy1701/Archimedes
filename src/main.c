@@ -3,8 +3,8 @@
 
 #include "Archimedes.h"
 
-static void aDoLoop( void );
-static void aRenderLoop( void );
+static void aDoLoop( float );
+static void aRenderLoop( float );
 
 void aInitGame( void )
 {
@@ -12,9 +12,9 @@ void aInitGame( void )
   app.delegate.draw  = aRenderLoop;
 }
 
-static void aDoLoop( void )
+static void aDoLoop( float dt )
 {
-  a_do_input();
+  a_DoInput();
   
   if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
   {
@@ -22,24 +22,24 @@ static void aDoLoop( void )
   }
 }
 
-static void aRenderLoop( void )
+static void aRenderLoop( float dt )
 {
 
 }
 
 void aMainloop( void )
 {
-  a_prepare_scene();
+  a_PrepareScene();
 
-  app.delegate.logic();
-  app.delegate.draw();
+  app.delegate.logic( a_GetDeltaTime() );
+  app.delegate.draw( a_GetDeltaTime() );
   
-  a_present_scene();
+  a_PresentScene();
 }
 
 int main( void )
 {
-  a_init();
+  a_Init( SCREEN_WIDTH, SCREEN_HEIGHT, "Archimedes" );
 
   aInitGame();
 
@@ -53,7 +53,7 @@ int main( void )
     }
   #endif
 
-  a_quit();
+  a_Quit();
 
   return 0;
 }

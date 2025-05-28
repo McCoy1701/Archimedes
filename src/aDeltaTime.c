@@ -3,7 +3,7 @@
 
 #include "Archimedes.h"
 
-float a_get_delta_time( void )
+float a_GetDeltaTime( void )
 {
   app.time.lastTime = app.time.currentTime;
   app.time.currentTime = SDL_GetTicks();

@@ -7,19 +7,12 @@ INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
 
-.PHONY: all clean updateHeader install uninstall
+.PHONY: all
+all: shared
 
-
-all: native shared
-
-
-shared: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o
-	mkdir -p $(BIN_DIR)
-	$(CC) -shared $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o -lDaedalus -o $(BIN_DIR)/libArchimedes.so $(CFLAGS)
-
+shared: always $(BIN_DIR)/libArchimedes.so
 
 $(OBJ_DIR)/aAudio.o: $(SRC_DIR)/aAudio.c
-	mkdir -p $(OBJ_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
@@ -40,14 +33,13 @@ $(OBJ_DIR)/aInput.o: $(SRC_DIR)/aInput.c
 $(OBJ_DIR)/aText.o: $(SRC_DIR)/aText.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
+$(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o
+	$(CC) -shared $^ -lDaedalus -o $@ $(CFLAGS)
 
-native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
-	mkdir -p $(BIN_DIR)
-	$(CC) $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o -ggdb -lDaedalus $(CFLAGS) -o $(BIN_DIR)/$@
 
+native: always $(BIN_DIR)/native
 
 $(OBJ_DIR)/n_main.o: $(SRC_DIR)/main.c
-	mkdir -p $(OBJ_DIR)
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(OBJ_DIR)/n_aAudio.o: $(SRC_DIR)/aAudio.c
@@ -71,18 +63,38 @@ $(OBJ_DIR)/n_aInput.o: $(SRC_DIR)/aInput.c
 $(OBJ_DIR)/n_aText.o: $(SRC_DIR)/aText.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
+$(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
+	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
 
+
+.PHONY: install
 install:
 	sudo cp $(BIN_DIR)/libArchimedes.so /usr/lib/libArchimedes.so
 	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
 
+.PHONY: uninstall
 uninstall:
 	sudo rm /usr/lib/libArchimedes.so
 	sudo rm /usr/include/Archimedes.h
 
+.PHONY: updateHeader
 updateHeader:
 	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
 
+.PHONY: bear
+bear:
+	bear -- make
+
+.PHONY: bearclean
+bearclean:
+	rm compile_commands.json
+
+.PHONY: clean
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 	clear
+
+.PHONY: always
+always:
+	mkdir $(OBJ_DIR) $(BIN_DIR)
+

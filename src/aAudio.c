@@ -5,7 +5,7 @@
 
 aAudioClip_t playerSnd;
 
-void a_init_audio( void )
+void a_InitAudio( void )
 {
   //aLoadSounds("resources/soundEffects/laser1.wav", &playerSnd);
   
@@ -18,7 +18,7 @@ void a_init_audio( void )
   SDL_PauseAudioDevice(app.deviceID, 0);
 }
 
-void a_load_sounds(char *filename, aAudioClip_t *clip)
+void a_LoadSounds(char *filename, aAudioClip_t *clip)
 {
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
   
@@ -30,7 +30,7 @@ void a_load_sounds(char *filename, aAudioClip_t *clip)
   }
 }
 
-void a_play_sound_effect(aAudioClip_t *clip)
+void a_PlaySoundEffect(aAudioClip_t *clip)
 {
   int success = SDL_QueueAudio(app.deviceID, clip->buffer, clip->length);
   
@@ -39,3 +39,4 @@ void a_play_sound_effect(aAudioClip_t *clip)
     printf("couldn't play sound: %s Error: %s\n", clip->filename, SDL_GetError());
   }
 }
+

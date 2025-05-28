@@ -7,16 +7,16 @@
 SDL_Texture *fontTexture;
 static char drawTextBuffer[MAX_LINE_LENGTH];
 
-void a_init_font( void )
+void a_InitFont( void )
 {
-  SDL_Surface* surface = a_image_load("resources/font/font.png");
+  SDL_Surface* surface = a_ImageLoad("resources/font/font.png");
 
   fontTexture = SDL_CreateTextureFromSurface(app.renderer, surface);
   
   SDL_FreeSurface(surface);
 }
 
-void a_draw_text( int x, int y, int r, int g, int b, int align, int scale, char *format, ... )
+void a_DrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... )
 {
   int i, len, c;
   SDL_Rect rect;
@@ -76,8 +76,6 @@ void a_draw_text( int x, int y, int r, int g, int b, int align, int scale, char 
           SDL_RenderCopy(app.renderer, fontTexture, &rect, &dest);
           dest.x += (GLYPH_WIDTH * 3);
       }
-
-
     }
   }
 }

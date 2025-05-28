@@ -7,7 +7,7 @@
 
 aApp_t app;
 
-void a_init( const int width, const int height, const char *title )
+void a_Init( const int width, const int height, const char *title )
 {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
   IMG_Init(IMG_INIT_PNG);
@@ -26,19 +26,18 @@ void a_init( const int width, const int height, const char *title )
 
   app.running = 1;
 
-  a_init_audio();
-
-  a_init_font();
+  a_InitAudio();
+  a_InitFont();
 
   srand(time(NULL));
 }
 
-void a_quit( void )
+void a_Quit( void )
 {
   if ( app.delegate.onExit ) app.delegate.onExit();
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );
-  d_clear_linked_list( app.surfaceHead );
+  d_ClearLinkedList( app.surfaceHead );
   free( app.surfaceHead );
 	SDL_Quit();
 }

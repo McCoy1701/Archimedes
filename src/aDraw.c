@@ -3,48 +3,47 @@
 
 #include "Archimedes.h"
 
-void a_prepare_scene( void )
+void a_PrepareScene( void )
 {
   SDL_SetRenderDrawColor(app.renderer, app.background.r, app.background.g, app.background.b, app.background.a);
   SDL_RenderClear(app.renderer);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
-  a_do_input();
 }
 
-void a_present_scene( void )
+void a_PresentScene( void )
 {
   SDL_RenderPresent(app.renderer);
 }
 
-void a_draw_point( int x, int y, aColor_t color )
+void a_DrawPoint( int x, int y, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawPoint(app.renderer, x, y);
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_draw_line( int x1, int y1, int x2, int y2, aColor_t color )
+void a_DrawLine( int x1, int y1, int x2, int y2, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_draw_horizontal_line( int x1, int x2, int y, aColor_t color )
+void a_DrawHorizontalLine( int x1, int x2, int y, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_draw_vertical_line( int y1, int y2, int x, aColor_t color )
+void a_DrawVerticalLine( int y1, int y2, int x, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_draw_circle( int posX, int posY, int radius, aColor_t color )
+void a_DrawCircle( int posX, int posY, int radius, aColor_t color )
 {
   int x = 0;
   int y = radius;
@@ -75,7 +74,7 @@ void a_draw_circle( int posX, int posY, int radius, aColor_t color )
   }
 }
 
-void a_draw_filled_circle( int posX, int posY, int radius, aColor_t color )
+void a_DrawFilledCircle( int posX, int posY, int radius, aColor_t color )
 {
   int x = 0;
   int y = radius;
@@ -102,7 +101,7 @@ void a_draw_filled_circle( int posX, int posY, int radius, aColor_t color )
   }
 }
 
-void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
+void a_DrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x0, y0, x1, y1);
@@ -111,7 +110,7 @@ void a_draw_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t c
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
+void a_DrawFilledTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
 {
   int maxX = MAX(x0, MAX(x1, x2));
   int minX = MIN(x0, MIN(x1, x2));
@@ -127,8 +126,8 @@ void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aCo
     {
       dVec2_t q = {x - x0, y - y0};
 
-      float s = d_cross_product_dVec2f(q, v2) / d_cross_product_dVec2f(v1, v2);
-      float t = d_cross_product_dVec2f(v1, q) / d_cross_product_dVec2f(v1, v2);
+      float s = d_CrossProductVec2f(q, v2) / d_CrossProductVec2f(v1, v2);
+      float t = d_CrossProductVec2f(v1, q) / d_CrossProductVec2f(v1, v2);
 
       if ( (s >= 0) && (t >= 0) && (s + t <= 1)) {
         SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
@@ -138,7 +137,7 @@ void a_draw_filled_triangle( int x0, int y0, int x1, int y1, int x2, int y2, aCo
   }
 }
 
-void a_draw_rect(int x, int y, int w, int h, aColor_t color )
+void a_DrawRect(int x, int y, int w, int h, aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_Rect rect = { x, y, w, h };
@@ -146,7 +145,7 @@ void a_draw_rect(int x, int y, int w, int h, aColor_t color )
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_draw_filled_rect( int x, int y, int w, int h, aColor_t color )
+void a_DrawFilledRect( int x, int y, int w, int h, aColor_t color )
 {
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   SDL_Rect rect = { x, y, w, h };
@@ -154,7 +153,7 @@ void a_draw_filled_rect( int x, int y, int w, int h, aColor_t color )
   //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_blit( SDL_Surface* surf, int x, int y )
+void a_Blit( SDL_Surface* surf, int x, int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -176,7 +175,7 @@ void a_blit( SDL_Surface* surf, int x, int y )
   SDL_DestroyTexture(img);
 }
 
-void a_blit_rect( SDL_Surface* surf, SDL_Rect src, int x, int y )
+void a_BlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -200,7 +199,7 @@ void a_blit_rect( SDL_Surface* surf, SDL_Rect src, int x, int y )
   SDL_RenderCopy(app.renderer, img, &src, &dest);
 }
 
-void a_update_title( const char *title )
+void a_UpdateTitle( const char *title )
 {
   SDL_SetWindowTitle( app.window, title );
 }
@@ -228,3 +227,4 @@ aColor_t gray3   = { 115, 115, 115, 255 };
 aColor_t gray2   = {  95,  95,  95, 255 };
 aColor_t gray1   = {  55,  55,  55, 255 };
 aColor_t gray0   = {  35,  35,  35, 255 };
+

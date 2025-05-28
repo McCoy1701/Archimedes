@@ -4,11 +4,11 @@
 
 #include "Archimedes.h"
 
-SDL_Surface* a_image_load( char *filename )
+SDL_Surface* a_ImageLoad( char *filename )
 {
   SDL_Surface *surf;
 
-  surf = ( SDL_Surface* )d_get_data_in_linked_list_by_name( app.surfaceHead, filename );
+  surf = ( SDL_Surface* )d_GetDataInLinkedListByName( app.surfaceHead, filename );
 
   if ( surf == NULL )
   {
@@ -21,13 +21,13 @@ SDL_Surface* a_image_load( char *filename )
       return NULL;
     }
     
-    d_push_back( app.surfaceHead, surf, filename, sizeof( SDL_Surface ) );
+    d_PushBack( app.surfaceHead, surf, filename, sizeof( SDL_Surface ) );
   }
 
   return surf;
 }
 
-int a_screenshot( SDL_Renderer *renderer, const char *filename )
+int a_Screenshot( SDL_Renderer *renderer, const char *filename )
 {
   SDL_Rect aViewport;
   SDL_Surface *aSurface = NULL;
@@ -59,3 +59,4 @@ int a_screenshot( SDL_Renderer *renderer, const char *filename )
   SDL_FreeSurface( aSurface );
   return 1;
 }
+

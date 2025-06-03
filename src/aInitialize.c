@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <SDL2/SDL_image.h>
 #include <time.h>
 
 #include "Archimedes.h"
@@ -36,7 +35,6 @@ void a_Quit( void )
   if ( app.delegate.onExit ) app.delegate.onExit();
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );
-  d_ClearLinkedList( app.surfaceHead );
   free( app.surfaceHead );
 	SDL_Quit();
 }

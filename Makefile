@@ -1,8 +1,9 @@
 CC = gcc
 ECC = emcc
+EMAR = emar rcs
 CINC = -Iinclude/
 CFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lm
-EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]'
+EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 TEM_DIR=template
 SRC_DIR=src
@@ -71,37 +72,38 @@ $(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDelta
 	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
 
 
-EM: always $(INDEX_DIR)
-
-$(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
-	$(ECC) -c $< $(CINC) -o $@
+EM: always $(BIN_DIR)/Archimedes.a
 
 $(OBJ_DIR)/em_aAudio.o: $(SRC_DIR)/aAudio.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 $(OBJ_DIR)/em_aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 $(OBJ_DIR)/em_aDraw.o: $(SRC_DIR)/aDraw.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 $(OBJ_DIR)/em_aImage.o: $(SRC_DIR)/aImage.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 $(OBJ_DIR)/em_aInitialize.o: $(SRC_DIR)/aInitialize.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 $(OBJ_DIR)/em_aInput.o: $(SRC_DIR)/aInput.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 $(OBJ_DIR)/em_aText.o: $(SRC_DIR)/aText.c
-	$(ECC) -c $< $(CINC) -o $@
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 
-$(BIN_DIR)/em_native: $(OBJ_DIR)/em_main.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o
-	$(ECC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
+$(BIN_DIR)/Archimedes.a: $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o
+	$(EMAR) $@ $^
 
-$(INDEX_DIR): $(OBJ_DIR)/em_main.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o
+
+$(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
+	$(ECC) -c $< -o $@
+
+$(INDEX_DIR): $(OBJ_DIR)/em_main.o
 	mkdir -p $(INDEX_DIR)
 	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file assets -o $(INDEX_DIR)/$@.html
 

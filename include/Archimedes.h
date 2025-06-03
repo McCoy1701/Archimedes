@@ -1,6 +1,7 @@
-//#include <SDL2/SDL.h>
-//#include <SDL2/SDL_ttf.h>
-//#include <Daedalus.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #ifndef __ARCHIMEDES_H__
 #define __ARCHIMEDES_H__
@@ -33,8 +34,23 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
-#define GLYPH_WIDTH  7
-#define GLYPH_HEIGHT 9
+#ifndef __DAEDALUS_H__
+
+#define MAX_LINE_LENGTH     1024
+#define MAX_FILENAME_LENGTH 256
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+#define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
+
+#define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
+
+#define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
+
+#define PI 3.14159265
+
+#endif
 
 /*
 ---------------------------------------------------------------
@@ -42,7 +58,7 @@
 ---------------------------------------------------------------
 */
 
-typedef struct _aColor_t
+typedef struct
 {
   Uint8 r;
   Uint8 g;
@@ -69,19 +85,15 @@ typedef struct
   uint8_t clicks;
 } Mouse_t;
 
-typedef struct _aTriangle_t
+typedef struct _aImageCache_t
 {
-  dVec3_t points[3];
-  aColor_t color;
-} aTriangle_t;
+  SDL_Surface* surf;
+  int id;
+  char filename[MAX_FILENAME_LENGTH];
+  struct _aImageCache_t* next;
+} aImageCache_t;
 
-typedef struct _aMesh_t
-{
-  aTriangle_t *triangles;
-  int numberOfTriangles;
-} aMesh_t;
-
-typedef struct _aDeltaTime_t
+typedef struct
 {
   unsigned int currentTime; //Delta time
   unsigned int lastTime;
@@ -92,14 +104,14 @@ typedef struct _aDeltaTime_t
   int frames; //actual count of how many frames happen over one second
 } aDeltaTime_t;
 
-typedef struct _aDelegate_t
+typedef struct
 {
   void (*logic)( float elapsedTime );
   void (*draw)( float elapsedTime );
   void (*onExit)( void );
 } aDelegate_t;
 
-typedef struct _aApp_t
+typedef struct
 {
   SDL_Window* window;
   SDL_Renderer* renderer;
@@ -107,14 +119,14 @@ typedef struct _aApp_t
   aDelegate_t delegate;
   aDeltaTime_t time;
   aColor_t background;
-  dLinkedList_t* surfaceHead;
+  aImageCache_t* surfaceHead;
   int keyboard[MAX_KEYBOARD_KEYS];
   Mouse_t mouse;
   int running;
   TTF_Font* g_Font;
 } aApp_t;
 
-typedef struct _aAudioClip_t
+typedef struct
 {
   char filename[MAX_FILENAME_LENGTH];
   SDL_AudioSpec spec;
@@ -129,8 +141,8 @@ typedef struct _aAudioClip_t
 */
 
 extern void a_InitAudio( void );
-extern void a_LoadSounds(char *filename, aAudioClip_t *clip);
-extern void a_PlaySoundEffect(aAudioClip_t *clip);
+extern void a_LoadSounds( const char *filename, aAudioClip_t *clip );
+extern void a_PlaySoundEffect( aAudioClip_t *clip );
 
 /*
 ---------------------------------------------------------------
@@ -179,19 +191,21 @@ extern float a_GetDeltaTime( void );
 extern void a_PrepareScene( void );
 extern void a_PresentScene( void );
 
-extern void a_DrawPoint( int x, int y, aColor_t color );
-extern void a_DrawLine( int x1, int y1, int x2, int y2, aColor_t color );
-extern void a_DrawHorizontalLine( int x1, int x2, int y, aColor_t color );
-extern void a_DrawVerticalLine( int y1, int y2, int x, aColor_t color );
-extern void a_DrawCircle( int posX, int posY, int radius, aColor_t color );
-extern void a_DrawFilledCircle( int posX, int posY, int radius, aColor_t color );
-extern void a_DrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
-extern void a_DrawFilledTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color );
-extern void a_DrawRect(int x, int y, int w, int h, aColor_t color );
-extern void a_DrawFilledRect( int x, int y, int w, int h, aColor_t color );
+extern void a_DrawPoint( const int x, const int y, const aColor_t color );
+extern void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color );
+extern void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color );
+extern void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color );
+extern void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
+extern void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color );
+extern void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, const int x2,
+                            const int y2, const aColor_t color );
+extern void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
+                                  const int x2, const int y2, const aColor_t color );
+extern void a_DrawRect( const int x, const int y, const int w, const int h, const aColor_t color );
+extern void a_DrawFilledRect( const int x, const int y, const int w, const int h, const aColor_t color );
 
-extern void a_Blit( SDL_Surface* surf, int x, int y );
-extern void a_BlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y );
+extern void a_Blit( SDL_Surface* surf, const int x, const int y );
+extern void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
 
 extern void a_UpdateTitle( const char *title );
 
@@ -201,7 +215,8 @@ extern void a_UpdateTitle( const char *title );
 ---------------------------------------------------------------
 */
 
-extern SDL_Surface* a_ImageLoad( char *filename );
+extern void a_ImageInit( aApp_t* app );
+extern SDL_Surface* a_Image( const char *filename );
 extern int a_Screenshot( SDL_Renderer *renderer, const char *filename );
 
 /*
@@ -236,10 +251,13 @@ enum {
     TEXT_RIGHT
 };
 
-extern SDL_Texture *fontTexture;
+extern TTF_Font* font;
 
 extern void a_InitFont( void );
-extern void a_DrawText( int x, int y, int r, int g, int b, int align, int scale, char *format, ... );
-
+extern Text_t* a_TextConstructor( void );
+extern void a_TextDestructor( Text_t* text );
+extern void a_RenderText( aApp_t* app, Text_t* text, int x, int y, 
+                          SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip );
+extern int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color );
 
 #endif

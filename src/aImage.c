@@ -1,14 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <SDL2/SDL_image.h>
 
 #include "Archimedes.h"
 
-SDL_Surface* a_ImageLoad( char *filename )
+static void a_CacheImage( aImageCache_t* head, const SDL_Surface* surface,
+                          const char* filename, const int ID );
+static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
+static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename );
+
+void a_ImageInit( aApp_t* app )
+{
+
+}
+
+SDL_Surface* a_Image( const char *filename )
 {
   SDL_Surface *surf;
 
-  surf = ( SDL_Surface* )d_GetDataInLinkedListByName( app.surfaceHead, filename );
+  surf = a_GetImageFromCacheByFilename( app.surfaceHead, filename );
 
   if ( surf == NULL )
   {
@@ -21,10 +30,25 @@ SDL_Surface* a_ImageLoad( char *filename )
       return NULL;
     }
     
-    d_PushBack( app.surfaceHead, surf, filename, sizeof( SDL_Surface ) );
+    a_CacheImage( app.surfaceHead, surf, filename );
   }
 
   return surf;
+}
+
+static void a_CacheImage( aImageCache_t* head, const SDL_Surface* surface, const char* filename, const int ID )
+{
+
+}
+
+static SDL_Surface* a_SetImageFromCacheByID( aImageCache_t* head, const int id )
+{
+
+}
+
+static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename )
+{
+
 }
 
 int a_Screenshot( SDL_Renderer *renderer, const char *filename )

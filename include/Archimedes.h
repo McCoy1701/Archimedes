@@ -1,6 +1,6 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <Daedalus.h>
+//#include <SDL2/SDL.h>
+//#include <SDL2/SDL_ttf.h>
+//#include <Daedalus.h>
 
 #ifndef __ARCHIMEDES_H__
 #define __ARCHIMEDES_H__

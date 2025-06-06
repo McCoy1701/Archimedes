@@ -11,10 +11,12 @@ INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
 INDEX_DIR=index
+TEST_DIR=test
 
 .PHONY: all
 all: native
 
+.PHONY: shared
 shared: always $(BIN_DIR)/libArchimedes.so
 
 $(OBJ_DIR)/aAudio.o: $(SRC_DIR)/aAudio.c
@@ -41,7 +43,7 @@ $(OBJ_DIR)/aText.o: $(SRC_DIR)/aText.c
 $(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o
 	$(CC) -shared $^ -lDaedalus -o $@ $(CFLAGS)
 
-
+.PHONY: native
 native: always $(BIN_DIR)/native
 
 $(OBJ_DIR)/n_main.o: $(TEM_DIR)/main.c
@@ -71,7 +73,7 @@ $(OBJ_DIR)/n_aText.o: $(SRC_DIR)/aText.c
 $(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
 	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
 
-
+.PHONY: EM
 EM: always $(BIN_DIR)/Archimedes.a
 
 $(OBJ_DIR)/em_aAudio.o: $(SRC_DIR)/aAudio.c
@@ -106,6 +108,19 @@ $(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
 $(INDEX_DIR): $(OBJ_DIR)/em_main.o
 	mkdir -p $(INDEX_DIR)
 	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file assets -o $(INDEX_DIR)/$@.html
+
+
+.PHONY: test
+test: always $(BIN_DIR)/test
+
+$(OBJ_DIR)/t_aImage.o: $(TEST_DIR)/t_aImage.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(OBJ_DIR)/test.o: $(TEST_DIR)/test.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(BIN_DIR)/test: $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/t_aImage.o $(OBJ_DIR)/test.o
+	$(CC) $^ -ggdb $(CFLAGS) -o $@
 
 
 .PHONY: install

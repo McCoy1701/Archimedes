@@ -14,7 +14,8 @@
 
 #define FPS 60
 
-#define MAX_KEYBOARD_KEYS   350
+#define MAX_KEYBOARD_KEYS 350
+#define LOG_LEVEL_COUNT   6
 
 #define SCREEN_WIDTH_16_9_1  1600
 #define SCREEN_HEIGHT_16_9_1 900
@@ -34,21 +35,20 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
+
 #ifndef __DAEDALUS_H__
 
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
+#define PI 3.14159265
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 #define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
-
 #define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
-
 #define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
-
-#define PI 3.14159265
+#define LOG( msg ) printf( "%s | File: %s, Line: %d\n", msg, __FILE__, __LINE__ )
 
 #endif
 
@@ -57,6 +57,12 @@
 ---                         Structs                         ---
 ---------------------------------------------------------------
 */
+
+typedef struct
+{
+  char error_msg[MAX_LINE_LENGTH];
+  int  error_type;
+} aError_t;
 
 typedef struct
 {
@@ -85,12 +91,17 @@ typedef struct
   uint8_t clicks;
 } Mouse_t;
 
-typedef struct _aImageCache_t
+typedef struct _aImageCacheNode_t
 {
   SDL_Surface* surf;
-  int id;
+  int ID;
   char filename[MAX_FILENAME_LENGTH];
-  struct _aImageCache_t* next;
+  struct _aImageCacheNode_t* next;
+} aImageCacheNode_t;
+
+typedef struct
+{
+  aImageCacheNode_t* head;
 } aImageCache_t;
 
 typedef struct
@@ -119,7 +130,7 @@ typedef struct
   aDelegate_t delegate;
   aDeltaTime_t time;
   aColor_t background;
-  aImageCache_t* surfaceHead;
+  aImageCache_t* img_cache;
   int keyboard[MAX_KEYBOARD_KEYS];
   Mouse_t mouse;
   int running;
@@ -140,9 +151,93 @@ typedef struct
 ---------------------------------------------------------------
 */
 
-extern void a_InitAudio( void );
-extern void a_LoadSounds( const char *filename, aAudioClip_t *clip );
-extern void a_PlaySoundEffect( aAudioClip_t *clip );
+int a_InitAudio( void );
+void a_LoadSounds( const char *filename, aAudioClip_t *clip );
+void a_PlaySoundEffect( aAudioClip_t *clip );
+
+/*
+---------------------------------------------------------------
+---                      Delta Time                         ---
+---------------------------------------------------------------
+*/
+
+float a_GetDeltaTime( void );
+
+/*
+---------------------------------------------------------------
+---                          Draw                           ---
+---------------------------------------------------------------
+*/
+
+void a_PrepareScene( void );
+void a_PresentScene( void );
+
+void a_DrawPoint( const int x, const int y, const aColor_t color );
+void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color );
+void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color );
+void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color );
+void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
+void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color );
+void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, const int x2,
+                     const int y2, const aColor_t color );
+void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
+                           const int x2, const int y2, const aColor_t color );
+void a_DrawRect( const int x, const int y, const int w, const int h, const aColor_t color );
+void a_DrawFilledRect( const int x, const int y, const int w, const int h, const aColor_t color );
+
+void a_Blit( SDL_Surface* surf, const int x, const int y );
+void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
+
+void a_UpdateTitle( const char *title );
+
+/*
+---------------------------------------------------------------
+---                          Image                          ---
+---------------------------------------------------------------
+*/
+
+int a_InitImage( void );
+SDL_Surface* a_Image( const char *filename );
+int a_Screenshot( SDL_Renderer *renderer, const char *filename );
+
+/*
+---------------------------------------------------------------
+---                       Initialize                        ---
+---------------------------------------------------------------
+*/
+
+extern aApp_t app;
+
+int a_Init( const int width, const int height, const char *title );
+void a_Quit( void );
+
+
+/*
+---------------------------------------------------------------
+---                          Input                          ---
+---------------------------------------------------------------
+*/
+
+void a_DoInput( void );
+
+/*
+---------------------------------------------------------------
+---                          Text                           ---
+---------------------------------------------------------------
+*/
+
+enum {
+    TEXT_LEFT,
+    TEXT_CENTER,
+    TEXT_RIGHT
+};
+
+int a_InitFont( void );
+Text_t* a_TextConstructor( void );
+void a_TextDestructor( Text_t* text );
+void a_RenderText( Text_t* text, int x, int y, SDL_Rect* clip,
+                   double angle, SDL_Point* center, SDL_RendererFlip flip );
+int a_SetText( Text_t* text, const char* string, SDL_Color color );
 
 /*
 ---------------------------------------------------------------
@@ -176,88 +271,20 @@ extern aColor_t gray0;
 
 /*
 ---------------------------------------------------------------
----                      Delta Time                         ---
+---                         Errors                          ---
 ---------------------------------------------------------------
 */
 
-extern float a_GetDeltaTime( void );
+typedef enum
+{
+  NORMAL,
+  WARNING,
+  FATAL,
+  INFO,
+  DEBUG,
+  TRACE,
+} aLogLevel_t;
 
-/*
----------------------------------------------------------------
----                          Draw                           ---
----------------------------------------------------------------
-*/
-
-extern void a_PrepareScene( void );
-extern void a_PresentScene( void );
-
-extern void a_DrawPoint( const int x, const int y, const aColor_t color );
-extern void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color );
-extern void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color );
-extern void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color );
-extern void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
-extern void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color );
-extern void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, const int x2,
-                            const int y2, const aColor_t color );
-extern void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
-                                  const int x2, const int y2, const aColor_t color );
-extern void a_DrawRect( const int x, const int y, const int w, const int h, const aColor_t color );
-extern void a_DrawFilledRect( const int x, const int y, const int w, const int h, const aColor_t color );
-
-extern void a_Blit( SDL_Surface* surf, const int x, const int y );
-extern void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
-
-extern void a_UpdateTitle( const char *title );
-
-/*
----------------------------------------------------------------
----                          Image                          ---
----------------------------------------------------------------
-*/
-
-extern void a_ImageInit( aApp_t* app );
-extern SDL_Surface* a_Image( const char *filename );
-extern int a_Screenshot( SDL_Renderer *renderer, const char *filename );
-
-/*
----------------------------------------------------------------
----                       Initialize                        ---
----------------------------------------------------------------
-*/
-
-extern aApp_t app;
-
-extern void a_Init( const int width, const int height, const char *title );
-extern void a_Quit( void );
-
-
-/*
----------------------------------------------------------------
----                          Input                          ---
----------------------------------------------------------------
-*/
-
-extern void a_DoInput( void );
-
-/*
----------------------------------------------------------------
----                          Text                           ---
----------------------------------------------------------------
-*/
-
-enum {
-    TEXT_LEFT,
-    TEXT_CENTER,
-    TEXT_RIGHT
-};
-
-extern TTF_Font* font;
-
-extern void a_InitFont( void );
-extern Text_t* a_TextConstructor( void );
-extern void a_TextDestructor( Text_t* text );
-extern void a_RenderText( aApp_t* app, Text_t* text, int x, int y, 
-                          SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip );
-extern int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color );
+extern char* log_level_strings[LOG_LEVEL_COUNT];
 
 #endif

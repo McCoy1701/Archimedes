@@ -3,21 +3,34 @@
 
 #include "Archimedes.h"
 
-static void a_CacheImage( aImageCache_t* head, const SDL_Surface* surface,
+static int a_CacheImage( aImageCache_t* head, const SDL_Surface* surface,
                           const char* filename, const int ID );
 static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
 static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename );
 
-void a_ImageInit( aApp_t* app )
+int a_InitImage( void )
 {
+  app.img_cache = ( aImageCache_t* )malloc( sizeof( aImageCache_t ) );
+  if ( app.img_cache == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = FATAL;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for cache",
+              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    
+    return 1;
+  }
 
+  app.img_cache->head = NULL;
+  return 0;
 }
 
 SDL_Surface* a_Image( const char *filename )
 {
   SDL_Surface *surf;
 
-  surf = a_GetImageFromCacheByFilename( app.surfaceHead, filename );
+  surf = a_GetImageFromCacheByFilename( app.img_cache, filename );
 
   if ( surf == NULL )
   {
@@ -30,25 +43,74 @@ SDL_Surface* a_Image( const char *filename )
       return NULL;
     }
     
-    a_CacheImage( app.surfaceHead, surf, filename );
+    a_CacheImage( app.img_cache, surf, filename, 0 );
   }
 
   return surf;
 }
 
-static void a_CacheImage( aImageCache_t* head, const SDL_Surface* surface, const char* filename, const int ID )
+static int a_CacheImage( aImageCache_t* head, const SDL_Surface* surface, const char* filename, const int ID )
 {
+  aImageCacheNode_t* new_bucket = ( aImageCacheNode_t* )malloc( sizeof( aImageCacheNode_t ) );
+  if ( new_bucket == NULL )
+  {
+    printf( "Failed to allocate memory for a new bucket\n" );
+    return 1;
+  }
 
+  memcpy( new_bucket->surf, surface, sizeof( SDL_Surface ) );
+  STRNCPY( new_bucket->filename, filename, MAX_FILENAME_LENGTH );
+  new_bucket->next = NULL;
+  new_bucket->ID = ID;
+  
+  if ( head->head != NULL )
+  {
+    aImageCacheNode_t *current = head->head;
+
+    while ( current->next != NULL )
+    {
+      current = current->next;
+    }
+
+    current = new_bucket;
+  }
+
+  else
+  {
+    head->head = new_bucket;
+  }
+
+  return 0;
 }
 
-static SDL_Surface* a_SetImageFromCacheByID( aImageCache_t* head, const int id )
+static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID )
 {
+  aImageCacheNode_t* current;
 
+  for ( current = head->head; current != NULL; current = current->next )
+  { 
+    if ( current->ID == ID )
+    {
+      return current->surf;
+    }
+  }
+  
+  return NULL;
 }
 
 static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename )
 {
+  aImageCacheNode_t* current;
 
+  for ( current = head->head; current != NULL; current = current->next )
+  { 
+    if ( strcmp( current->filename, filename ) == 0 )
+    {
+      return current->surf;
+    }
+  }
+  
+  return NULL;
 }
 
 int a_Screenshot( SDL_Renderer *renderer, const char *filename )

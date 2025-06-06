@@ -6,7 +6,7 @@
 
 aApp_t app;
 
-void a_Init( const int width, const int height, const char *title )
+int a_Init( const int width, const int height, const char *title )
 {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
   IMG_Init(IMG_INIT_PNG);
@@ -21,13 +21,17 @@ void a_Init( const int width, const int height, const char *title )
   app.time.lastFrameCounterClear = 0;
   app.time.frames = 0;
 
-  app.surfaceHead = NULL;
+  app.img_cache = NULL;
 
   app.running = 1;
 
   a_InitAudio();
+  a_InitImage();
+  a_InitFont();
 
   srand(time(NULL));
+
+  return 0;
 }
 
 void a_Quit( void )
@@ -35,6 +39,18 @@ void a_Quit( void )
   if ( app.delegate.onExit ) app.delegate.onExit();
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );
-  free( app.surfaceHead );
+  free( app.img_cache );
 	SDL_Quit();
 }
+
+
+char* log_level_strings[LOG_LEVEL_COUNT] =
+{
+  "NORMAL",
+  "WARNING",
+  "FATAL",
+  "INFO",
+  "DEBUG",
+  "TRACE",
+};
+

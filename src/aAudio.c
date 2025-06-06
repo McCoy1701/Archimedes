@@ -5,7 +5,7 @@
 
 aAudioClip_t playerSnd;
 
-void a_InitAudio( void )
+int a_InitAudio( void )
 {
   //aLoadSounds("resources/soundEffects/laser1.wav", &playerSnd);
   
@@ -13,9 +13,11 @@ void a_InitAudio( void )
 
   if (app.deviceID == 0) {
     printf("failed to load device id %s\n", SDL_GetError());
+    return 1;
   }
   
   SDL_PauseAudioDevice(app.deviceID, 0);
+  return 0;
 }
 
 void a_LoadSounds( const char *filename, aAudioClip_t *clip )

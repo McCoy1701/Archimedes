@@ -3,6 +3,19 @@
 
 #include "Archimedes.h"
 
+int a_InitFont( void )
+{
+  app.g_Font = TTF_OpenFont( "resources/fonts/JetBrains.ttf", 12 );
+
+  if ( app.g_Font == NULL )
+  {
+    printf( "Failed to open font: %s\n", TTF_GetError() );
+    return 1;
+  }
+
+  return 0;
+}
+
 Text_t* a_TextConstructor( void )
 {
   Text_t* new_text = ( Text_t* )malloc( sizeof( Text_t ) );
@@ -54,7 +67,8 @@ void a_TextDestructor( Text_t* text )
   return;
 }
 
-void a_RenderText( aApp_t* app, Text_t* text, int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
+void a_RenderText( Text_t* text, int x, int y, SDL_Rect* clip, double angle,
+                   SDL_Point* center, SDL_RendererFlip flip )
 {
   SDL_Rect render_quad = { x, y, text->w, text->h };
   if ( clip != NULL )
@@ -63,10 +77,10 @@ void a_RenderText( aApp_t* app, Text_t* text, int x, int y, SDL_Rect* clip, doub
     render_quad.h = clip->h;
   }
 
-  SDL_RenderCopyEx( app->renderer, text->text_tex, clip, &render_quad, angle, center, flip );
+  SDL_RenderCopyEx( app.renderer, text->text_tex, clip, &render_quad, angle, center, flip );
 }
 
-int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
+int a_SetText( Text_t* text, const char* string, SDL_Color color )
 {
   int success = 0;
   if ( text->text_tex != NULL )
@@ -75,7 +89,7 @@ int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
     text->text_tex = NULL;
   }
 
-  text->text_surf = TTF_RenderText_Solid( app->g_Font, string, color );
+  text->text_surf = TTF_RenderText_Solid( app.g_Font, string, color );
 
   if ( text->text_surf == NULL )
   {
@@ -83,7 +97,7 @@ int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
     success = 1;
   }
 
-  text->text_tex = SDL_CreateTextureFromSurface( app->renderer, text->text_surf );
+  text->text_tex = SDL_CreateTextureFromSurface( app.renderer, text->text_surf );
   
   if ( text->text_tex == NULL )
   {

@@ -8,6 +8,8 @@
 static void aDoLoop( float );
 static void aRenderLoop( float );
 
+SDL_Surface* surf;
+
 void aInitGame( void )
 {
   app.delegate.logic = aDoLoop;
@@ -26,12 +28,17 @@ void aInitGame( void )
   
   at_LoadImageCache( test_cache );
   at_TestImageCache( test_cache );
+  surf = a_Image( "resources/assets/bullet.png" );
+  if ( surf == NULL )
+  {
+    printf( "Failed to load image\n" );
+  }
+  at_TestImageCache( app.img_cache );
 }
 
 static void aDoLoop( float dt )
 {
   a_DoInput();
-  
   if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
   {
     app.running = 0;
@@ -40,7 +47,10 @@ static void aDoLoop( float dt )
 
 static void aRenderLoop( float dt )
 {
+  int x = 100;
+  int y = 100;
 
+  a_Blit(surf, x, y);
 }
 
 void aMainloop( void )

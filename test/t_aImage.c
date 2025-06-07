@@ -11,7 +11,7 @@ aImageCacheNode_t* at_InitImageCacheNode( SDL_Surface* surf, const char* filenam
   {
     aError_t new_error;
     new_error.error_type = FATAL;
-    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for cache",
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for cache node",
               log_level_strings[new_error.error_type] );
     LOG( new_error.error_msg );
     return NULL;

@@ -3,7 +3,7 @@
 
 #include "Archimedes.h"
 
-static int a_CacheImage( aImageCache_t* head, const SDL_Surface* surface,
+static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface,
                           const char* filename, const int ID );
 static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
 static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename );
@@ -39,7 +39,12 @@ SDL_Surface* a_Image( const char *filename )
 
     if ( surf == NULL )
     {
-      printf( "Failed to load image: %s, %s\n", filename, SDL_GetError() );
+      aError_t new_error;
+      new_error.error_type = FATAL;
+      snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to load image: %s, %s",
+               log_level_strings[new_error.error_type], filename, SDL_GetError() );
+      LOG( new_error.error_msg );
+
       return NULL;
     }
     
@@ -49,24 +54,29 @@ SDL_Surface* a_Image( const char *filename )
   return surf;
 }
 
-static int a_CacheImage( aImageCache_t* head, const SDL_Surface* surface, const char* filename, const int ID )
+static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface, const char* filename, const int ID )
 {
   aImageCacheNode_t* new_bucket = ( aImageCacheNode_t* )malloc( sizeof( aImageCacheNode_t ) );
   if ( new_bucket == NULL )
   {
-    printf( "Failed to allocate memory for a new bucket\n" );
+    aError_t new_error;
+    new_error.error_type = FATAL;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for a new bucket",
+             log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+
     return 1;
   }
 
-  memcpy( new_bucket->surf, surface, sizeof( SDL_Surface ) );
+  new_bucket->surf = surface;
   STRNCPY( new_bucket->filename, filename, MAX_FILENAME_LENGTH );
-  new_bucket->next = NULL;
   new_bucket->ID = ID;
+  new_bucket->next = NULL;
   
   if ( head->head != NULL )
   {
-    aImageCacheNode_t *current = head->head;
 
+    aImageCacheNode_t *current = head->head;
     while ( current->next != NULL )
     {
       current = current->next;
@@ -124,20 +134,35 @@ int a_Screenshot( SDL_Renderer *renderer, const char *filename )
 
   if ( aSurface == NULL )
   {
-    printf( "Failed to create surface %s\n", SDL_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to create surface %s",
+             log_level_strings[new_error.error_type], SDL_GetError() );
+    LOG( new_error.error_msg );
+
     return 0;
   }
 
   if ( SDL_RenderReadPixels( renderer, NULL, aSurface->format->format, aSurface->pixels, aSurface->pitch ) != 0 )
   {
-    printf( "Failed to read pixels from renderer: %s\n", SDL_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to read pixels from renderer: %s",
+             log_level_strings[new_error.error_type], SDL_GetError() );
+    LOG( new_error.error_msg );
+    
     SDL_FreeSurface( aSurface );
     return 0;
   }
 
   if ( IMG_SavePNG( aSurface, filename ) != 0 )
   {
-    printf( "Failed to save surface as png: %s, %s", filename, SDL_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to save surface as png: %s, %s",
+             log_level_strings[new_error.error_type], filename, SDL_GetError() );
+    LOG( new_error.error_msg );
+    
     SDL_FreeSurface( aSurface );
     return 0;
   }

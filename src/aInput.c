@@ -10,13 +10,13 @@ static void a_DoMouse( SDL_MouseButtonEvent* button );
 void a_DoInput( void )
 {
   SDL_Event event;
-  
+
   while ( SDL_PollEvent( &event ) )
   {
     switch ( event.type )
     {
       case SDL_QUIT:
-        exit(0);
+        app.running = 0;
         break;
 
       case SDL_KEYDOWN:

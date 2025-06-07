@@ -2,7 +2,7 @@ CC = gcc
 ECC = emcc
 EMAR = emar rcs
 CINC = -Iinclude/
-CFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lm
+CFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm
 EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 TEM_DIR=template
@@ -73,8 +73,8 @@ $(OBJ_DIR)/n_aText.o: $(SRC_DIR)/aText.c
 $(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
 	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
 
-.PHONY: EM
-EM: always $(BIN_DIR)/Archimedes.a
+.PHONY: EMARCH
+EMARCH: always $(BIN_DIR)/Archimedes.a
 
 $(OBJ_DIR)/em_aAudio.o: $(SRC_DIR)/aAudio.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
@@ -102,12 +102,15 @@ $(BIN_DIR)/Archimedes.a: $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ
 	$(EMAR) $@ $^
 
 
-$(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
-	$(ECC) -c $< -o $@
+.PHONY: EM
+EM: always $(INDEX_DIR)/index
 
-$(INDEX_DIR): $(OBJ_DIR)/em_main.o
+$(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
+
+$(INDEX_DIR)/index: $(OBJ_DIR)/em_main.o $(BIN_DIR)/Archimedes.a
 	mkdir -p $(INDEX_DIR)
-	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file assets -o $(INDEX_DIR)/$@.html
+	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file resources/ -o $@.html
 
 
 .PHONY: test
@@ -133,6 +136,16 @@ uninstall:
 	sudo rm /usr/lib/libArchimedes.so
 	sudo rm /usr/include/Archimedes.h
 
+.PHONY: ainstall
+ainstall:
+	sudo cp $(BIN_DIR)/libArchimedes.so /usr/lib/libArchimedes.a
+	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
+
+.PHONY: auninstall
+auninstall:
+	sudo rm /usr/lib/libArchimedes.a
+	sudo rm /usr/include/Archimedes.h
+
 .PHONY: updateHeader
 updateHeader:
 	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
@@ -147,7 +160,7 @@ bearclean:
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(INDEX_DIR)
 	clear
 
 .PHONY: always

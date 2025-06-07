@@ -8,10 +8,11 @@ aApp_t app;
 
 int a_Init( const int width, const int height, const char *title )
 {
-  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
-  IMG_Init(IMG_INIT_PNG);
-  SDL_SetWindowTitle(app.window, title);
-  SDL_CreateWindowAndRenderer(width, height, 0, &app.window, &app.renderer);
+  SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER );
+  IMG_Init( IMG_INIT_PNG );
+  TTF_Init();
+  SDL_SetWindowTitle( app.window, title );
+  SDL_CreateWindowAndRenderer( width, height, 0, &app.window, &app.renderer );
   
   app.time.lastTime = 0;
   app.time.currentTime = 0;

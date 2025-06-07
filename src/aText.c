@@ -9,7 +9,11 @@ int a_InitFont( void )
 
   if ( app.g_Font == NULL )
   {
-    printf( "Failed to open font: %s\n", TTF_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to open font: %s",
+              log_level_strings[new_error.error_type], TTF_GetError() );
+    LOG( new_error.error_msg );
     return 1;
   }
 
@@ -21,7 +25,11 @@ Text_t* a_TextConstructor( void )
   Text_t* new_text = ( Text_t* )malloc( sizeof( Text_t ) );
   if ( new_text == NULL )
   {
-    printf("Failed to allocate memory for text\n");
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for text",
+              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
     return NULL;
   }
 
@@ -93,7 +101,11 @@ int a_SetText( Text_t* text, const char* string, SDL_Color color )
 
   if ( text->text_surf == NULL )
   {
-    printf( "Failed to render text: %s\n", TTF_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to render text: %s",
+              log_level_strings[new_error.error_type], TTF_GetError() );
+    LOG( new_error.error_msg );
     success = 1;
   }
 
@@ -101,7 +113,11 @@ int a_SetText( Text_t* text, const char* string, SDL_Color color )
   
   if ( text->text_tex == NULL )
   {
-    printf( "Failed to create texture from surface: %s\n", SDL_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to create texture from surface: %s",
+              log_level_strings[new_error.error_type], SDL_GetError() );
+    LOG( new_error.error_msg );
     success = 1;
   }
 
@@ -120,7 +136,11 @@ int a_SetText( Text_t* text, const char* string, SDL_Color color )
   text->text = ( char* )malloc( strlen( string ) + 1 );
   if ( text->text == NULL )
   {
-    printf( "Failed to allocate memory for text->text" );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for text->text",
+              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
     success = 1;
   }
 

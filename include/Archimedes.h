@@ -89,6 +89,7 @@ typedef struct
   uint8_t button;
   uint8_t state;
   uint8_t clicks;
+  int8_t  wheel;
 } Mouse_t;
 
 typedef struct _aImageCacheNode_t
@@ -198,6 +199,7 @@ void a_UpdateTitle( const char *title );
 
 int a_InitImage( void );
 SDL_Surface* a_Image( const char *filename );
+int a_CleanUpImageCache( aImageCache_t* head );
 int a_Screenshot( SDL_Renderer *renderer, const char *filename );
 
 /*

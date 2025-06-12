@@ -123,6 +123,46 @@ static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const ch
   return NULL;
 }
 
+int a_CleanUpImageCache( aImageCache_t* img_cache )
+{
+  if ( img_cache == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: img_cache is NULL",
+             log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    return 1;
+  }
+
+  if ( img_cache->head == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: img_cache->head is NULL",
+             log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    return 0;
+  }
+  
+  else
+  {
+    aImageCacheNode_t* current = img_cache->head;
+    aImageCacheNode_t* next = NULL;
+
+    while ( current != NULL )
+    {
+      next = current->next;
+      free( current );
+      current = next;
+    }
+  
+    img_cache->head = NULL;
+  }
+
+  return 0;
+}
+
 int a_Screenshot( SDL_Renderer *renderer, const char *filename )
 {
   SDL_Rect aViewport;

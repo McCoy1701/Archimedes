@@ -9,13 +9,14 @@ static void aDoLoop( float );
 static void aRenderLoop( float );
 
 SDL_Surface* surf;
+aImageCache_t* test_cache;
 
 void aInitGame( void )
 {
   app.delegate.logic = aDoLoop;
   app.delegate.draw  = aRenderLoop;
 
-  aImageCache_t* test_cache = ( aImageCache_t* )malloc( sizeof( aImageCache_t ) );
+  test_cache = ( aImageCache_t* )malloc( sizeof( aImageCache_t ) );
   if ( test_cache == NULL )
   {
     aError_t new_error;
@@ -73,6 +74,12 @@ int main( void )
     aMainloop();
   }
 
+  at_TestImageCache( test_cache );
+  at_TestImageCache( app.img_cache );
+  a_CleanUpImageCache( test_cache );
+  a_CleanUpImageCache( app.img_cache );
+  at_TestImageCache( test_cache );
+  at_TestImageCache( app.img_cache );
   a_Quit();
 
   return 0;

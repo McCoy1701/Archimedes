@@ -74,7 +74,7 @@ $(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDelta
 	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
 
 .PHONY: EMARCH
-EMARCH: always $(BIN_DIR)/Archimedes.a
+EMARCH: always $(BIN_DIR)/libArchimedes.a
 
 $(OBJ_DIR)/em_aAudio.o: $(SRC_DIR)/aAudio.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
@@ -98,7 +98,7 @@ $(OBJ_DIR)/em_aText.o: $(SRC_DIR)/aText.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
 
-$(BIN_DIR)/Archimedes.a: $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o
+$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o
 	$(EMAR) $@ $^
 
 
@@ -128,8 +128,8 @@ $(BIN_DIR)/test: $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aD
 
 .PHONY: install
 install:
-	sudo cp $(BIN_DIR)/libArchimedes.so /usr/lib/libArchimedes.so
-	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
+	sudo cp $(BIN_DIR)/libArchimedes.so /usr/lib/
+	sudo cp $(INC_DIR)/Archimedes.h /usr/include/
 
 .PHONY: uninstall
 uninstall:
@@ -138,8 +138,8 @@ uninstall:
 
 .PHONY: ainstall
 ainstall:
-	sudo cp $(BIN_DIR)/libArchimedes.so /usr/lib/libArchimedes.a
-	sudo cp $(INC_DIR)/Archimedes.h /usr/include/Archimedes.h
+	sudo cp $(BIN_DIR)/libArchimedes.a /usr/lib/
+	sudo cp $(INC_DIR)/Archimedes.h /usr/include/
 
 .PHONY: auninstall
 auninstall:

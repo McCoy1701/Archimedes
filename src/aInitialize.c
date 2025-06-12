@@ -13,12 +13,14 @@ int a_Init( const int width, const int height, const char *title )
   TTF_Init();
   SDL_SetWindowTitle( app.window, title );
   SDL_CreateWindowAndRenderer( width, height, 0, &app.window, &app.renderer );
-  
-  app.time.lastTime = 0;
+ 
+  app.mouse = (Mouse_t){ .x = 0, .y = 0, .state = 0, . pressed = 0, .button = 0, .wheel = 0, .clicks = 0 };
+
+  app.time.lastTime    = 0;
   app.time.currentTime = 0;
 
   app.time.frameStart = 0;
-  app.time.frameTime = 0;
+  app.time.frameTime  = 0;
   app.time.lastFrameCounterClear = 0;
   app.time.frames = 0;
 

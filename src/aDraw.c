@@ -144,7 +144,7 @@ void a_DrawRect( const int x, const int y, const int w, const int h, const aColo
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_Rect rect = { x, y, w, h };
   SDL_RenderDrawRect( app.renderer, &rect );
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
 
@@ -153,7 +153,7 @@ void a_DrawFilledRect( const int x, const int y, const int w, const int h, const
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   SDL_Rect rect = { x, y, w, h };
   SDL_RenderFillRect( app.renderer, &rect );
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
 

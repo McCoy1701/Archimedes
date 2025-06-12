@@ -64,7 +64,7 @@ int at_LoadImageCache( aImageCache_t* cache )
 int at_TestImageCache( aImageCache_t* cache )
 {
   aImageCacheNode_t* current = cache->head;
-  if ( cache == NULL )
+  if ( cache == NULL || cache->head == NULL )
   {
     printf("NULL\n");
   }

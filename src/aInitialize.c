@@ -42,6 +42,7 @@ void a_Quit( void )
   if ( app.delegate.onExit ) app.delegate.onExit();
 	SDL_DestroyRenderer( app.renderer );
 	SDL_DestroyWindow( app.window );
+  a_CleanUpImageCache( app.img_cache );
   free( app.img_cache );
 	SDL_Quit();
 }

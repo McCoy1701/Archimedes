@@ -27,7 +27,18 @@ void aInitGame( void )
 static void aDoLoop( float dt )
 {
   a_DoInput();
-  
+  if ( app.mouse.wheel == 1 )
+  {
+    printf( "scroll up\n" );
+    app.mouse.wheel = 0;
+  }
+
+  if ( app.mouse.wheel == -1 )
+  {
+    printf( "scroll down\n" );
+    app.mouse.wheel = 0;
+  }
+
   if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
   {
     app.running = 0;

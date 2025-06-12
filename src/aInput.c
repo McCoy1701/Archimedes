@@ -43,7 +43,7 @@ void a_DoInput( void )
       default:
         break;        
     }
-  }
+  } 
 }
 
 static void a_DoKeyDown( SDL_KeyboardEvent *event )

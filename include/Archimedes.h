@@ -64,6 +64,55 @@ typedef struct
   int  error_type;
 } aError_t;
 
+typedef struct _widget_t
+{
+  int type;
+  char name[MAX_FILENAME_LENGTH];
+  int x;
+  int y;
+  int w;
+  int h;
+  char label[MAX_FILENAME_LENGTH];
+  struct _widget_t* next;
+  void (*action)( void );
+  void (*data);
+} aWidget_t;
+
+typedef struct
+{
+  int num_options;
+  char** options;
+  int x;
+  int y;
+  int value;
+} aSelectWidget_t;
+
+typedef struct
+{
+  int x;
+  int y;
+  int w;
+  int h;
+  int value;
+  int step;
+  int wait_on_change;
+} aSliderWidget_t;
+
+typedef struct
+{
+  int x;
+  int y;
+  int max_length;
+  char* text;
+} aInputWidget_t;
+
+typedef struct
+{
+  int x;
+  int y;
+  int value;
+} aControlWidget_t;
+
 typedef struct
 {
   Uint8 r;
@@ -133,6 +182,7 @@ typedef struct
   aColor_t background;
   aImageCache_t* img_cache;
   int keyboard[MAX_KEYBOARD_KEYS];
+  aWidget_t* active_widget;
   Mouse_t mouse;
   int running;
   TTF_Font* g_Font;

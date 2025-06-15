@@ -1,15 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <SDL2/SDL_image.h>
 
 #include "Archimedes.h"
+
+int a_InitFont( void )
+{
+  app.g_Font = TTF_OpenFont( "resources/fonts/JetBrains.ttf", 12 );
+
+  if ( app.g_Font == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to open font: %s",
+              log_level_strings[new_error.error_type], TTF_GetError() );
+    LOG( new_error.error_msg );
+    return 1;
+  }
+
+  return 0;
+}
 
 Text_t* a_TextConstructor( void )
 {
   Text_t* new_text = ( Text_t* )malloc( sizeof( Text_t ) );
   if ( new_text == NULL )
   {
-    printf("Failed to allocate memory for text\n");
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for text",
+              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
     return NULL;
   }
 
@@ -55,7 +75,8 @@ void a_TextDestructor( Text_t* text )
   return;
 }
 
-void a_RenderText( aApp_t* app, Text_t* text, int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
+void a_RenderText( Text_t* text, int x, int y, SDL_Rect* clip, double angle,
+                   SDL_Point* center, SDL_RendererFlip flip )
 {
   SDL_Rect render_quad = { x, y, text->w, text->h };
   if ( clip != NULL )
@@ -64,10 +85,10 @@ void a_RenderText( aApp_t* app, Text_t* text, int x, int y, SDL_Rect* clip, doub
     render_quad.h = clip->h;
   }
 
-  SDL_RenderCopyEx( app->renderer, text->text_tex, clip, &render_quad, angle, center, flip );
+  SDL_RenderCopyEx( app.renderer, text->text_tex, clip, &render_quad, angle, center, flip );
 }
 
-int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
+int a_SetText( Text_t* text, const char* string, SDL_Color color )
 {
   int success = 0;
   if ( text->text_tex != NULL )
@@ -76,19 +97,27 @@ int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
     text->text_tex = NULL;
   }
 
-  text->text_surf = TTF_RenderText_Solid( app->g_Font, string, color );
+  text->text_surf = TTF_RenderText_Solid( app.g_Font, string, color );
 
   if ( text->text_surf == NULL )
   {
-    printf( "Failed to render text: %s\n", TTF_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to render text: %s",
+              log_level_strings[new_error.error_type], TTF_GetError() );
+    LOG( new_error.error_msg );
     success = 1;
   }
 
-  text->text_tex = SDL_CreateTextureFromSurface( app->renderer, text->text_surf );
+  text->text_tex = SDL_CreateTextureFromSurface( app.renderer, text->text_surf );
   
   if ( text->text_tex == NULL )
   {
-    printf( "Failed to create texture from surface: %s\n", SDL_GetError() );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to create texture from surface: %s",
+              log_level_strings[new_error.error_type], SDL_GetError() );
+    LOG( new_error.error_msg );
     success = 1;
   }
 
@@ -107,7 +136,11 @@ int a_SetText( aApp_t* app, Text_t* text, const char* string, SDL_Color color )
   text->text = ( char* )malloc( strlen( string ) + 1 );
   if ( text->text == NULL )
   {
-    printf( "Failed to allocate memory for text->text" );
+    aError_t new_error;
+    new_error.error_type = WARNING;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for text->text",
+              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
     success = 1;
   }
 

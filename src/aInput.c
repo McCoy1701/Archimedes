@@ -6,17 +6,18 @@
 static void a_DoKeyDown( SDL_KeyboardEvent *event );
 static void a_DoKeyUp( SDL_KeyboardEvent *event );
 static void a_DoMouse( SDL_MouseButtonEvent* button );
+static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel );
 
 void a_DoInput( void )
 {
   SDL_Event event;
-  
+
   while ( SDL_PollEvent( &event ) )
   {
     switch ( event.type )
     {
       case SDL_QUIT:
-        exit(0);
+        app.running = 0;
         break;
 
       case SDL_KEYDOWN:
@@ -34,11 +35,15 @@ void a_DoInput( void )
       case SDL_MOUSEBUTTONUP:
         a_DoMouse( &event.button );
         break;
+      
+      case SDL_MOUSEWHEEL:
+        a_DoMouseWheel( &event.wheel );
+        break;
 
       default:
         break;        
     }
-  }
+  } 
 }
 
 static void a_DoKeyDown( SDL_KeyboardEvent *event )
@@ -62,5 +67,10 @@ static void a_DoMouse( SDL_MouseButtonEvent* button )
   app.mouse.clicks = button->clicks;
   app.mouse.x = button->x;
   app.mouse.y = button->y;
+}
+
+static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel )
+{
+  app.mouse.wheel = wheel->y;
 }
 

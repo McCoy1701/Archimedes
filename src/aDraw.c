@@ -15,35 +15,35 @@ void a_PresentScene( void )
   SDL_RenderPresent(app.renderer);
 }
 
-void a_DrawPoint( int x, int y, aColor_t color )
+void a_DrawPoint( const int x, const int y, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawPoint(app.renderer, x, y);
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_DrawLine( int x1, int y1, int x2, int y2, aColor_t color )
+void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_DrawHorizontalLine( int x1, int x2, int y, aColor_t color )
+void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_DrawVerticalLine( int y1, int y2, int x, aColor_t color )
+void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_DrawCircle( int posX, int posY, int radius, aColor_t color )
+void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color )
 {
   int x = 0;
   int y = radius;
@@ -60,7 +60,7 @@ void a_DrawCircle( int posX, int posY, int radius, aColor_t color )
     SDL_RenderDrawPoint( app.renderer, posX + y, posY + x );
     SDL_RenderDrawPoint( app.renderer, posX - y, posY - x );
     SDL_RenderDrawPoint( app.renderer, posX - y, posY + x );
-  //  SDL_SetRenderDrawColor( app.renderer, 255, 255, 255, 255 );
+    SDL_SetRenderDrawColor( app.renderer, 255, 255, 255, 255 );
    
     if ( decision > 0 )
     {
@@ -74,7 +74,7 @@ void a_DrawCircle( int posX, int posY, int radius, aColor_t color )
   }
 }
 
-void a_DrawFilledCircle( int posX, int posY, int radius, aColor_t color )
+void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color )
 {
   int x = 0;
   int y = radius;
@@ -87,7 +87,7 @@ void a_DrawFilledCircle( int posX, int posY, int radius, aColor_t color )
     SDL_RenderDrawLine(app.renderer, posX - y, posY - x, posX + y, posY - x);
     SDL_RenderDrawLine(app.renderer, posX - y, posY + x, posX + y, posY + x);
     SDL_RenderDrawLine(app.renderer, posX - x, posY + y, posX + x, posY + y);
-//    SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 
     if ( decision > 0 )
     {
@@ -101,18 +101,20 @@ void a_DrawFilledCircle( int posX, int posY, int radius, aColor_t color )
   }
 }
 
-void a_DrawTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
+void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1,
+                     const int x2, const int y2, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x0, y0, x1, y1);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
   SDL_RenderDrawLine(app.renderer, x2, y2, x0, y0);
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_DrawFilledTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColor_t color )
+void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
+                           const int x2, const int y2, const aColor_t color )
 {
-  int maxX = MAX(x0, MAX(x1, x2));
+/*  int maxX = MAX(x0, MAX(x1, x2));
   int minX = MIN(x0, MIN(x1, x2));
   int maxY = MAX(y0, MAX(y1, y2));
   int minY = MIN(y0, MIN(y1, y2));
@@ -134,26 +136,28 @@ void a_DrawFilledTriangle( int x0, int y0, int x1, int y1, int x2, int y2, aColo
         SDL_RenderDrawPoint(app.renderer, x, y);
       }
     }
-  }
+  }*/
 }
 
-void a_DrawRect(int x, int y, int w, int h, aColor_t color )
+void a_DrawRect( const int x, const int y, const int w, const int h, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_Rect rect = { x, y, w, h };
   SDL_RenderDrawRect( app.renderer, &rect );
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_DrawFilledRect( int x, int y, int w, int h, aColor_t color )
+
+void a_DrawFilledRect( const int x, const int y, const int w, const int h, const aColor_t color )
 {
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   SDL_Rect rect = { x, y, w, h };
   SDL_RenderFillRect( app.renderer, &rect );
-  //SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
-void a_Blit( SDL_Surface* surf, int x, int y )
+
+void a_Blit( SDL_Surface* surf, const int x, const int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -175,7 +179,7 @@ void a_Blit( SDL_Surface* surf, int x, int y )
   SDL_DestroyTexture(img);
 }
 
-void a_BlitRect( SDL_Surface* surf, SDL_Rect src, int x, int y )
+void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;

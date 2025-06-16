@@ -431,7 +431,7 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 
-  s->x = w->x + 50;
+  s->x = w->x + 100;
   s->y = w->y;
 }
 
@@ -464,8 +464,11 @@ static void CreateInputWidget( aWidget_t* w, cJSON* root )
   input->max_length = cJSON_GetObjectItem( root, "max_length" )->valueint;
   input->text = malloc(  input->max_length + 1 );
 
+  STRNCPY( input->text, "Player", MAX_INPUT_LENGTH );
+
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
   input->x = w->x + w->w + 50;
+  input->y = w->y;
 }
 
 static void CreateControlWidget( aWidget_t* w, cJSON* root )
@@ -544,7 +547,7 @@ static void DrawSelectWidget( aWidget_t* w )
   a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
   sprintf( text, "< %s >", s->options[s->value] );
 
-  a_DrawText( text, s->x, s->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+  a_DrawText( text, s->x + 100, s->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
 }
 
 static void DrawSliderWidget( aWidget_t* w )
@@ -570,7 +573,7 @@ static void DrawSliderWidget( aWidget_t* w )
   a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
 
   a_DrawRect( slider->x, slider->y, slider->w, slider->h, 255, 255, 255, 255 );
-  a_DrawRect( slider->x + 2, slider->y + 2, ( slider->w - 4 ) * width, slider->h - 4, c.r, c.g, c.b, 255 );
+  a_DrawFilledRect( slider->x + 2, slider->y + 2, ( slider->w - 4 ) * width, slider->h - 4, c.r, c.g, c.b, 255 );
 }
 
 static void DrawInputWidget( aWidget_t* w )
@@ -599,7 +602,7 @@ static void DrawInputWidget( aWidget_t* w )
   if ( handle_input_widget && app.active_widget == w && ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
   {
     a_CalcTextDimensions( input->text, app.font_type, &width, &height );
-    a_DrawRect( input->x + width + 4, input->y + 14, 32, 32, 0, 255, 0, 255 );
+    a_DrawFilledRect( input->x + width + 4, input->y + 14, 32, 32, 0, 255, 0, 255 );
   }
 }
 

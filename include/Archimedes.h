@@ -249,7 +249,8 @@ void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y
                            const int x2, const int y2, const aColor_t color );
 void a_DrawRect( const int x, const int y, const int w, const int h, const int r,
                  const int g, const int b, const int a );
-void a_DrawFilledRect( const int x, const int y, const int w, const int h, const aColor_t color );
+void a_DrawFilledRect( const int x, const int y, const int w, const int h, const int r,
+                       const int g, const int b, const int a );
 
 void a_Blit( SDL_Surface* surf, const int x, const int y );
 void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );

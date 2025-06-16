@@ -3,3 +3,4 @@ resources/
 htmlTemplate/
 compile_commands.json
 .cache/
+./core

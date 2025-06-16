@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -14,7 +13,7 @@ int a_Init( const int width, const int height, const char *title )
   SDL_SetWindowTitle( app.window, title );
   SDL_CreateWindowAndRenderer( width, height, 0, &app.window, &app.renderer );
  
-  app.mouse = (Mouse_t){ .x = 0, .y = 0, .state = 0, . pressed = 0, .button = 0, .wheel = 0, .clicks = 0 };
+  app.mouse = (aMouse_t){ .x = 0, .y = 0, .state = 0, . pressed = 0, .button = 0, .wheel = 0, .clicks = 0 };
 
   app.time.lastTime    = 0;
   app.time.currentTime = 0;
@@ -30,7 +29,8 @@ int a_Init( const int width, const int height, const char *title )
 
   a_InitAudio();
   a_InitImage();
-  a_InitFont();
+  a_InitTextures();
+  a_InitFonts();
 
   srand(time(NULL));
 

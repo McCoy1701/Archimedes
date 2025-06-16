@@ -22,6 +22,10 @@ void aInitGame( void )
   {
     printf( "Failed to load image\n" );
   }
+
+  a_InitWidgets( "resources/widgets/options.json" );
+  
+  app.active_widget = a_GetWidget( "name" );
 }
 
 static void aDoLoop( float dt )
@@ -43,12 +47,18 @@ static void aDoLoop( float dt )
   {
     app.running = 0;
   }
+
+  a_DoWidget();
 }
 
 static void aRenderLoop( float dt )
 {
-  a_DrawFilledRect( 100, 100, 32, 32, blue );
+  a_DrawText("Center aligned text.", SCREEN_WIDTH / 2, 25, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0 );
+  //a_DrawText("The Quick Brown Fox Jumps Over The Lazy Dog", SCREEN_WIDTH / 2, 50, 255, 255, 255, FONT_KTM, TEXT_ALIGN_CENTER, SCREEN_WIDTH/2 );
+  a_DrawFilledRect( 100, 100, 32, 32, 0, 0, 255, 255 );
   a_Blit( surf, 200, 200 );
+
+  a_DrawWidgets();
 }
 
 void aMainloop( void )

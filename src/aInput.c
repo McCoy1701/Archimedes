@@ -40,6 +40,10 @@ void a_DoInput( void )
         a_DoMouseWheel( &event.wheel );
         break;
 
+      case SDL_TEXTINPUT:
+        STRNCPY( app.input_text, event.text.text, MAX_INPUT_LENGTH );
+        break;
+
       default:
         break;        
     }

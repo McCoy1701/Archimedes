@@ -70,7 +70,13 @@ $(OBJ_DIR)/n_aInput.o: $(SRC_DIR)/aInput.c
 $(OBJ_DIR)/n_aText.o: $(SRC_DIR)/aText.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
-$(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o
+$(OBJ_DIR)/n_aTextures.o: $(SRC_DIR)/aTextures.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(OBJ_DIR)/n_aWidgets.o: $(SRC_DIR)/aWidgets.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o
 	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
 
 .PHONY: EMARCH

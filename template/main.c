@@ -47,6 +47,8 @@ static void aDoLoop( float dt )
 
 static void aRenderLoop( float dt )
 {
+  a_DrawText("Center aligned text.", SCREEN_WIDTH / 2, 25, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0 );
+  a_DrawText("Center aligned text.", SCREEN_WIDTH / 2, 50, 255, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0 );
   a_DrawFilledRect( 100, 100, 32, 32, blue );
   a_Blit( surf, 200, 200 );
 }

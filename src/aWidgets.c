@@ -6,10 +6,11 @@
 static aWidget_t widget_head;
 static aWidget_t* widget_tail;
 
-static void LoadWidgets( char* filename );
+static void LoadWidgets( const char* filename );
 static int GetWidgetType( char* type );
 static void ChangeWidgetValue( int value );
 static void CreateWidget( cJSON* root );
+static char* ReadFile( const char* filename );
 
 static void CreateButtonWidget( aWidget_t* w, cJSON* root );
 static void CreateSelectWidget( aWidget_t* w, cJSON* root );
@@ -22,11 +23,47 @@ static void DrawSliderWidget( aWidget_t* w );
 static void DrawInputWidget( aWidget_t* w );
 static void DrawControlWidget( aWidget_t* w );
 
-static void do_Input_Widget( void );
-static void do_Control_Widget( void );
+static void DoInputWidget( void );
+static void DoControlWidget( void );
 
+static double slider_delay;
+static double cursor_blink;
+static int handle_input_widget;
+static int handle_control_widget;
 
-static void create_Widget( cJSON* root )
+void a_InitWidgets( const char* filename )
+{
+  memset( &widget_head, 0, sizeof( aWidget_t ) );
+  widget_tail = &widget_head;
+
+  LoadWidgets( filename );
+  
+  slider_delay = 0;
+  cursor_blink = 0;
+  handle_input_widget = 0;
+  handle_control_widget = 0;
+}
+
+static void LoadWidgets( const char* filename )
+{
+  cJSON* root, *node;
+  char* text;
+
+  text = ReadFile( filename );
+
+  root = cJSON_Parse( text );
+
+  for ( node = root->child; node != NULL; node = node->next )
+  {
+    CreateWidget( node );
+  }
+
+  cJSON_Delete( root );
+
+  free( text );
+}
+
+static void CreateWidget( cJSON* root )
 {
   aWidget_t* w;
   int type;
@@ -76,19 +113,19 @@ static void create_Widget( cJSON* root )
   }
 }
 
-static void CreateButtonWidget( Widget_t* w, cJSON* root )
+static void CreateButtonWidget( aWidget_t* w, cJSON* root )
 {
-  calcTextDimensions( w->label, app.font_type, &w->w, &w->h );
+  a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 }
 
-static void create_Select_Widget( Widget_t* w, cJSON* root )
+static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* options, *node;
   int i, len;
-  Select_Widget_t* s;
+  aSelectWidget_t* s;
 
-  s = malloc( sizeof( Select_Widget_t ) );
-  memset( s, 0, sizeof( Select_Widget_t ) );
+  s = malloc( sizeof( aSelectWidget_t ) );
+  memset( s, 0, sizeof( aSelectWidget_t ) );
   w->data = s;
 
   options = cJSON_GetObjectItem( root, "options" );
@@ -113,47 +150,74 @@ static void create_Select_Widget( Widget_t* w, cJSON* root )
     }
   }
 
-  calc_Text_Dimensions( w->label, app.font_type, &w->w, &w->h );
+  a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 
   s->x = w->x + 50;
   s->y = w->y;
 }
 
-static void create_Slider_Widget( Widget_t* w, cJSON* root )
+static void CreateSliderWidget( aWidget_t* w, cJSON* root )
 {
-  Slider_Widget_t* s;
-  s = malloc( sizeof( Slider_Widget_t ) );
-  memset( s, 0, sizeof( Slider_Widget_t ) );
+  aSliderWidget_t* s;
+  s = malloc( sizeof( aSliderWidget_t ) );
+  memset( s, 0, sizeof( aSliderWidget_t ) );
   w->data = s;
 
   s->step = cJSON_GetObjectItem( root, "step" )->valueint;
   s->wait_on_change = cJSON_GetObjectItem( root, "wait_on_change" )->valueint;
 
-  calc_Text_Dimensions( w->label, app.font_type, &w->w, &w->h );
+  a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 }
 
-static void create_Input_Widget( Widget_t* w, cJSON* root )
+static void CreateInputWidget( aWidget_t* w, cJSON* root )
 {
-  Input_Widget_t* input;
+  aInputWidget_t* input;
 
-  input = malloc( sizeof( Input_Widget_t ) );
-  memset( input, 0, sizeof( Input_Widget_t ) );
+  input = malloc( sizeof( aInputWidget_t ) );
+  memset( input, 0, sizeof( aInputWidget_t ) );
 
   w->data = input;
 
   input->max_length = cJSON_GetObjectItem( root, "max_length" )->valueint;
   input->text = malloc(  input->max_length + 1 );
 
-  calc_Text_Dimensions( w->label, app.font_type, &w->w, &w->h );  
+  a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );  
 }
 
-static void create_Control_Widget( Widget_t* w, cJSON* root )
+static void CreateControlWidget( aWidget_t* w, cJSON* root )
 {
-  Control_Widget_t* control;
+  aControlWidget_t* control;
 
-  control = malloc( sizeof( Control_Widget_t ) );
-  memset( control, 0, sizeof( Control_Widget_t ) );
+  control = malloc( sizeof( aControlWidget_t ) );
+  memset( control, 0, sizeof( aControlWidget_t ) );
 
   w->data = control;
-  calc_Text_Dimensions( w->label, app.font_type, &w->w, &w->h );
+  a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 }
+
+static char* ReadFile( const char* filename )
+{
+  char *buffer;
+  long length;
+  FILE* file;
+
+  file = fopen( filename, "rb" );
+  if ( file == NULL )
+  {
+    printf( "Failed to read %s\n", filename );
+    return NULL;
+  }
+
+  fseek( file, 0, SEEK_END );
+  length = ftell( file );
+  fseek( file, 0, SEEK_SET );
+
+  buffer = malloc( length );
+  memset( buffer, 0, length );
+  fread( buffer, 1, length, file );
+
+  fclose( file );
+
+  return buffer;
+}
+

@@ -35,15 +35,6 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
-enum
-{
-  WT_BUTTON,
-  WT_SELECT,
-  WT_SLIDER,
-  WT_INPUT,
-  WT_CONTROL
-};
-
 #ifndef __DAEDALUS_H__
 
 #define MAX_LINE_LENGTH     1024
@@ -72,21 +63,6 @@ typedef struct
   char error_msg[MAX_LINE_LENGTH];
   int  error_type;
 } aError_t;
-
-typedef struct _widget_t
-{
-  int type;
-  char name[MAX_FILENAME_LENGTH];
-  int x;
-  int y;
-  int w;
-  int h;
-  char label[MAX_FILENAME_LENGTH];
-  struct _widget_t* next;
-  struct _widget_t* prev;
-  void (*action)( void );
-  void (*data);
-} aWidget_t;
 
 typedef struct
 {
@@ -123,6 +99,21 @@ typedef struct
   int value;
 } aControlWidget_t;
 
+typedef struct _widget_t
+{
+  int type;
+  char name[MAX_FILENAME_LENGTH];
+  int x;
+  int y;
+  int w;
+  int h;
+  char label[MAX_FILENAME_LENGTH];
+  struct _widget_t* next;
+  struct _widget_t* prev;
+  void (*action)( void );
+  void (*data);
+} aWidget_t;
+
 typedef struct
 {
   Uint8 r;
@@ -133,15 +124,6 @@ typedef struct
 
 typedef struct
 {
-  int x, y;
-  int w, h;
-  char* text;
-  SDL_Surface* text_surf;
-  SDL_Texture* text_tex;
-} Text_t;
-
-typedef struct
-{
   int x;
   int y;
   uint8_t pressed;
@@ -149,7 +131,7 @@ typedef struct
   uint8_t state;
   uint8_t clicks;
   int8_t  wheel;
-} Mouse_t;
+} aMouse_t;
 
 typedef struct _aImageCacheNode_t
 {
@@ -195,7 +177,7 @@ typedef struct
   aWidget_t* active_widget;
   double font_scale;
   int font_type;
-  Mouse_t mouse;
+  aMouse_t mouse;
   int running;
   TTF_Font* g_Font;
 } aApp_t;
@@ -207,6 +189,12 @@ typedef struct
   uint32_t length;
   uint8_t* buffer;
 } aAudioClip_t;
+
+typedef struct _textures{
+  char name[MAX_FILENAME_LENGTH];
+  SDL_Texture* texture;
+  struct _textures* next;
+} aTexture_t;
 
 /*
 ---------------------------------------------------------------
@@ -290,24 +278,50 @@ void a_DoInput( void );
 ---------------------------------------------------------------
 */
 
-enum {
-    TEXT_LEFT,
-    TEXT_CENTER,
-    TEXT_RIGHT
+enum
+{
+  FONT_ENTER_COMMAND,
+  FONT_LINUX,
+  FONT_MAX
 };
 
-int a_InitFont( void );
-Text_t* a_TextConstructor( void );
-void a_TextDestructor( Text_t* text );
-void a_RenderText( Text_t* text, int x, int y, SDL_Rect* clip,
-                   double angle, SDL_Point* center, SDL_RendererFlip flip );
-int a_SetText( Text_t* text, const char* string, SDL_Color color );
+enum
+{
+  TEXT_ALIGN_LEFT,
+  TEXT_ALIGN_CENTER,
+  TEXT_ALIGN_RIGHT
+};
+
+int a_GetWrappedTextHeight( char* text, int font_type, int max_width );
+void a_CalcTextDimensions( char* text, int font_type, int* w, int* h );
+void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width );
+SDL_Texture* a_GetTextTexture( char* text, int font_type );
+void a_InitFonts( void );
+
+/*
+---------------------------------------------------------------
+---                       Textures                          ---
+---------------------------------------------------------------
+*/
+
+SDL_Texture* a_LoadTexture( char* filename );
+SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy );
+void a_InitTextures( void );
 
 /*
 ---------------------------------------------------------------
 ---                        Widgets                          ---
 ---------------------------------------------------------------
 */
+
+enum
+{
+  WT_BUTTON,
+  WT_SELECT,
+  WT_SLIDER,
+  WT_INPUT,
+  WT_CONTROL
+};
 
 void a_DrawWidget( void );
 void a_DoWidget( void );

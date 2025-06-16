@@ -1,3 +1,4 @@
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,11 +17,12 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
 static int NextGlyph( const char* string, int* i, char* glyph_buffer );
 
 static SDL_Color white_ = {255, 255, 255, 255};
-static TTF_Font* fonts[FONT_MAX];
+//static TTF_Font* fonts[FONT_MAX];
 static SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
-static SDL_Texture* font_textures[FONT_MAX];
+//static SDL_Texture* font_textures[FONT_MAX];
 
-static char *characters = "Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
+//static char* characters = " !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¥¦§ª«¬°±²µ¶·º»¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿŒœŸſƒΆΈΉΊΌΎΏΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϕ•‼ⁿ₧€Ω←↑→↓↔↕↨∂∅∈∏∑∙√∞∟∩∫≈≡≤≥⌀⌂⌐⌠⌡⎮─│┌┐└┘├┤┬┴┼═║╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬▀▄█▌▐░▒▓■▬▲►▼◄○◘◙☺☻☼♀♂♠♣♥♦♪♫♬✓";
+static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
 
 void a_InitFonts( void )
 {
@@ -57,7 +59,7 @@ int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
 SDL_Texture* a_GetTextTexture( char* text, int font_type )
 {
   SDL_Surface* surface;
-  surface = TTF_RenderUTF8_Blended( fonts[font_type], text, white_ );
+  surface = TTF_RenderUTF8_Blended( app.fonts[font_type], text, white_ );
   
   return a_ToTexture( surface, 1 );
 }
@@ -84,8 +86,8 @@ static void initFont( char* filename, int font_type, int font_size )
 
   memset( &glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
 
-  fonts[font_type] = TTF_OpenFont( filename, font_size );
-  if( fonts[font_type] == NULL )
+  app.fonts[font_type] = TTF_OpenFont( filename, font_size );
+  if( app.fonts[font_type] == NULL )
   {
     printf( "Failed to open font %s, %s", filename, TTF_GetError() );
     exit(1);
@@ -105,9 +107,9 @@ static void initFont( char* filename, int font_type, int font_size )
       exit(1);
     }
 
-    text = TTF_RenderUTF8_Blended( fonts[font_type], glyph_buffer, white_ );
+    text = TTF_RenderUTF8_Blended( app.fonts[font_type], glyph_buffer, white_ );
 
-    TTF_SizeText( fonts[font_type], glyph_buffer, &dest.w, &dest.h );
+    TTF_SizeText( app.fonts[font_type], glyph_buffer, &dest.w, &dest.h );
 
     if ( dest.x + dest.w >= FONT_TEXTURE_SIZE )
     {
@@ -127,8 +129,8 @@ static void initFont( char* filename, int font_type, int font_size )
     SDL_FreeSurface( text );
     dest.x += dest.w;
   }
-
-  font_textures[font_type] = a_ToTexture( surface, 1 );
+  IMG_SavePNG(surface, "resources/fonts/test.png");
+  app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 
 static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width, int draw )
@@ -212,7 +214,7 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
     }
   }
 
-  SDL_SetTextureColorMod( font_textures[font_type], r, g, b );
+  SDL_SetTextureColorMod( app.font_textures[font_type], r, g, b );
 
   i = 0;
 
@@ -225,7 +227,7 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
     dest.w = glyph->w * app.font_scale;
     dest.h = glyph->h * app.font_scale;
 
-    SDL_RenderCopy( app.renderer, font_textures[font_type], glyph, &dest );
+    SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
 
     x += glyph->w * app.font_scale;
   }

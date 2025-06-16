@@ -12,7 +12,8 @@
 ---------------------------------------------------------------
 */
 
-#define FPS 60
+#define FPS 60.0
+#define LOGIC_RATE ( FPS / 1000 )
 
 #define MAX_KEYBOARD_KEYS 350
 #define LOG_LEVEL_COUNT   6
@@ -37,8 +38,11 @@
 
 #ifndef __DAEDALUS_H__
 
-#define MAX_LINE_LENGTH     1024
-#define MAX_FILENAME_LENGTH 256
+#define MAX_LINE_LENGTH        1024
+#define MAX_FILENAME_LENGTH    256
+#define MAX_NAME_LENGTH        32
+#define MAX_DESCRIPTION_LENGTH 256
+#define MAX_INPUT_LENGTH       16
 #define PI 3.14159265
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
@@ -51,6 +55,13 @@
 #define LOG( msg ) printf( "%s | File: %s, Line: %d\n", msg, __FILE__, __LINE__ )
 
 #endif
+
+enum
+{
+  FONT_ENTER_COMMAND,
+  FONT_LINUX,
+  FONT_MAX
+};
 
 /*
 ---------------------------------------------------------------
@@ -177,9 +188,12 @@ typedef struct
   aWidget_t* active_widget;
   double font_scale;
   int font_type;
+  TTF_Font* fonts[FONT_MAX];
+  SDL_Texture* font_textures[FONT_MAX];
   aMouse_t mouse;
   int running;
-  TTF_Font* g_Font;
+  char input_text[MAX_INPUT_LENGTH];
+  int last_key_pressed;
 } aApp_t;
 
 typedef struct
@@ -233,7 +247,8 @@ void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, con
                      const int y2, const aColor_t color );
 void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
                            const int x2, const int y2, const aColor_t color );
-void a_DrawRect( const int x, const int y, const int w, const int h, const aColor_t color );
+void a_DrawRect( const int x, const int y, const int w, const int h, const int r,
+                 const int g, const int b, const int a );
 void a_DrawFilledRect( const int x, const int y, const int w, const int h, const aColor_t color );
 
 void a_Blit( SDL_Surface* surf, const int x, const int y );
@@ -280,13 +295,6 @@ void a_DoInput( void );
 
 enum
 {
-  FONT_ENTER_COMMAND,
-  FONT_LINUX,
-  FONT_MAX
-};
-
-enum
-{
   TEXT_ALIGN_LEFT,
   TEXT_ALIGN_CENTER,
   TEXT_ALIGN_RIGHT
@@ -323,7 +331,7 @@ enum
   WT_CONTROL
 };
 
-void a_DrawWidget( void );
+void a_DrawWidgets( void );
 void a_DoWidget( void );
 aWidget_t* a_GetWidget( char* name );
 void a_InitWidgets( const char* filename );

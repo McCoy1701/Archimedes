@@ -35,6 +35,14 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
+enum
+{
+  WT_BUTTON,
+  WT_SELECT,
+  WT_SLIDER,
+  WT_INPUT,
+  WT_CONTROL
+};
 
 #ifndef __DAEDALUS_H__
 
@@ -45,6 +53,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+#define STRCPY( dest, src ) strncpy( dest, src, sizeof( dest ) ); dest[sizeof(dest) - 1] = '\0'
 #define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
 #define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
 #define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
@@ -74,6 +83,7 @@ typedef struct _widget_t
   int h;
   char label[MAX_FILENAME_LENGTH];
   struct _widget_t* next;
+  struct _widget_t* prev;
   void (*action)( void );
   void (*data);
 } aWidget_t;
@@ -183,6 +193,8 @@ typedef struct
   aImageCache_t* img_cache;
   int keyboard[MAX_KEYBOARD_KEYS];
   aWidget_t* active_widget;
+  double font_scale;
+  int font_type;
   Mouse_t mouse;
   int running;
   TTF_Font* g_Font;
@@ -290,6 +302,18 @@ void a_TextDestructor( Text_t* text );
 void a_RenderText( Text_t* text, int x, int y, SDL_Rect* clip,
                    double angle, SDL_Point* center, SDL_RendererFlip flip );
 int a_SetText( Text_t* text, const char* string, SDL_Color color );
+
+/*
+---------------------------------------------------------------
+---                        Widgets                          ---
+---------------------------------------------------------------
+*/
+
+void a_DrawWidget( void );
+void a_DoWidget( void );
+aWidget_t* a_GetWidget( char* name );
+void a_InitWidgets( const char* filename );
+int a_ClearWidgetCache( aWidget_t* widget );
 
 /*
 ---------------------------------------------------------------

@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <cjson/cJSON.h>
 #include "Archimedes.h"
+
+#ifndef __EMSCRIPTEN__
+#include <cjson/cJSON.h>
+#endif
+#ifdef __EMSCRIPTEN__
+#include "cJSON.h"
+#endif
 
 static aWidget_t widget_head;
 static aWidget_t* widget_tail;

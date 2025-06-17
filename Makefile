@@ -3,7 +3,7 @@ ECC = emcc
 EMAR = emar rcs
 CINC = -Iinclude/
 CFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
-EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
+EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2 
 
 TEM_DIR=template
 SRC_DIR=src
@@ -12,6 +12,7 @@ BIN_DIR=bin
 OBJ_DIR=obj
 INDEX_DIR=index
 TEST_DIR=test
+JSON_DIR=json
 
 .PHONY: all
 all: native
@@ -40,8 +41,14 @@ $(OBJ_DIR)/aInput.o: $(SRC_DIR)/aInput.c
 $(OBJ_DIR)/aText.o: $(SRC_DIR)/aText.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o
-	$(CC) -shared $^ -lDaedalus -o $@ $(CFLAGS)
+$(OBJ_DIR)/aTextures.o: $(SRC_DIR)/aTextures.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(OBJ_DIR)/aWidgets.o: $(SRC_DIR)/aWidgets.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o $(OBJ_DIR)/aTextures.o $(OBJ_DIR)/aWidgets.o
+	$(CC) -shared $^ -o $@ $(CFLAGS)
 
 .PHONY: native
 native: always $(BIN_DIR)/native
@@ -77,10 +84,13 @@ $(OBJ_DIR)/n_aWidgets.o: $(SRC_DIR)/aWidgets.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o
-	$(CC) $^ -ggdb -lDaedalus $(CFLAGS) -o $@
+	$(CC) $^ -ggdb $(CFLAGS) -o $@
 
 .PHONY: EMARCH
 EMARCH: always $(BIN_DIR)/libArchimedes.a
+
+$(OBJ_DIR)/em_cJSON.o: $(JSON_DIR)/cJSON.c
+	$(ECC) -c $< $(CINC) -o $@
 
 $(OBJ_DIR)/em_aAudio.o: $(SRC_DIR)/aAudio.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
@@ -103,8 +113,13 @@ $(OBJ_DIR)/em_aInput.o: $(SRC_DIR)/aInput.c
 $(OBJ_DIR)/em_aText.o: $(SRC_DIR)/aText.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
+$(OBJ_DIR)/em_aTextures.o: $(SRC_DIR)/aTextures.c
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
-$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o
+$(OBJ_DIR)/em_aWidgets.o: $(SRC_DIR)/aWidgets.c
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
+
+$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_cJSON.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o $(OBJ_DIR)/em_aTextures.o $(OBJ_DIR)/em_aWidgets.o
 	$(EMAR) $@ $^
 
 
@@ -114,7 +129,7 @@ EM: always $(INDEX_DIR)/index
 $(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
-$(INDEX_DIR)/index: $(OBJ_DIR)/em_main.o $(BIN_DIR)/Archimedes.a
+$(INDEX_DIR)/index: $(OBJ_DIR)/em_main.o $(BIN_DIR)/libArchimedes.a
 	mkdir -p $(INDEX_DIR)
 	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file resources/ -o $@.html
 

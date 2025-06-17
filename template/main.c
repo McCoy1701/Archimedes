@@ -27,6 +27,12 @@ void aInitGame( void )
   a_InitWidgets( "resources/widgets/options.json" );
   
   app.active_widget = a_GetWidget( "name" );
+  app.active_widget->action = test;
+}
+
+static void test( void )
+{
+  printf("Hello, Test\n");
 }
 
 static void aDoLoop( float dt )
@@ -43,13 +49,13 @@ static void aDoLoop( float dt )
     printf( "scroll down\n" );
     app.mouse.wheel = 0;
   }
+  
+  a_DoWidget();
 
   if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
   {
     app.running = 0;
   }
-
-  a_DoWidget();
 }
 
 static void aRenderLoop( float dt )

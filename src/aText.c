@@ -12,6 +12,7 @@
 #define MAX_LINE_LENGTH 1024
 
 static void initFont( char* filename, int font_type, int font_size );
+static void initFontPNG( char* filename, int font_type, int glyph_width, int glyph_height );
 static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width, int draw );
 static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int font_type, int align );
 static int NextGlyph( const char* string, int* i, char* glyph_buffer );
@@ -28,6 +29,7 @@ void a_InitFonts( void )
 {
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 48 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 32 );
+  initFontPNG( "resources/fonts/CodePage737Font.png", FONT_GAME, 9, 16 );
 
   app.font_scale = 1;
   app.font_type = FONT_ENTER_COMMAND;
@@ -75,6 +77,56 @@ void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type, i
   {
     DrawTextLine( text, x, y, r, g, b, font_type, align );
   }
+}
+
+static void initFontPNG( char* filename, int font_type, int glyph_width, int glyph_height )
+{
+  SDL_Surface* surface, *font_surf;
+  SDL_Rect dest, rect;
+  int i;
+
+  memset( &glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
+  
+  font_surf = a_Image( filename );
+  if( font_surf == NULL )
+  {
+    printf( "Failed to open font surface %s, %s", filename, SDL_GetError() );
+    exit(1);
+  }
+
+  surface = SDL_CreateRGBSurface( 0, FONT_TEXTURE_SIZE, FONT_TEXTURE_SIZE, 32, 0, 0, 0, 0xff );
+
+  SDL_SetColorKey( surface, SDL_TRUE, SDL_MapRGBA( surface->format, 0, 0, 0, 0 ) );
+
+  dest.x = dest.y = 0;
+  rect.x = rect.y = 0;
+  rect.w = dest.w = glyph_width;
+  rect.h = dest.h = glyph_height;
+  i = 0;
+
+  while ( rect.x < font_surf->w )
+  {
+    if ( dest.x + dest.w >= FONT_TEXTURE_SIZE )
+    {
+      dest.x = 0;
+      dest.y += dest.h + 1;
+      if ( dest.y + dest.h >= FONT_TEXTURE_SIZE )
+      {
+        SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_CRITICAL, "Out of glyph space in %dx%d font atlas texture map.", FONT_TEXTURE_SIZE, FONT_TEXTURE_SIZE );
+        exit(1);
+      }
+    }
+
+    SDL_BlitSurface( font_surf, &rect, surface, &dest );
+    
+    glyphs[font_type][i++] = dest;
+
+    dest.x += dest.w;
+    rect.x += rect.w;
+  }
+  SDL_FreeSurface( font_surf );
+  IMG_SavePNG( surface, "resources/fonts/test.png" );
+  app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 
 static void initFont( char* filename, int font_type, int font_size )
@@ -129,7 +181,7 @@ static void initFont( char* filename, int font_type, int font_size )
     SDL_FreeSurface( text );
     dest.x += dest.w;
   }
-  IMG_SavePNG(surface, "resources/fonts/test.png");
+  
   app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 

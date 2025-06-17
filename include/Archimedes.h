@@ -60,6 +60,7 @@ enum
 {
   FONT_ENTER_COMMAND,
   FONT_LINUX,
+  FONT_GAME,
   FONT_MAX
 };
 

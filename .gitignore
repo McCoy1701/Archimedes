@@ -4,3 +4,7 @@ htmlTemplate/
 compile_commands.json
 .cache/
 ./core
+
+#c
+bin/
+obj/

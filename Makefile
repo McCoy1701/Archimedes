@@ -3,7 +3,7 @@ ECC = emcc
 EMAR = emar rcs
 CINC = -Iinclude/
 CFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
-EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2 
+EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 TEM_DIR=template
 SRC_DIR=src
@@ -11,7 +11,6 @@ INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
 INDEX_DIR=index
-TEST_DIR=test
 JSON_DIR=json
 
 .PHONY: all
@@ -134,16 +133,13 @@ $(INDEX_DIR)/index: $(OBJ_DIR)/em_main.o $(BIN_DIR)/libArchimedes.a
 	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file resources/ -o $@.html
 
 
-.PHONY: test
-test: always $(BIN_DIR)/test
-
 $(OBJ_DIR)/t_aImage.o: $(TEST_DIR)/t_aImage.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(OBJ_DIR)/test.o: $(TEST_DIR)/test.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
-$(BIN_DIR)/test: $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/t_aImage.o $(OBJ_DIR)/test.o
+$(BIN_DIR)/test: $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o $(OBJ_DIR)/t_aImage.o $(OBJ_DIR)/test.o
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
 
 
@@ -186,5 +182,86 @@ clean:
 
 .PHONY: always
 always:
-	mkdir $(OBJ_DIR) $(BIN_DIR)
+	@mkdir -p $(OBJ_DIR) $(BIN_DIR)
+# =============================================================================
+# TESTING
+# =============================================================================
+TRUE_TEST_DIR=true_tests
+TEST_CFLAGS = -Wall -Wextra -ggdb $(CINC)
 
+# Build cJSON object for tests
+$(OBJ_DIR)/n_cJSON.o: $(JSON_DIR)/cJSON.c
+	$(CC) -c $< $(CINC) -o $@ -ggdb -Wall -Wextra -fPIC -pedantic
+
+# All required object files for input tests (including bundled cJSON)
+INPUT_TEST_OBJS = $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o $(OBJ_DIR)/n_cJSON.o
+
+# Updated library flags for tests (without system cjson)
+TEST_LIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm
+
+# Individual input test targets
+.PHONY: test-input-basic
+test-input-basic: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_input_basic $(TRUE_TEST_DIR)/input/test_input_basic.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-input-basic
+run-test-input-basic: test-input-basic
+	@./$(BIN_DIR)/test_input_basic
+
+.PHONY: test-input-advanced
+test-input-advanced: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_input_advanced $(TRUE_TEST_DIR)/input/test_input_advanced.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-input-advanced
+run-test-input-advanced: test-input-advanced
+	@./$(BIN_DIR)/test_input_advanced
+
+.PHONY: test-input-edge
+test-input-edge: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_input_edge $(TRUE_TEST_DIR)/input/test_input_edge.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-input-edge
+run-test-input-edge: test-input-edge
+	@./$(BIN_DIR)/test_input_edge
+
+.PHONY: test-input-performance
+test-input-performance: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_input_performance $(TRUE_TEST_DIR)/input/test_input_performance.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-input-performance
+run-test-input-performance: test-input-performance
+	@./$(BIN_DIR)/test_input_performance
+
+.PHONY: test-input-errors
+test-input-errors: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_input_errors $(TRUE_TEST_DIR)/input/test_input_errors.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-input-errors
+run-test-input-errors: test-input-errors
+	@./$(BIN_DIR)/test_input_errors
+
+.PHONY: test-input-integration
+test-input-integration: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_input_integration $(TRUE_TEST_DIR)/input/test_input_integration.c $(INPUT_TEST_OBJS) $(TEST_LIBS) -lm
+
+.PHONY: run-test-input-integration
+run-test-input-integration: test-input-integration
+	@./$(BIN_DIR)/test_input_integration
+
+# Test help
+.PHONY: test-help
+test-help:
+	@echo "Available test commands:"
+	@echo "  make test                              - Run all tests with global summary"
+	@echo "  make run-test-input-basic              - Run basic input tests"
+	@echo "  make run-test-input-advanced           - Run advanced input tests"
+	@echo "  make run-test-input-edge               - Run input edge case tests"
+	@echo "  make run-test-input-performance        - Run input performance tests"
+	@echo "  make run-test-input-errors             - Run input error tests"
+	@echo "  make run-test-input-integration        - Run input integration tests"
+
+# Global test runner (summary output)
+# Traditional approach (current - kept for compatibility)
+.PHONY: test
+test:
+	@./run_tests.sh

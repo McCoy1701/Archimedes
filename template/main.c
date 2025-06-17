@@ -9,6 +9,7 @@
 
 static void aDoLoop( float );
 static void aRenderLoop( float );
+static void test( void );
 
 SDL_Surface* surf;
 

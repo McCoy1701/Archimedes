@@ -118,7 +118,6 @@ void a_DoWidget( void )
 void a_DrawWidgets( void )
 {
   aWidget_t* w;
-  int h;
   for ( w = widget_head.next; w != NULL; w = w->next )
   {
     switch ( w->type )
@@ -145,13 +144,6 @@ void a_DrawWidgets( void )
 
       default:
         break;
-    }
-
-    if ( w == app.active_widget )
-    {
-      h = w->h / 2;
-
-      a_DrawRect( w->x - ( h * 2 ), w->y + ( h / 2 ), h, h, 0, 255, 0, 255 );
     }
   }
 }
@@ -351,7 +343,8 @@ static void ChangeWidgetValue( int value )
 static void CreateWidget( cJSON* root )
 {
   aWidget_t* w;
-  int type;
+  cJSON* object, *node;
+  int type, i;
 
   type = GetWidgetType( cJSON_GetObjectItem( root, "type" )->valuestring );
 
@@ -369,6 +362,20 @@ static void CreateWidget( cJSON* root )
     w->type = GetWidgetType( cJSON_GetObjectItem( root, "type" )->valuestring );
     w->x = cJSON_GetObjectItem( root, "x" )->valueint;
     w->y = cJSON_GetObjectItem( root, "y" )->valueint;
+    w->boxed = cJSON_GetObjectItem( root, "boxed" )->valueint;
+    object = cJSON_GetObjectItem( root, "fg");
+    i = 0;
+    for ( node = object->child; node != NULL; node = node->next )
+    {
+      w->fg[i++] = node->valueint;
+    }
+
+    object = cJSON_GetObjectItem( root, "bg");
+    i = 0;
+    for ( node = object->child; node != NULL; node = node->next )
+    {
+      w->bg[i++] = node->valueint;
+    }
 
     switch ( w->type )
     {
@@ -526,7 +533,14 @@ static void DrawButtonWidget( aWidget_t* w )
   
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
+  }
+  
+  if ( w->boxed == 1 )
+  {
+    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
   }
 
   a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -547,7 +561,14 @@ static void DrawSelectWidget( aWidget_t* w )
   
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
+  }
+  
+  if ( w->boxed == 1 )
+  {
+    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
   }
 
   a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -571,7 +592,14 @@ static void DrawSliderWidget( aWidget_t* w )
   }
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
+  }
+  
+  if ( w->boxed == 1 )
+  {
+    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
   }
 
   width = ( 1.0 * slider->value ) / 100;
@@ -598,7 +626,14 @@ static void DrawInputWidget( aWidget_t* w )
 
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
+  }
+  
+  if ( w->boxed == 1 )
+  {
+    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
   }
 
   a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -628,7 +663,14 @@ static void DrawControlWidget( aWidget_t* w )
 
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
+  }
+
+  if ( w->boxed == 1 )
+  {
+    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
   }
 
   a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );

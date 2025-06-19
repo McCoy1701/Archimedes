@@ -115,11 +115,12 @@ typedef struct _widget_t
 {
   int type;
   char name[MAX_FILENAME_LENGTH];
-  int x;
-  int y;
-  int w;
-  int h;
+  int x, y;
+  int w, h;
   char label[MAX_FILENAME_LENGTH];
+  int boxed;
+  uint8_t fg[4];
+  uint8_t bg[4];
   struct _widget_t* next;
   struct _widget_t* prev;
   void (*action)( void );

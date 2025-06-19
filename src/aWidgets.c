@@ -39,6 +39,8 @@ static int handle_control_widget;
 
 void a_DoWidget( void )
 {
+  aWidget_t* temp;
+
   slider_delay = MAX( slider_delay - a_GetDeltaTime(), 0 );
 
   cursor_blink += a_GetDeltaTime();
@@ -48,8 +50,26 @@ void a_DoWidget( void )
     if ( app.keyboard[SDL_SCANCODE_UP] )
     {
       app.keyboard[SDL_SCANCODE_UP] = 0;
+      if ( app.active_widget->prev->hidden == 1 )
+      {
+        temp = app.active_widget;
+        while ( temp != NULL && temp->hidden == 1 )
+        {
+          temp = temp->prev;
+        }
 
-      app.active_widget = app.active_widget->prev;
+        if ( temp != NULL )
+        {
+          app.active_widget = temp;
+
+        }
+
+      }
+
+      else
+      {
+        app.active_widget = app.active_widget->prev;
+      }
 
       if ( app.active_widget == &widget_head )
       {
@@ -60,8 +80,34 @@ void a_DoWidget( void )
     if ( app.keyboard[SDL_SCANCODE_DOWN] )
     {
       app.keyboard[SDL_SCANCODE_DOWN] = 0;
-      
-      app.active_widget = app.active_widget->next;
+
+      if ( app.active_widget->next != NULL )
+      {
+        if ( app.active_widget->next->hidden == 1 )
+        {
+          temp = app.active_widget;
+          while ( temp != NULL && temp->hidden == 1 )
+          {
+            temp = temp->next;
+          }
+
+          if ( temp != NULL )
+          {
+            app.active_widget = temp;
+
+          }
+        }
+  
+        else
+        {
+          app.active_widget = app.active_widget->next;
+        }
+      }
+  
+      else
+      {
+        app.active_widget = widget_head.next;
+      }
 
       if ( app.active_widget == NULL )
       {
@@ -363,6 +409,7 @@ static void CreateWidget( cJSON* root )
     w->x = cJSON_GetObjectItem( root, "x" )->valueint;
     w->y = cJSON_GetObjectItem( root, "y" )->valueint;
     w->boxed = cJSON_GetObjectItem( root, "boxed" )->valueint;
+    w->hidden = cJSON_GetObjectItem( root, "hidden" )->valueint;
     object = cJSON_GetObjectItem( root, "fg");
     i = 0;
     for ( node = object->child; node != NULL; node = node->next )
@@ -538,12 +585,15 @@ static void DrawButtonWidget( aWidget_t* w )
     c.b = w->fg[2];
   }
   
-  if ( w->boxed == 1 )
+  if ( w->hidden != 1 )
   {
-    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
-  }
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
 
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+  }
 }
 
 static void DrawSelectWidget( aWidget_t* w )
@@ -565,16 +615,19 @@ static void DrawSelectWidget( aWidget_t* w )
     c.g = w->fg[1];
     c.b = w->fg[2];
   }
-  
-  if ( w->boxed == 1 )
+
+  if ( w->hidden != 1 )
   {
-    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    sprintf( text, "< %s >", s->options[s->value] );
+
+    a_DrawText( text, s->x + 100, s->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
   }
-
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-  sprintf( text, "< %s >", s->options[s->value] );
-
-  a_DrawText( text, s->x + 100, s->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
 }
 
 static void DrawSliderWidget( aWidget_t* w )
@@ -597,17 +650,21 @@ static void DrawSliderWidget( aWidget_t* w )
     c.b = w->fg[2];
   }
   
-  if ( w->boxed == 1 )
+  if ( w->hidden != 1 )
   {
-    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    width = ( 1.0 * slider->value ) / 100;
+
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    a_DrawRect( slider->x, slider->y, slider->w, slider->h, 255, 255, 255, 255 );
+    a_DrawFilledRect( slider->x + 2, slider->y + 2, ( slider->w - 4 ) * width, slider->h - 4, c.r, c.g, c.b, 255 );
   }
 
-  width = ( 1.0 * slider->value ) / 100;
-
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-
-  a_DrawRect( slider->x, slider->y, slider->w, slider->h, 255, 255, 255, 255 );
-  a_DrawFilledRect( slider->x + 2, slider->y + 2, ( slider->w - 4 ) * width, slider->h - 4, c.r, c.g, c.b, 255 );
 }
 
 static void DrawInputWidget( aWidget_t* w )
@@ -631,19 +688,22 @@ static void DrawInputWidget( aWidget_t* w )
     c.b = w->fg[2];
   }
   
-  if ( w->boxed == 1 )
+  if ( w->hidden != 1 )
   {
-    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
-  }
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
 
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-  
-  a_DrawText( input->text, input->x, input->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
 
-  if ( handle_input_widget && app.active_widget == w && ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
-  {
-    a_CalcTextDimensions( input->text, app.font_type, &width, &height );
-    a_DrawFilledRect( input->x + width + 4, input->y + 14, 32, 32, 0, 255, 0, 255 );
+    a_DrawText( input->text, input->x, input->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    if ( handle_input_widget && app.active_widget == w && ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
+    {
+      a_CalcTextDimensions( input->text, app.font_type, &width, &height );
+      a_DrawFilledRect( input->x + width + 4, input->y + 14, 32, 32, 0, 255, 0, 255 );
+    }
   }
 }
 
@@ -668,22 +728,25 @@ static void DrawControlWidget( aWidget_t* w )
     c.b = w->fg[2];
   }
 
-  if ( w->boxed == 1 )
+  if ( w->hidden != 1 )
   {
-    a_DrawFilledRect( w->x, w->y, w->w, w->h, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
-  }
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
 
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
 
-  if ( handle_control_widget && app.active_widget == w )
-  {
-    a_DrawText( "...", control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-  }
+    if ( handle_control_widget && app.active_widget == w )
+    {
+      a_DrawText( "...", control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    }
 
-  else
-  {
-    sprintf( text, "%s", SDL_GetScancodeName( control->value ) );
-    a_DrawText( text, control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    else
+    {
+      sprintf( text, "%s", SDL_GetScancodeName( control->value ) );
+      a_DrawText( text, control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    }
   }
 }
 

@@ -119,6 +119,7 @@ typedef struct _widget_t
   int w, h;
   char label[MAX_FILENAME_LENGTH];
   int boxed;
+  int hidden;
   uint8_t fg[4];
   uint8_t bg[4];
   struct _widget_t* next;

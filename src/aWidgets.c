@@ -47,6 +47,38 @@ void a_DoWidget( void )
 
   if ( !handle_input_widget && !handle_control_widget )
   {
+    if ( app.mouse.button == 1 )  //left mouse click
+    {
+      app.mouse.button = 0;
+      aWidget_t* current = &widget_head;
+      while ( current != NULL )
+      {
+        if ( current->hidden == 0)
+        {
+          if ( app.mouse.x >= current->x && app.mouse.y >= current->y &&
+            app.mouse.x <= ( current->x + current->w ) && app.mouse.y <= ( current->y + current->h ) )
+          {
+            if ( current->action != NULL )
+            {
+              current->action();
+            }
+            
+            if( app.active_widget->type == WT_SELECT )
+            {
+              ChangeWidgetValue( 1 );
+
+            }
+
+            app.active_widget = current;
+            break;
+          }
+
+        }
+
+        current = current->next;
+      }
+    }
+
     if ( app.keyboard[SDL_SCANCODE_UP] )
     {
       app.keyboard[SDL_SCANCODE_UP] = 0;

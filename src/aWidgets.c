@@ -23,11 +23,13 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root );
 static void CreateSliderWidget( aWidget_t* w, cJSON* root );
 static void CreateInputWidget( aWidget_t* w, cJSON* root );
 static void CreateControlWidget( aWidget_t* w, cJSON* root );
+static void CreateContainerWidget( aWidget_t* w, cJSON* root );
 static void DrawButtonWidget( aWidget_t* w );
 static void DrawSelectWidget( aWidget_t* w );
 static void DrawSliderWidget( aWidget_t* w );
 static void DrawInputWidget( aWidget_t* w );
 static void DrawControlWidget( aWidget_t* w );
+static void DrawContainerWidget( aWidget_t* w );
 
 static void DoInputWidget( void );
 static void DoControlWidget( void );
@@ -51,30 +53,54 @@ void a_DoWidget( void )
     {
       app.mouse.button = 0;
       aWidget_t* current = &widget_head;
+      
       while ( current != NULL )
       {
-        if ( current->hidden == 0)
+        if ( current->hidden == 0 )
         {
           if ( app.mouse.x >= current->x && app.mouse.y >= current->y &&
-            app.mouse.x <= ( current->x + current->w ) && app.mouse.y <= ( current->y + current->h ) )
+            app.mouse.x <= ( current->x + current->w ) && 
+            app.mouse.y <= ( current->y + current->h ) )
           {
-            if ( current->action != NULL )
-            {
-              current->action();
-            }
             
-            if( app.active_widget->type == WT_SELECT )
+            if ( current->type == WT_CONTAINER )
             {
-              ChangeWidgetValue( 1 );
+              aContainerWidget_t* container = ( aContainerWidget_t* )current->data;
+
+              for ( int i = 0; i < container->num_components; i++ )
+              {
+                aWidget_t* component = &container->components[i];
+
+                if ( component->hidden == 0 )
+                {
+                  if ( app.mouse.x >= component->x && app.mouse.y >= component->y &&
+                       app.mouse.x <= ( component->x + component->w ) &&
+                       app.mouse.y <= ( component->y + component->h ) )
+                  {
+                    if ( component->action != NULL )
+                    {
+                      component->action();
+                    }
+                    app.active_widget = component;
+                    return;
+                  }
+                }
+              }
 
             }
-
-            app.active_widget = current;
-            break;
+ 
+            else
+            {
+              if ( current->action != NULL )
+              {
+                current->action();
+              }
+              app.active_widget = current;
+              return;
+            }
           }
-
         }
-
+      
         current = current->next;
       }
     }
@@ -85,7 +111,7 @@ void a_DoWidget( void )
       if ( app.active_widget->prev->hidden == 1 )
       {
         temp = app.active_widget;
-        while ( temp != NULL && temp->hidden == 1 )
+        while ( temp != NULL && temp->hidden != 1 )
         {
           temp = temp->prev;
         }
@@ -118,7 +144,7 @@ void a_DoWidget( void )
         if ( app.active_widget->next->hidden == 1 )
         {
           temp = app.active_widget;
-          while ( temp != NULL && temp->hidden == 1 )
+          while ( temp != NULL && temp->hidden != 1 )
           {
             temp = temp->next;
           }
@@ -219,6 +245,10 @@ void a_DrawWidgets( void )
       case WT_CONTROL:
         DrawControlWidget( w );
         break;
+      
+      case WT_CONTAINER:
+        DrawContainerWidget( w );
+        break;
 
       default:
         break;
@@ -300,6 +330,11 @@ static int GetWidgetType( char* type )
   if ( strcmp( type, "WT_CONTROL" ) == 0 )
   {
     return WT_CONTROL;
+  }
+  
+  if ( strcmp( type, "WT_CONTAINER" ) == 0 )
+  {
+    return WT_CONTAINER;
   }
 
   SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN, "unknown widget type: '%s'", type );
@@ -442,6 +477,8 @@ static void CreateWidget( cJSON* root )
     w->y = cJSON_GetObjectItem( root, "y" )->valueint;
     w->boxed = cJSON_GetObjectItem( root, "boxed" )->valueint;
     w->hidden = cJSON_GetObjectItem( root, "hidden" )->valueint;
+    w->padding = cJSON_GetObjectItem( root, "padding" )->valueint;
+
     object = cJSON_GetObjectItem( root, "fg");
     i = 0;
     for ( node = object->child; node != NULL; node = node->next )
@@ -476,6 +513,10 @@ static void CreateWidget( cJSON* root )
       
       case WT_CONTROL:
         CreateControlWidget( w, root );
+        break;
+      
+      case WT_CONTAINER:
+        CreateContainerWidget( w, root );
         break;
 
       default:
@@ -572,6 +613,67 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
 
   w->data = control;
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
+}
+
+static void CreateContainerWidget( aWidget_t* w, cJSON* root )
+{
+  cJSON* object, *node;
+  int i;
+  aContainerWidget_t* container;
+  
+  container = malloc( sizeof( aContainerWidget_t ) );
+  memset( container, 0, sizeof( aContainerWidget_t ) );
+  
+  w->data = container;
+  w->flex = cJSON_GetObjectItem( root, "flex" )->valueint;
+  w->w = w->h = 0;
+
+  object = cJSON_GetObjectItem( root, "components" );
+  container->num_components = cJSON_GetArraySize( object );
+
+  container->components = malloc( sizeof( aWidget_t ) * container->num_components );
+  if ( container->components == NULL )
+  {
+    printf("Failed to allocate memory for components\n");
+    exit(1);
+  }
+
+  i = 0;
+  for ( node = object->child; node != NULL; node = node->next )
+  {
+    STRCPY( container->components[i].name, cJSON_GetObjectItem( node, "name" )->valuestring );
+    STRCPY( container->components[i].label, cJSON_GetObjectItem( node, "label" )->valuestring );
+    container->components[i].type = GetWidgetType( cJSON_GetObjectItem( node, "type" )->valuestring );
+    container->components[i].x = cJSON_GetObjectItem( node, "x" )->valueint;
+    container->components[i].y = cJSON_GetObjectItem( node, "y" )->valueint;
+    container->components[i].boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
+    container->components[i].hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
+    container->components[i].padding = cJSON_GetObjectItem( node, "padding" )->valueint;
+
+    cJSON* object_1, *node_1;
+    int j;
+    object_1 = cJSON_GetObjectItem( node, "fg");
+    j = 0;
+    for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
+    {
+      container->components[i].fg[j++] = node_1->valueint;
+    }
+
+    object_1 = cJSON_GetObjectItem( node, "bg");
+    j = 0;
+    for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
+    {
+      container->components[i].bg[j++] = node_1->valueint;
+    }
+    
+    a_CalcTextDimensions( container->components[i].label, app.font_type,
+                         &container->components[i].w, &container->components[i].h );
+    
+    i++;
+  }
+
+  w->w = container->components[i-1].x + container->components[i-1].w - w->x;
+  w->h = container->components[i-1].h;
 }
 
 static char* ReadFile( const char* filename )
@@ -780,5 +882,46 @@ static void DrawControlWidget( aWidget_t* w )
       a_DrawText( text, control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
     }
   }
+}
+
+static void DrawContainerWidget( aWidget_t* w )
+{
+  SDL_Color c;
+  aContainerWidget_t* container;
+
+  container = ( aContainerWidget_t* )w->data;
+
+  if ( w->hidden != 1 )
+  {
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ) ,
+                        w->w + ( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    //a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    for ( int i = 0; i < container->num_components; i++ )
+    {
+      aWidget_t current;
+      current = container->components[i];
+
+      if ( current.hidden == 0 )
+      {
+        if ( current.boxed == 1 )
+        {
+          a_DrawFilledRect( current.x - current.padding, current.y - current.padding,
+                           current.w + current.padding, current.h + current.padding,
+                           current.bg[0], current.bg[1], current.bg[2], current.bg[3] );
+        }
+
+        a_DrawText( current.label, current.x, current.y, current.fg[0],
+                   current.fg[1], current.fg[2], app.font_type, TEXT_ALIGN_LEFT, 0 );
+      }
+
+    }
+  }
+
 }
 

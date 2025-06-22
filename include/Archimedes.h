@@ -99,6 +99,7 @@ typedef struct
 {
   int x, y;
   int w, h;
+  int spacing;
   int num_components;
   aWidget_t* components;
 } aContainerWidget_t; 

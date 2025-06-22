@@ -42,6 +42,7 @@ static int handle_control_widget;
 void a_DoWidget( void )
 {
   aWidget_t* temp;
+  int r,g,b = 0;
 
   slider_delay = MAX( slider_delay - a_GetDeltaTime(), 0 );
 
@@ -62,7 +63,8 @@ void a_DoWidget( void )
             app.mouse.x <= ( current->x + current->w ) && 
             app.mouse.y <= ( current->y + current->h ) )
           {
-            
+            app.active_widget = current;
+
             if ( current->type == WT_CONTAINER )
             {
               aContainerWidget_t* container = ( aContainerWidget_t* )current->data;
@@ -619,6 +621,7 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* object, *node;
   int i;
+  int temp_x, temp_y;
   aContainerWidget_t* container;
   
   container = malloc( sizeof( aContainerWidget_t ) );
@@ -626,6 +629,7 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
   
   w->data = container;
   w->flex = cJSON_GetObjectItem( root, "flex" )->valueint;
+  container->spacing = cJSON_GetObjectItem( root, "spacing" )->valueint;
   w->w = w->h = 0;
 
   object = cJSON_GetObjectItem( root, "components" );
@@ -639,13 +643,13 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
   }
 
   i = 0;
+  temp_x = w->x;
+  temp_y = w->y;
   for ( node = object->child; node != NULL; node = node->next )
   {
     STRCPY( container->components[i].name, cJSON_GetObjectItem( node, "name" )->valuestring );
     STRCPY( container->components[i].label, cJSON_GetObjectItem( node, "label" )->valuestring );
     container->components[i].type = GetWidgetType( cJSON_GetObjectItem( node, "type" )->valuestring );
-    container->components[i].x = cJSON_GetObjectItem( node, "x" )->valueint;
-    container->components[i].y = cJSON_GetObjectItem( node, "y" )->valueint;
     container->components[i].boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
     container->components[i].hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
     container->components[i].padding = cJSON_GetObjectItem( node, "padding" )->valueint;
@@ -666,8 +670,53 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
       container->components[i].bg[j++] = node_1->valueint;
     }
     
+    switch ( container->components[i].type )
+    {
+      case WT_BUTTON:
+        CreateButtonWidget( &container->components[i], node );
+        break;
+
+      case WT_SELECT:
+        CreateSelectWidget( &container->components[i], node );
+        break;
+      
+      case WT_SLIDER:
+        CreateSliderWidget( &container->components[i], node );
+        break;
+      
+      case WT_INPUT:
+        CreateInputWidget( &container->components[i], node );
+        break;
+      
+      case WT_CONTROL:
+        CreateControlWidget( &container->components[i], node );
+        break;
+      
+      case WT_CONTAINER:
+        CreateContainerWidget( &container->components[i], node );
+        break;
+
+      default:
+        break;
+    }
+    
     a_CalcTextDimensions( container->components[i].label, app.font_type,
                          &container->components[i].w, &container->components[i].h );
+
+    if ( w->flex == 1 )
+    {
+      container->components[i].x = temp_x;
+      container->components[i].y = temp_y;
+
+      temp_x += ( container->components[i].w + container->spacing );
+
+    }
+  
+    else
+    {
+      container->components[i].x = cJSON_GetObjectItem( node, "x" )->valueint;
+      container->components[i].y = cJSON_GetObjectItem( node, "y" )->valueint;
+    }
     
     i++;
   }
@@ -723,7 +772,9 @@ static void DrawButtonWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
     }
 
     a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -754,7 +805,9 @@ static void DrawSelectWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
     }
 
     a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -788,7 +841,9 @@ static void DrawSliderWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
     }
 
     width = ( 1.0 * slider->value ) / 100;
@@ -826,7 +881,9 @@ static void DrawInputWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
     }
 
     a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -866,7 +923,9 @@ static void DrawControlWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      a_DrawFilledRect( w->x-1, w->y-1, w->w+1, w->h+1, w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
     }
 
     a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
@@ -907,19 +966,30 @@ static void DrawContainerWidget( aWidget_t* w )
       aWidget_t current;
       current = container->components[i];
 
-      if ( current.hidden == 0 )
-      {
-        if ( current.boxed == 1 )
-        {
-          a_DrawFilledRect( current.x - current.padding, current.y - current.padding,
-                           current.w + current.padding, current.h + current.padding,
-                           current.bg[0], current.bg[1], current.bg[2], current.bg[3] );
-        }
+      switch ( current.type ) {
+        case WT_BUTTON:
+          DrawButtonWidget( &current );
+          break;
+        
+        case WT_SLIDER:
+          DrawSliderWidget( &current );
+          break;
+        
+        case WT_INPUT:
+          DrawInputWidget( &current );
+          break;
+        
+        case WT_SELECT:
+          DrawSelectWidget( &current );
+          break;
 
-        a_DrawText( current.label, current.x, current.y, current.fg[0],
-                   current.fg[1], current.fg[2], app.font_type, TEXT_ALIGN_LEFT, 0 );
+        case WT_CONTROL:
+          DrawControlWidget( &current );
+          break;
+
+        default:
+          break;
       }
-
     }
   }
 

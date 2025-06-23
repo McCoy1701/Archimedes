@@ -84,6 +84,7 @@ void a_DoWidget( void )
                       component->action();
                     }
                     app.active_widget = component;
+                    printf( "Active: %s\n", app.active_widget->name );
                     return;
                   }
                 }
@@ -98,6 +99,7 @@ void a_DoWidget( void )
                 current->action();
               }
               app.active_widget = current;
+              printf( "Active: %s\n", app.active_widget->name );
               return;
             }
           }
@@ -107,7 +109,7 @@ void a_DoWidget( void )
       }
     }
 
-    if ( app.keyboard[SDL_SCANCODE_UP] )
+    /*if ( app.keyboard[SDL_SCANCODE_UP] )
     {
       app.keyboard[SDL_SCANCODE_UP] = 0;
       if ( app.active_widget->prev->hidden == 1 )
@@ -173,7 +175,7 @@ void a_DoWidget( void )
       {
         app.active_widget = widget_head.next;
       }
-    }
+    }*/
 
     if ( app.keyboard[SDL_SCANCODE_LEFT] )
     {
@@ -535,7 +537,7 @@ static void CreateButtonWidget( aWidget_t* w, cJSON* root )
 static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* options, *node;
-  int i, len;
+  int i, len, temp_w, temp_h, width, height;
   aSelectWidget_t* s;
 
   s = malloc( sizeof( aSelectWidget_t ) );
@@ -545,6 +547,8 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
   options = cJSON_GetObjectItem( root, "options" );
 
   s->num_options = cJSON_GetArraySize( options );
+  
+  temp_w = temp_h = width = height = 0;
 
   if ( s->num_options > 0 )
   {
@@ -559,6 +563,17 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
       s->options[i] = malloc(len);
 
       STRNCPY( s->options[i], node->valuestring, len );
+      a_CalcTextDimensions( s->options[i], app.font_type, &width, &height );
+      
+      if ( width > temp_w )
+      {
+        temp_w = width; //Get the largest width
+      }
+      
+      if ( height > temp_h )
+      {
+        temp_h = height;
+      }
 
       i++;
     }
@@ -568,6 +583,8 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 
   s->x = w->x + 100;
   s->y = w->y;
+  s->w = temp_w;
+  s->h = temp_h;
 }
 
 static void CreateSliderWidget( aWidget_t* w, cJSON* root )
@@ -604,6 +621,7 @@ static void CreateInputWidget( aWidget_t* w, cJSON* root )
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
   input->x = w->x + w->w + 50;
   input->y = w->y;
+  a_CalcTextDimensions( input->text, app.font_type, &input->w, &input->h );
 }
 
 static void CreateControlWidget( aWidget_t* w, cJSON* root )
@@ -620,9 +638,12 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
 static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* object, *node;
-  int i;
+  int i, index;
   int temp_x, temp_y;
   aContainerWidget_t* container;
+  aInputWidget_t* input;
+  aSliderWidget_t* slider;
+  aSelectWidget_t* select;
   
   container = malloc( sizeof( aContainerWidget_t ) );
   memset( container, 0, sizeof( aContainerWidget_t ) );
@@ -645,14 +666,19 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
   i = 0;
   temp_x = w->x;
   temp_y = w->y;
+
+  int max_component_x_plus_w = 0;
+  int max_component_y_plus_h = 0;
+
   for ( node = object->child; node != NULL; node = node->next )
   {
-    STRCPY( container->components[i].name, cJSON_GetObjectItem( node, "name" )->valuestring );
-    STRCPY( container->components[i].label, cJSON_GetObjectItem( node, "label" )->valuestring );
-    container->components[i].type = GetWidgetType( cJSON_GetObjectItem( node, "type" )->valuestring );
-    container->components[i].boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
-    container->components[i].hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
-    container->components[i].padding = cJSON_GetObjectItem( node, "padding" )->valueint;
+    aWidget_t* current = &container->components[i];
+    STRCPY( current->name, cJSON_GetObjectItem( node, "name" )->valuestring );
+    STRCPY( current->label, cJSON_GetObjectItem( node, "label" )->valuestring );
+    current->type = GetWidgetType( cJSON_GetObjectItem( node, "type" )->valuestring );
+    current->boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
+    current->hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
+    current->padding = cJSON_GetObjectItem( node, "padding" )->valueint;
 
     cJSON* object_1, *node_1;
     int j;
@@ -660,69 +686,105 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
     j = 0;
     for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
     {
-      container->components[i].fg[j++] = node_1->valueint;
+      current->fg[j++] = node_1->valueint;
     }
 
     object_1 = cJSON_GetObjectItem( node, "bg");
     j = 0;
     for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
     {
-      container->components[i].bg[j++] = node_1->valueint;
+      current->bg[j++] = node_1->valueint;
     }
     
-    switch ( container->components[i].type )
+    a_CalcTextDimensions( current->label, app.font_type, &current->w, &current->h );
+
+    if ( w->flex == 1 )
+    {
+      current->x = temp_x;
+      current->y = temp_y;
+
+      temp_x += ( current->w + container->spacing );
+    }
+  
+    else
+    {
+      current->x = cJSON_GetObjectItem( node, "x" )->valueint;
+      current->y = cJSON_GetObjectItem( node, "y" )->valueint;
+    }
+
+    int widget_effective_w = current->w;
+    int widget_effective_h = current->h;
+
+    int current_widget_max_x_extent = current->x + current->w;
+    int current_widget_max_y_extent = current->y + current->h;
+    
+    switch ( current->type )
     {
       case WT_BUTTON:
-        CreateButtonWidget( &container->components[i], node );
+        CreateButtonWidget( current, node );
+        current_widget_max_x_extent = current->x + current->w;
+        current_widget_max_y_extent = current->y + current->h;
         break;
 
       case WT_SELECT:
-        CreateSelectWidget( &container->components[i], node );
+        CreateSelectWidget( current, node );
+        select = (aSelectWidget_t*)current->data;
+
+        current_widget_max_x_extent = MAX( current_widget_max_x_extent, ( select->x + select->w ) );
+        current_widget_max_y_extent = MAX( current_widget_max_y_extent, ( select->y + select->h ) );
         break;
       
       case WT_SLIDER:
-        CreateSliderWidget( &container->components[i], node );
+        CreateSliderWidget( current, node );
+        slider = (aSliderWidget_t*)current->data;
+
+        current_widget_max_x_extent = MAX( current_widget_max_x_extent, ( slider->x + slider->w ) );
+        current_widget_max_y_extent = MAX( current_widget_max_y_extent, ( slider->y + slider->h ) );
         break;
       
       case WT_INPUT:
-        CreateInputWidget( &container->components[i], node );
+        CreateInputWidget( current, node );
+        input = (aInputWidget_t*)current->data;
+
+        current_widget_max_x_extent = MAX( current_widget_max_x_extent, ( input->x + input->w ) );
+        current_widget_max_y_extent = MAX( current_widget_max_y_extent, ( input->y + input->h ) );
         break;
       
       case WT_CONTROL:
-        CreateControlWidget( &container->components[i], node );
+        CreateControlWidget( current, node );
         break;
       
       case WT_CONTAINER:
-        CreateContainerWidget( &container->components[i], node );
+        CreateContainerWidget( current, node );
         break;
 
       default:
         break;
     }
-    
-    a_CalcTextDimensions( container->components[i].label, app.font_type,
-                         &container->components[i].w, &container->components[i].h );
+
+    widget_effective_w = current_widget_max_x_extent - current->x;
+    widget_effective_h = current_widget_max_y_extent - current->y;
 
     if ( w->flex == 1 )
     {
-      container->components[i].x = temp_x;
-      container->components[i].y = temp_y;
-
-      temp_x += ( container->components[i].w + container->spacing );
-
+      //temp_x += ( widget_effective_w + container->spacing );
     }
-  
-    else
+
+    if ( current_widget_max_x_extent > max_component_x_plus_w )
     {
-      container->components[i].x = cJSON_GetObjectItem( node, "x" )->valueint;
-      container->components[i].y = cJSON_GetObjectItem( node, "y" )->valueint;
+      max_component_x_plus_w = current_widget_max_x_extent;
+    }
+    
+    if ( current_widget_max_y_extent > max_component_y_plus_h )
+    {
+      max_component_y_plus_h = current_widget_max_y_extent;
     }
     
     i++;
   }
 
-  w->w = container->components[i-1].x + container->components[i-1].w - w->x;
-  w->h = container->components[i-1].h;
+  w->w = max_component_x_plus_w - w->x;
+  w->h = max_component_y_plus_h - w->y;
 }
 
 static char* ReadFile( const char* filename )
@@ -945,11 +1007,10 @@ static void DrawControlWidget( aWidget_t* w )
 
 static void DrawContainerWidget( aWidget_t* w )
 {
-  SDL_Color c;
   aContainerWidget_t* container;
 
   container = ( aContainerWidget_t* )w->data;
-
+  
   if ( w->hidden != 1 )
   {
     if ( w->boxed == 1 )
@@ -965,33 +1026,42 @@ static void DrawContainerWidget( aWidget_t* w )
     {
       aWidget_t current;
       current = container->components[i];
+      
+      if ( current.hidden != 1 )
+      {
+        if ( current.boxed == 1 )
+        {
+          a_DrawFilledRect( ( current.x - current.padding ), ( current.y - current.padding ),
+                           current.w +( 2 * current.padding ), current.h + ( 2 * current.padding ),
+                           current.bg[0], current.bg[1], current.bg[2], current.bg[3] );
+        }
 
-      switch ( current.type ) {
-        case WT_BUTTON:
-          DrawButtonWidget( &current );
-          break;
-        
-        case WT_SLIDER:
-          DrawSliderWidget( &current );
-          break;
-        
-        case WT_INPUT:
-          DrawInputWidget( &current );
-          break;
-        
-        case WT_SELECT:
-          DrawSelectWidget( &current );
-          break;
+        switch ( current.type ) {
+          case WT_BUTTON:
+            DrawButtonWidget( &current );
+            break;
 
-        case WT_CONTROL:
-          DrawControlWidget( &current );
-          break;
+          case WT_SLIDER:
+            DrawSliderWidget( &current );
+            break;
 
-        default:
-          break;
+          case WT_INPUT:
+            DrawInputWidget( &current );
+            break;
+
+          case WT_SELECT:
+            DrawSelectWidget( &current );
+            break;
+
+          case WT_CONTROL:
+            DrawControlWidget( &current );
+            break;
+
+          default:
+            break;
+        } 
       }
     }
   }
-
 }
 

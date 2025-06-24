@@ -482,6 +482,7 @@ static void CreateWidget( cJSON* root )
     w->boxed = cJSON_GetObjectItem( root, "boxed" )->valueint;
     w->hidden = cJSON_GetObjectItem( root, "hidden" )->valueint;
     w->padding = cJSON_GetObjectItem( root, "padding" )->valueint;
+    w->action = NULL;
 
     object = cJSON_GetObjectItem( root, "fg");
     i = 0;
@@ -538,6 +539,7 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* options, *node;
   int i, len, temp_w, temp_h, width, height;
+  char* temp_string;
   aSelectWidget_t* s;
 
   s = malloc( sizeof( aSelectWidget_t ) );
@@ -560,10 +562,13 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
     {
       len = strlen( node->valuestring ) + 1;
 
-      s->options[i] = malloc(len);
+      s->options[i] = malloc( len );
+      temp_string = malloc( len + 4 );
+
+      snprintf(temp_string, ( len + 4 ), "< %s >", node->valuestring );
 
       STRNCPY( s->options[i], node->valuestring, len );
-      a_CalcTextDimensions( s->options[i], app.font_type, &width, &height );
+      a_CalcTextDimensions( temp_string, app.font_type, &width, &height );
       
       if ( width > temp_w )
       {
@@ -574,7 +579,8 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
       {
         temp_h = height;
       }
-
+      
+      free( temp_string );
       i++;
     }
   }
@@ -583,7 +589,7 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 
   s->x = w->x + 100;
   s->y = w->y;
-  s->w = temp_w;
+  s->w = temp_w + 100;
   s->h = temp_h;
 }
 
@@ -638,25 +644,32 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
 static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* object, *node;
-  int i, index;
+  int i;
   int temp_x, temp_y;
   aContainerWidget_t* container;
   aInputWidget_t* input;
   aSliderWidget_t* slider;
   aSelectWidget_t* select;
   
-  container = malloc( sizeof( aContainerWidget_t ) );
+  container = ( aContainerWidget_t* )malloc( sizeof( aContainerWidget_t ) );
+  if ( container == NULL )
+  {
+    printf("Failed to allocate memory for container\n");
+    exit(1);
+  }
+
   memset( container, 0, sizeof( aContainerWidget_t ) );
   
   w->data = container;
   w->flex = cJSON_GetObjectItem( root, "flex" )->valueint;
   container->spacing = cJSON_GetObjectItem( root, "spacing" )->valueint;
   w->w = w->h = 0;
+  w->action = NULL;
 
   object = cJSON_GetObjectItem( root, "components" );
   container->num_components = cJSON_GetArraySize( object );
 
-  container->components = malloc( sizeof( aWidget_t ) * container->num_components );
+  container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) * container->num_components );
   if ( container->components == NULL )
   {
     printf("Failed to allocate memory for components\n");
@@ -679,6 +692,7 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
     current->boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
     current->hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
     current->padding = cJSON_GetObjectItem( node, "padding" )->valueint;
+    current->action = NULL;
 
     cJSON* object_1, *node_1;
     int j;
@@ -698,12 +712,12 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
     
     a_CalcTextDimensions( current->label, app.font_type, &current->w, &current->h );
 
-    if ( w->flex == 1 )
+    if ( w->flex == 1 || w->flex == 2 )
     {
       current->x = temp_x;
       current->y = temp_y;
 
-      temp_x += ( current->w + container->spacing );
+      //temp_x += ( current->w + container->spacing );
     }
   
     else
@@ -767,7 +781,12 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 
     if ( w->flex == 1 )
     {
-      //temp_x += ( widget_effective_w + container->spacing );
+      temp_x += ( widget_effective_w + container->spacing );
+    }
+    
+    if ( w->flex == 2 )
+    {
+      temp_y += ( widget_effective_h + container->spacing );
     }
 
     if ( current_widget_max_x_extent > max_component_x_plus_w )

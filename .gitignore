@@ -4,6 +4,7 @@ htmlTemplate/
 compile_commands.json
 .cache/
 ./core
+core
 
 #c
 bin/

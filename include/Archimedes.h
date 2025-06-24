@@ -76,21 +76,48 @@ typedef struct
   int  error_type;
 } aError_t;
 
+typedef struct _widget_t
+{
+  int type;
+  char name[MAX_FILENAME_LENGTH];
+  int x, y;
+  int w, h;
+  char label[MAX_FILENAME_LENGTH];
+  int boxed;
+  int hidden;
+  int padding;
+  int flex;
+  uint8_t fg[4];
+  uint8_t bg[4];
+  struct _widget_t* next;
+  struct _widget_t* prev;
+  void (*action)( void );
+  void (*data);
+} aWidget_t;
+
+typedef struct
+{
+  int x, y;
+  int w, h;
+  int spacing;
+  int num_components;
+  aWidget_t* components;
+} aContainerWidget_t; 
+
 typedef struct
 {
   int num_options;
   char** options;
-  int x;
-  int y;
+  int x, y;
+  int w, h;
   int value;
+  char* text_name[MAX_NAME_LENGTH];
 } aSelectWidget_t;
 
 typedef struct
 {
-  int x;
-  int y;
-  int w;
-  int h;
+  int x, y;
+  int w, h;
   int value;
   int step;
   int wait_on_change;
@@ -98,33 +125,17 @@ typedef struct
 
 typedef struct
 {
-  int x;
-  int y;
+  int x, y;
+  int w, h;
   int max_length;
   char* text;
 } aInputWidget_t;
 
 typedef struct
 {
-  int x;
-  int y;
+  int x, y;
   int value;
 } aControlWidget_t;
-
-typedef struct _widget_t
-{
-  int type;
-  char name[MAX_FILENAME_LENGTH];
-  int x;
-  int y;
-  int w;
-  int h;
-  char label[MAX_FILENAME_LENGTH];
-  struct _widget_t* next;
-  struct _widget_t* prev;
-  void (*action)( void );
-  void (*data);
-} aWidget_t;
 
 typedef struct
 {
@@ -330,7 +341,8 @@ enum
   WT_SELECT,
   WT_SLIDER,
   WT_INPUT,
-  WT_CONTROL
+  WT_CONTROL,
+  WT_CONTAINER,
 };
 
 void a_DrawWidgets( void );

@@ -1,5 +1,6 @@
 // File: src/aInput.c - Input handling system for Archimedes project
 
+#include <SDL2/SDL_mouse.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,8 +8,10 @@
 
 static void a_DoKeyDown( SDL_KeyboardEvent *event );
 static void a_DoKeyUp( SDL_KeyboardEvent *event );
-static void a_DoMouse( SDL_MouseButtonEvent* button );
+static void a_DoMouseDown( SDL_MouseButtonEvent* button );
+static void a_DoMouseUp( SDL_MouseButtonEvent* button );
 static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel );
+static void a_DoMouseMotion( SDL_MouseMotionEvent* motion );
 
 /*
  * Process all pending SDL input events and update global input state
@@ -62,7 +65,7 @@ void a_DoInput( void )
 
       case SDL_MOUSEBUTTONDOWN:
         if (&event.button != NULL) {
-          a_DoMouse( &event.button );
+          a_DoMouseDown( &event.button );
         } else {
           printf("Warning: NULL mouse button event in SDL_MOUSEBUTTONDOWN\n");
         }
@@ -70,7 +73,7 @@ void a_DoInput( void )
 
       case SDL_MOUSEBUTTONUP:
         if (&event.button != NULL) {
-          a_DoMouse( &event.button );
+          a_DoMouseUp( &event.button );
         } else {
           printf("Warning: NULL mouse button event in SDL_MOUSEBUTTONUP\n");
         }
@@ -95,6 +98,10 @@ void a_DoInput( void )
         } else {
           printf("Warning: NULL text in SDL_TEXTINPUT event\n");
         }
+        break;
+
+      case SDL_MOUSEMOTION:
+        a_DoMouseMotion( &event.motion );
         break;
 
       default:
@@ -208,13 +215,76 @@ static void a_DoKeyUp( SDL_KeyboardEvent *event )
  * -- Records which button was pressed/released in app.mouse.button
  * -- Tracks click count (single, double, triple clicks) in app.mouse.clicks
  * -- Updates mouse position (app.mouse.x, app.mouse.y) from event coordinates
- * -- Handles both SDL_MOUSEBUTTONDOWN and SDL_MOUSEBUTTONUP events
+ * -- Handles SDL_MOUSEBUTTONDOWN events
  * -- Mouse position is relative to the SDL window coordinate system
  * -- Does nothing if button parameter is NULL
  * -- Includes comprehensive error checking and defensive programming
  * -- Validates mouse coordinates and button values before processing
  */
-static void a_DoMouse( SDL_MouseButtonEvent* button )
+static void a_DoMouseDown( SDL_MouseButtonEvent* button )
+{
+  // Defensive programming: Check for NULL pointer
+  if (button == NULL) {
+    printf("Error: NULL mouse button event passed to a_DoMouse\n");
+    return;
+  }
+
+  // Validate mouse button range (SDL defines specific button constants)
+  if (button->button < SDL_BUTTON_LEFT || button->button > SDL_BUTTON_X2) {
+    printf("Warning: Invalid mouse button ID: %d\n", button->button);
+    // Continue processing but log the warning
+  }
+
+  // Validate mouse state (should be SDL_PRESSED or SDL_RELEASED)
+  if (button->state != SDL_PRESSED && button->state != SDL_RELEASED) {
+    printf("Warning: Invalid mouse button state: %d\n", button->state);
+    // Continue processing but log the warning
+  }
+
+  // Validate click count (reasonable range check)
+  if (button->clicks < 0 || button->clicks > 10) {
+    printf("Warning: Unusual click count: %d\n", button->clicks);
+    // Continue processing but clamp the value
+    if (button->clicks < 0) button->clicks = 0;
+    if (button->clicks > 10) button->clicks = 10;
+  }
+
+  // Validate mouse coordinates (warn about extreme values but allow them)
+  if (button->x < -10000 || button->x > 10000 ||
+      button->y < -10000 || button->y > 10000) {
+    printf("Warning: Extreme mouse coordinates: (%d, %d)\n", button->x, button->y);
+    // Allow extreme coordinates but log them (might be valid for multi-monitor setups)
+  }
+
+  // Update mouse state (all checks passed or warnings logged)
+  app.mouse.state  = button->state;
+  app.mouse.button = 0;
+  app.mouse.clicks = button->clicks;
+  app.mouse.x = button->x;
+  app.mouse.y = button->y;
+
+  // Update pressed flag based on state
+  app.mouse.pressed = (button->state == SDL_PRESSED) ? 1 : 0;
+}
+
+/*
+ * Handle SDL mouse button events and update mouse state
+ *
+ * `button` - Pointer to SDL mouse button event structure
+ *
+ * -- Internal function called by a_DoInput() for mouse button events
+ * -- Updates app.mouse structure with current button state, position, and click info
+ * -- Stores button state (SDL_PRESSED or SDL_RELEASED) in app.mouse.state
+ * -- Records which button was pressed/released in app.mouse.button
+ * -- Tracks click count (single, double, triple clicks) in app.mouse.clicks
+ * -- Updates mouse position (app.mouse.x, app.mouse.y) from event coordinates
+ * -- Handles SDL_MOUSEBUTTONUP events
+ * -- Mouse position is relative to the SDL window coordinate system
+ * -- Does nothing if button parameter is NULL
+ * -- Includes comprehensive error checking and defensive programming
+ * -- Validates mouse coordinates and button values before processing
+ */
+static void a_DoMouseUp( SDL_MouseButtonEvent* button )
 {
   // Defensive programming: Check for NULL pointer
   if (button == NULL) {
@@ -297,4 +367,10 @@ static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel )
 
   // Update wheel state
   app.mouse.wheel = wheel->y;
+}
+
+static void a_DoMouseMotion( SDL_MouseMotionEvent* motion )
+{
+  app.mouse.x = motion->x;
+  app.mouse.y = motion->y;
 }

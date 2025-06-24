@@ -11,6 +11,7 @@ INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
 INDEX_DIR=index
+TEST_DIR=test
 JSON_DIR=json
 
 .PHONY: all
@@ -84,6 +85,16 @@ $(OBJ_DIR)/n_aWidgets.o: $(SRC_DIR)/aWidgets.c
 
 $(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
+
+.PHONY: test_widgets
+test_widgets: always $(BIN_DIR)/test_widgets
+
+$(OBJ_DIR)/test_widgets.o: $(TEST_DIR)/test_widgets.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(BIN_DIR)/test_widgets: $(OBJ_DIR)/test_widgets.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o
+	$(CC) $^ -ggdb $(CFLAGS) -o $@
+
 
 .PHONY: EMARCH
 EMARCH: always $(BIN_DIR)/libArchimedes.a

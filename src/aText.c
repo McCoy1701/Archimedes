@@ -1,6 +1,7 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Archimedes.h"
 
@@ -249,7 +250,7 @@ static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int f
 
 static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int font_type, int align )
 {
-  int i, n, w, h;
+  int i, n, w, h, len, c;
   SDL_Rect* glyph, dest;
 
   if ( align != TEXT_ALIGN_LEFT )
@@ -269,19 +270,42 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
   SDL_SetTextureColorMod( app.font_textures[font_type], r, g, b );
 
   i = 0;
+  len = strlen( text );
 
-  while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
+  if ( font_type == FONT_GAME )
   {
-    glyph = &glyphs[font_type][n];
+    for ( int j = 0; j < len; j++ )
+    {
+      c = text[j];
+      glyph = &glyphs[font_type][c];
 
-    dest.x = x;
-    dest.y = y;
-    dest.w = glyph->w * app.font_scale;
-    dest.h = glyph->h * app.font_scale;
+      dest.x = x;
+      dest.y = y;
+      dest.w = glyph->w * app.font_scale;
+      dest.h = glyph->h * app.font_scale;
 
-    SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
+      SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
 
-    x += glyph->w * app.font_scale;
+      x += glyph->w * app.font_scale;
+
+    }
+  }
+  
+  else
+  {
+    while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
+    {
+      glyph = &glyphs[font_type][n];
+
+      dest.x = x;
+      dest.y = y;
+      dest.w = glyph->w * app.font_scale;
+      dest.h = glyph->h * app.font_scale;
+
+      SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
+
+      x += glyph->w * app.font_scale;
+    }
   }
 }
 

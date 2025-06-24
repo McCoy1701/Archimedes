@@ -23,11 +23,13 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root );
 static void CreateSliderWidget( aWidget_t* w, cJSON* root );
 static void CreateInputWidget( aWidget_t* w, cJSON* root );
 static void CreateControlWidget( aWidget_t* w, cJSON* root );
+static void CreateContainerWidget( aWidget_t* w, cJSON* root );
 static void DrawButtonWidget( aWidget_t* w );
 static void DrawSelectWidget( aWidget_t* w );
 static void DrawSliderWidget( aWidget_t* w );
 static void DrawInputWidget( aWidget_t* w );
 static void DrawControlWidget( aWidget_t* w );
+static void DrawContainerWidget( aWidget_t* w );
 
 static void DoInputWidget( void );
 static void DoControlWidget( void );
@@ -39,17 +41,97 @@ static int handle_control_widget;
 
 void a_DoWidget( void )
 {
+  aWidget_t* temp;
+  int r,g,b = 0;
+
   slider_delay = MAX( slider_delay - a_GetDeltaTime(), 0 );
 
   cursor_blink += a_GetDeltaTime();
 
   if ( !handle_input_widget && !handle_control_widget )
   {
-    if ( app.keyboard[SDL_SCANCODE_UP] )
+    if ( app.mouse.button == 1 )  //left mouse click
+    {
+      app.mouse.button = 0;
+      aWidget_t* current = &widget_head;
+      
+      while ( current != NULL )
+      {
+        if ( current->hidden == 0 )
+        {
+          if ( app.mouse.x >= current->x && app.mouse.y >= current->y &&
+            app.mouse.x <= ( current->x + current->w ) && 
+            app.mouse.y <= ( current->y + current->h ) )
+          {
+            app.active_widget = current;
+
+            if ( current->type == WT_CONTAINER )
+            {
+              aContainerWidget_t* container = ( aContainerWidget_t* )current->data;
+
+              for ( int i = 0; i < container->num_components; i++ )
+              {
+                aWidget_t* component = &container->components[i];
+
+                if ( component->hidden == 0 )
+                {
+                  if ( app.mouse.x >= component->x && app.mouse.y >= component->y &&
+                       app.mouse.x <= ( component->x + component->w ) &&
+                       app.mouse.y <= ( component->y + component->h ) )
+                  {
+                    if ( component->action != NULL )
+                    {
+                      component->action();
+                    }
+                    app.active_widget = component;
+                    printf( "Active: %s\n", app.active_widget->name );
+                    return;
+                  }
+                }
+              }
+
+            }
+ 
+            else
+            {
+              if ( current->action != NULL )
+              {
+                current->action();
+              }
+              app.active_widget = current;
+              printf( "Active: %s\n", app.active_widget->name );
+              return;
+            }
+          }
+        }
+      
+        current = current->next;
+      }
+    }
+
+    /*if ( app.keyboard[SDL_SCANCODE_UP] )
     {
       app.keyboard[SDL_SCANCODE_UP] = 0;
+      if ( app.active_widget->prev->hidden == 1 )
+      {
+        temp = app.active_widget;
+        while ( temp != NULL && temp->hidden != 1 )
+        {
+          temp = temp->prev;
+        }
 
-      app.active_widget = app.active_widget->prev;
+        if ( temp != NULL )
+        {
+          app.active_widget = temp;
+
+        }
+
+      }
+
+      else
+      {
+        app.active_widget = app.active_widget->prev;
+      }
 
       if ( app.active_widget == &widget_head )
       {
@@ -60,14 +142,40 @@ void a_DoWidget( void )
     if ( app.keyboard[SDL_SCANCODE_DOWN] )
     {
       app.keyboard[SDL_SCANCODE_DOWN] = 0;
-      
-      app.active_widget = app.active_widget->next;
+
+      if ( app.active_widget->next != NULL )
+      {
+        if ( app.active_widget->next->hidden == 1 )
+        {
+          temp = app.active_widget;
+          while ( temp != NULL && temp->hidden != 1 )
+          {
+            temp = temp->next;
+          }
+
+          if ( temp != NULL )
+          {
+            app.active_widget = temp;
+
+          }
+        }
+  
+        else
+        {
+          app.active_widget = app.active_widget->next;
+        }
+      }
+  
+      else
+      {
+        app.active_widget = widget_head.next;
+      }
 
       if ( app.active_widget == NULL )
       {
         app.active_widget = widget_head.next;
       }
-    }
+    }*/
 
     if ( app.keyboard[SDL_SCANCODE_LEFT] )
     {
@@ -118,7 +226,6 @@ void a_DoWidget( void )
 void a_DrawWidgets( void )
 {
   aWidget_t* w;
-  int h;
   for ( w = widget_head.next; w != NULL; w = w->next )
   {
     switch ( w->type )
@@ -142,16 +249,13 @@ void a_DrawWidgets( void )
       case WT_CONTROL:
         DrawControlWidget( w );
         break;
+      
+      case WT_CONTAINER:
+        DrawContainerWidget( w );
+        break;
 
       default:
         break;
-    }
-
-    if ( w == app.active_widget )
-    {
-      h = w->h / 2;
-
-      a_DrawRect( w->x - ( h * 2 ), w->y + ( h / 2 ), h, h, 0, 255, 0, 255 );
     }
   }
 }
@@ -230,6 +334,11 @@ static int GetWidgetType( char* type )
   if ( strcmp( type, "WT_CONTROL" ) == 0 )
   {
     return WT_CONTROL;
+  }
+  
+  if ( strcmp( type, "WT_CONTAINER" ) == 0 )
+  {
+    return WT_CONTAINER;
   }
 
   SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN, "unknown widget type: '%s'", type );
@@ -351,7 +460,8 @@ static void ChangeWidgetValue( int value )
 static void CreateWidget( cJSON* root )
 {
   aWidget_t* w;
-  int type;
+  cJSON* object, *node;
+  int type, i;
 
   type = GetWidgetType( cJSON_GetObjectItem( root, "type" )->valuestring );
 
@@ -369,6 +479,24 @@ static void CreateWidget( cJSON* root )
     w->type = GetWidgetType( cJSON_GetObjectItem( root, "type" )->valuestring );
     w->x = cJSON_GetObjectItem( root, "x" )->valueint;
     w->y = cJSON_GetObjectItem( root, "y" )->valueint;
+    w->boxed = cJSON_GetObjectItem( root, "boxed" )->valueint;
+    w->hidden = cJSON_GetObjectItem( root, "hidden" )->valueint;
+    w->padding = cJSON_GetObjectItem( root, "padding" )->valueint;
+    w->action = NULL;
+
+    object = cJSON_GetObjectItem( root, "fg");
+    i = 0;
+    for ( node = object->child; node != NULL; node = node->next )
+    {
+      w->fg[i++] = node->valueint;
+    }
+
+    object = cJSON_GetObjectItem( root, "bg");
+    i = 0;
+    for ( node = object->child; node != NULL; node = node->next )
+    {
+      w->bg[i++] = node->valueint;
+    }
 
     switch ( w->type )
     {
@@ -391,6 +519,10 @@ static void CreateWidget( cJSON* root )
       case WT_CONTROL:
         CreateControlWidget( w, root );
         break;
+      
+      case WT_CONTAINER:
+        CreateContainerWidget( w, root );
+        break;
 
       default:
         break;
@@ -406,7 +538,8 @@ static void CreateButtonWidget( aWidget_t* w, cJSON* root )
 static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* options, *node;
-  int i, len;
+  int i, len, temp_w, temp_h, width, height;
+  char* temp_string;
   aSelectWidget_t* s;
 
   s = malloc( sizeof( aSelectWidget_t ) );
@@ -416,6 +549,8 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
   options = cJSON_GetObjectItem( root, "options" );
 
   s->num_options = cJSON_GetArraySize( options );
+  
+  temp_w = temp_h = width = height = 0;
 
   if ( s->num_options > 0 )
   {
@@ -427,10 +562,25 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
     {
       len = strlen( node->valuestring ) + 1;
 
-      s->options[i] = malloc(len);
+      s->options[i] = malloc( len );
+      temp_string = malloc( len + 4 );
+
+      snprintf(temp_string, ( len + 4 ), "< %s >", node->valuestring );
 
       STRNCPY( s->options[i], node->valuestring, len );
-
+      a_CalcTextDimensions( temp_string, app.font_type, &width, &height );
+      
+      if ( width > temp_w )
+      {
+        temp_w = width; //Get the largest width
+      }
+      
+      if ( height > temp_h )
+      {
+        temp_h = height;
+      }
+      
+      free( temp_string );
       i++;
     }
   }
@@ -439,6 +589,8 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 
   s->x = w->x + 100;
   s->y = w->y;
+  s->w = temp_w + 100;
+  s->h = temp_h;
 }
 
 static void CreateSliderWidget( aWidget_t* w, cJSON* root )
@@ -475,6 +627,7 @@ static void CreateInputWidget( aWidget_t* w, cJSON* root )
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
   input->x = w->x + w->w + 50;
   input->y = w->y;
+  a_CalcTextDimensions( input->text, app.font_type, &input->w, &input->h );
 }
 
 static void CreateControlWidget( aWidget_t* w, cJSON* root )
@@ -486,6 +639,171 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
 
   w->data = control;
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
+}
+
+static void CreateContainerWidget( aWidget_t* w, cJSON* root )
+{
+  cJSON* object, *node;
+  int i;
+  int temp_x, temp_y;
+  aContainerWidget_t* container;
+  aInputWidget_t* input;
+  aSliderWidget_t* slider;
+  aSelectWidget_t* select;
+  
+  container = ( aContainerWidget_t* )malloc( sizeof( aContainerWidget_t ) );
+  if ( container == NULL )
+  {
+    printf("Failed to allocate memory for container\n");
+    exit(1);
+  }
+
+  memset( container, 0, sizeof( aContainerWidget_t ) );
+  
+  w->data = container;
+  w->flex = cJSON_GetObjectItem( root, "flex" )->valueint;
+  container->spacing = cJSON_GetObjectItem( root, "spacing" )->valueint;
+  w->w = w->h = 0;
+  w->action = NULL;
+
+  object = cJSON_GetObjectItem( root, "components" );
+  container->num_components = cJSON_GetArraySize( object );
+
+  container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) * container->num_components );
+  if ( container->components == NULL )
+  {
+    printf("Failed to allocate memory for components\n");
+    exit(1);
+  }
+
+  i = 0;
+  temp_x = w->x;
+  temp_y = w->y;
+
+  int max_component_x_plus_w = 0;
+  int max_component_y_plus_h = 0;
+
+  for ( node = object->child; node != NULL; node = node->next )
+  {
+    aWidget_t* current = &container->components[i];
+    STRCPY( current->name, cJSON_GetObjectItem( node, "name" )->valuestring );
+    STRCPY( current->label, cJSON_GetObjectItem( node, "label" )->valuestring );
+    current->type = GetWidgetType( cJSON_GetObjectItem( node, "type" )->valuestring );
+    current->boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
+    current->hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
+    current->padding = cJSON_GetObjectItem( node, "padding" )->valueint;
+    current->action = NULL;
+
+    cJSON* object_1, *node_1;
+    int j;
+    object_1 = cJSON_GetObjectItem( node, "fg");
+    j = 0;
+    for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
+    {
+      current->fg[j++] = node_1->valueint;
+    }
+
+    object_1 = cJSON_GetObjectItem( node, "bg");
+    j = 0;
+    for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
+    {
+      current->bg[j++] = node_1->valueint;
+    }
+    
+    a_CalcTextDimensions( current->label, app.font_type, &current->w, &current->h );
+
+    if ( w->flex == 1 || w->flex == 2 )
+    {
+      current->x = temp_x;
+      current->y = temp_y;
+
+      //temp_x += ( current->w + container->spacing );
+    }
+  
+    else
+    {
+      current->x = cJSON_GetObjectItem( node, "x" )->valueint;
+      current->y = cJSON_GetObjectItem( node, "y" )->valueint;
+    }
+
+    int widget_effective_w = current->w;
+    int widget_effective_h = current->h;
+
+    int current_widget_max_x_extent = current->x + current->w;
+    int current_widget_max_y_extent = current->y + current->h;
+    
+    switch ( current->type )
+    {
+      case WT_BUTTON:
+        CreateButtonWidget( current, node );
+        current_widget_max_x_extent = current->x + current->w;
+        current_widget_max_y_extent = current->y + current->h;
+        break;
+
+      case WT_SELECT:
+        CreateSelectWidget( current, node );
+        select = (aSelectWidget_t*)current->data;
+
+        current_widget_max_x_extent = MAX( current_widget_max_x_extent, ( select->x + select->w ) );
+        current_widget_max_y_extent = MAX( current_widget_max_y_extent, ( select->y + select->h ) );
+        break;
+      
+      case WT_SLIDER:
+        CreateSliderWidget( current, node );
+        slider = (aSliderWidget_t*)current->data;
+
+        current_widget_max_x_extent = MAX( current_widget_max_x_extent, ( slider->x + slider->w ) );
+        current_widget_max_y_extent = MAX( current_widget_max_y_extent, ( slider->y + slider->h ) );
+        break;
+      
+      case WT_INPUT:
+        CreateInputWidget( current, node );
+        input = (aInputWidget_t*)current->data;
+
+        current_widget_max_x_extent = MAX( current_widget_max_x_extent, ( input->x + input->w ) );
+        current_widget_max_y_extent = MAX( current_widget_max_y_extent, ( input->y + input->h ) );
+        break;
+      
+      case WT_CONTROL:
+        CreateControlWidget( current, node );
+        break;
+      
+      case WT_CONTAINER:
+        CreateContainerWidget( current, node );
+        break;
+
+      default:
+        break;
+    }
+
+    widget_effective_w = current_widget_max_x_extent - current->x;
+    widget_effective_h = current_widget_max_y_extent - current->y;
+
+    if ( w->flex == 1 )
+    {
+      temp_x += ( widget_effective_w + container->spacing );
+    }
+    
+    if ( w->flex == 2 )
+    {
+      temp_y += ( widget_effective_h + container->spacing );
+    }
+
+    if ( current_widget_max_x_extent > max_component_x_plus_w )
+    {
+      max_component_x_plus_w = current_widget_max_x_extent;
+    }
+    
+    if ( current_widget_max_y_extent > max_component_y_plus_h )
+    {
+      max_component_y_plus_h = current_widget_max_y_extent;
+    }
+    
+    i++;
+  }
+
+  w->w = max_component_x_plus_w - w->x;
+  w->h = max_component_y_plus_h - w->y;
 }
 
 static char* ReadFile( const char* filename )
@@ -526,10 +844,22 @@ static void DrawButtonWidget( aWidget_t* w )
   
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
   }
+  
+  if ( w->hidden != 1 )
+  {
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
 
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+  }
 }
 
 static void DrawSelectWidget( aWidget_t* w )
@@ -547,13 +877,25 @@ static void DrawSelectWidget( aWidget_t* w )
   
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
   }
 
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-  sprintf( text, "< %s >", s->options[s->value] );
+  if ( w->hidden != 1 )
+  {
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
 
-  a_DrawText( text, s->x + 100, s->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    sprintf( text, "< %s >", s->options[s->value] );
+
+    a_DrawText( text, s->x + 100, s->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+  }
 }
 
 static void DrawSliderWidget( aWidget_t* w )
@@ -571,15 +913,28 @@ static void DrawSliderWidget( aWidget_t* w )
   }
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
+  }
+  
+  if ( w->hidden != 1 )
+  {
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    width = ( 1.0 * slider->value ) / 100;
+
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    a_DrawRect( slider->x, slider->y, slider->w, slider->h, 255, 255, 255, 255 );
+    a_DrawFilledRect( slider->x + 2, slider->y + 2, ( slider->w - 4 ) * width, slider->h - 4, c.r, c.g, c.b, 255 );
   }
 
-  width = ( 1.0 * slider->value ) / 100;
-
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-
-  a_DrawRect( slider->x, slider->y, slider->w, slider->h, 255, 255, 255, 255 );
-  a_DrawFilledRect( slider->x + 2, slider->y + 2, ( slider->w - 4 ) * width, slider->h - 4, c.r, c.g, c.b, 255 );
 }
 
 static void DrawInputWidget( aWidget_t* w )
@@ -598,17 +953,29 @@ static void DrawInputWidget( aWidget_t* w )
 
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
   }
-
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
   
-  a_DrawText( input->text, input->x, input->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-
-  if ( handle_input_widget && app.active_widget == w && ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
+  if ( w->hidden != 1 )
   {
-    a_CalcTextDimensions( input->text, app.font_type, &width, &height );
-    a_DrawFilledRect( input->x + width + 4, input->y + 14, 32, 32, 0, 255, 0, 255 );
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    a_DrawText( input->text, input->x, input->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    if ( handle_input_widget && app.active_widget == w && ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
+    {
+      a_CalcTextDimensions( input->text, app.font_type, &width, &height );
+      a_DrawFilledRect( input->x + width + 4, input->y + 14, 32, 32, 0, 255, 0, 255 );
+    }
   }
 }
 
@@ -628,20 +995,92 @@ static void DrawControlWidget( aWidget_t* w )
 
   else
   {
-    c.r = c.g = c.b = 255;
+    c.r = w->fg[0];
+    c.g = w->fg[1];
+    c.b = w->fg[2];
   }
 
-  a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
-
-  if ( handle_control_widget && app.active_widget == w )
+  if ( w->hidden != 1 )
   {
-    a_DrawText( "...", control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ),
+                        w->w +( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    if ( handle_control_widget && app.active_widget == w )
+    {
+      a_DrawText( "...", control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    }
+
+    else
+    {
+      sprintf( text, "%s", SDL_GetScancodeName( control->value ) );
+      a_DrawText( text, control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    }
   }
+}
 
-  else
+static void DrawContainerWidget( aWidget_t* w )
+{
+  aContainerWidget_t* container;
+
+  container = ( aContainerWidget_t* )w->data;
+  
+  if ( w->hidden != 1 )
   {
-    sprintf( text, "%s", SDL_GetScancodeName( control->value ) );
-    a_DrawText( text, control->x, control->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+    if ( w->boxed == 1 )
+    {
+      a_DrawFilledRect( ( w->x - w->padding ), ( w->y - w->padding ) ,
+                        w->w + ( 2 * w->padding ), w->h + ( 2 * w->padding ),
+                        w->bg[0], w->bg[1], w->bg[2], w->bg[3] );
+    }
+
+    //a_DrawText( w->label, w->x, w->y, c.r, c.g, c.b, app.font_type, TEXT_ALIGN_LEFT, 0 );
+
+    for ( int i = 0; i < container->num_components; i++ )
+    {
+      aWidget_t current;
+      current = container->components[i];
+      
+      if ( current.hidden != 1 )
+      {
+        if ( current.boxed == 1 )
+        {
+          a_DrawFilledRect( ( current.x - current.padding ), ( current.y - current.padding ),
+                           current.w +( 2 * current.padding ), current.h + ( 2 * current.padding ),
+                           current.bg[0], current.bg[1], current.bg[2], current.bg[3] );
+        }
+
+        switch ( current.type ) {
+          case WT_BUTTON:
+            DrawButtonWidget( &current );
+            break;
+
+          case WT_SLIDER:
+            DrawSliderWidget( &current );
+            break;
+
+          case WT_INPUT:
+            DrawInputWidget( &current );
+            break;
+
+          case WT_SELECT:
+            DrawSelectWidget( &current );
+            break;
+
+          case WT_CONTROL:
+            DrawControlWidget( &current );
+            break;
+
+          default:
+            break;
+        } 
+      }
+    }
   }
 }
 

@@ -84,7 +84,6 @@ void a_DoWidget( void )
                       component->action();
                     }
                     app.active_widget = component;
-                    printf( "Active: %s\n", app.active_widget->name );
                     return;
                   }
                 }
@@ -99,7 +98,6 @@ void a_DoWidget( void )
                 current->action();
               }
               app.active_widget = current;
-              printf( "Active: %s\n", app.active_widget->name );
               return;
             }
           }
@@ -290,6 +288,28 @@ aWidget_t* a_GetWidget( char* name )
   return NULL;
 }
 
+aContainerWidget_t* a_GetContainerFromWidget( char* name )
+{
+  aWidget_t* widget = NULL;
+  aContainerWidget_t* container = NULL;
+
+  widget = a_GetWidget( name );
+  if ( widget == NULL )
+  {
+    printf("Failed to get widget: %s\n", name);
+    return NULL;
+  }
+
+  container = ( aContainerWidget_t* )widget->data;
+  if ( container == NULL )
+  {
+    printf( "Failed to find container in %s\n", name );
+    return NULL;
+  }
+
+  return container;
+}
+
 static void LoadWidgets( const char* filename )
 {
   cJSON* root, *node;
@@ -413,6 +433,7 @@ static void ChangeWidgetValue( int value )
     case WT_SELECT:
       select = ( aSelectWidget_t* ) app.active_widget->data;
       select->value += value;
+      printf("%d\n", select->value);
 
       if ( select->value < 0 )
       {
@@ -549,6 +570,7 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
   options = cJSON_GetObjectItem( root, "options" );
 
   s->num_options = cJSON_GetArraySize( options );
+  s->value = 0;
   
   temp_w = temp_h = width = height = 0;
 
@@ -602,6 +624,7 @@ static void CreateSliderWidget( aWidget_t* w, cJSON* root )
 
   s->step = cJSON_GetObjectItem( root, "step" )->valueint;
   s->wait_on_change = cJSON_GetObjectItem( root, "wait_on_change" )->valueint;
+  s->value = 0;
 
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
   s->x = w->x + w->w + 50;
@@ -668,6 +691,7 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 
   object = cJSON_GetObjectItem( root, "components" );
   container->num_components = cJSON_GetArraySize( object );
+  printf("sizeof %s %d\n", w->name, container->num_components );
 
   container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) * container->num_components );
   if ( container->components == NULL )
@@ -836,7 +860,7 @@ static void DrawButtonWidget( aWidget_t* w )
 {
   SDL_Color c;
   
-  if ( w == app.active_widget )
+  if ( strcmp( w->name, app.active_widget->name ) == 0 )
   {
     c.g = 255;
     c.r = c.b = 0;
@@ -869,7 +893,7 @@ static void DrawSelectWidget( aWidget_t* w )
   aSelectWidget_t* s;
   s = ( aSelectWidget_t* ) w->data;
 
-  if ( w == app.active_widget )
+  if ( strcmp( w->name, app.active_widget->name ) == 0 )
   {
     c.g = 255;
     c.r = c.b = 0;
@@ -906,7 +930,7 @@ static void DrawSliderWidget( aWidget_t* w )
 
   slider = ( aSliderWidget_t* )w->data;
 
-  if ( w == app.active_widget )
+  if ( strcmp( w->name, app.active_widget->name ) == 0 )
   {
     c.g = 255;
     c.r = c.b = 0;
@@ -945,7 +969,7 @@ static void DrawInputWidget( aWidget_t* w )
 
   input = ( aInputWidget_t* )w->data;
 
-  if ( w == app.active_widget )
+  if ( strcmp( w->name, app.active_widget->name ) == 0 )
   {
     c.g = 255;
     c.r = c.b = 0;
@@ -987,7 +1011,7 @@ static void DrawControlWidget( aWidget_t* w )
 
   control = ( aControlWidget_t* )w->data;
 
-  if ( w == app.active_widget )
+  if ( strcmp( w->name, app.active_widget->name ) == 0 )
   {
     c.g = 255;
     c.r = c.b = 0;

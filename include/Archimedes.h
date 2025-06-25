@@ -348,6 +348,7 @@ enum
 void a_DrawWidgets( void );
 void a_DoWidget( void );
 aWidget_t* a_GetWidget( char* name );
+aContainerWidget_t* a_GetContainerFromWidget( char* name );
 void a_InitWidgets( const char* filename );
 int a_ClearWidgetCache( aWidget_t* widget );
 

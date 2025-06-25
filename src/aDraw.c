@@ -7,6 +7,7 @@ void a_PrepareScene( void )
 {
   SDL_SetRenderDrawColor(app.renderer, app.background.r, app.background.g, app.background.b, app.background.a);
   SDL_RenderClear(app.renderer);
+  // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
@@ -19,6 +20,7 @@ void a_DrawPoint( const int x, const int y, const aColor_t color )
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawPoint(app.renderer, x, y);
+  // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
@@ -26,6 +28,7 @@ void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const a
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
+  // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
@@ -33,6 +36,7 @@ void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
+  // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
@@ -40,6 +44,7 @@ void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t
 {
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
+  // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
@@ -61,7 +66,7 @@ void a_DrawCircle( const int posX, const int posY, const int radius, const aColo
     SDL_RenderDrawPoint( app.renderer, posX - y, posY - x );
     SDL_RenderDrawPoint( app.renderer, posX - y, posY + x );
     SDL_SetRenderDrawColor( app.renderer, 255, 255, 255, 255 );
-   
+
     if ( decision > 0 )
     {
       y--;
@@ -69,7 +74,7 @@ void a_DrawCircle( const int posX, const int posY, const int radius, const aColo
     }
 
     x++;
-    
+
     decision += 8 * x + 4;
   }
 }
@@ -96,7 +101,7 @@ void a_DrawFilledCircle( const int posX, const int posY, const int radius, const
     }
 
     x++;
-    
+
     decision += 8 * x + 4;
   }
 }
@@ -166,7 +171,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y )
   dest.y = y;
 
   img = SDL_CreateTextureFromSurface(app.renderer, surf);
-  
+
   int success = SDL_QueryTexture(img, NULL, NULL, &dest.w, &dest.h);
 
   if (success < 0)
@@ -231,4 +236,3 @@ aColor_t gray3   = { 115, 115, 115, 255 };
 aColor_t gray2   = {  95,  95,  95, 255 };
 aColor_t gray1   = {  55,  55,  55, 255 };
 aColor_t gray0   = {  35,  35,  35, 255 };
-

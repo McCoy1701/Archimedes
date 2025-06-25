@@ -259,6 +259,14 @@ test-input-integration: always $(INPUT_TEST_OBJS)
 run-test-input-integration: test-input-integration
 	@./$(BIN_DIR)/test_input_integration
 
+.PHONY: test-draw-basic
+test-draw-basic: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_draw_basic $(TRUE_TEST_DIR)/draw/test_draw_basic.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-draw-basic
+run-test-draw-basic: test-draw-basic
+	@./$(BIN_DIR)/test_draw_basic
+
 # Test help
 .PHONY: test-help
 test-help:

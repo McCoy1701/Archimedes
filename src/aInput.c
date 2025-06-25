@@ -13,19 +13,6 @@ static void a_DoMouseUp( SDL_MouseButtonEvent* button );
 static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel );
 static void a_DoMouseMotion( SDL_MouseMotionEvent* motion );
 
-/*
- * Process all pending SDL input events and update global input state
- *
- * -- Main input processing function that should be called once per frame
- * -- Polls all SDL events and dispatches them to appropriate handlers
- * -- Updates global app.keyboard[], app.mouse, and app.input_text state
- * -- Handles SDL_QUIT events by setting app.running = 0
- * -- Processes keyboard key down/up, mouse button/wheel, and text input events
- * -- Must be called after SDL initialization and before accessing input state
- * -- Thread-safe only if called from the same thread that initialized SDL
- * -- Returns early if SDL event polling fails (defensive programming)
- * -- Handles malformed or invalid events gracefully without crashing
- */
 void a_DoInput( void )
 {
   SDL_Event event;

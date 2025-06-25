@@ -102,7 +102,7 @@ typedef struct
   int spacing;
   int num_components;
   aWidget_t* components;
-} aContainerWidget_t; 
+} aContainerWidget_t;
 
 typedef struct
 {
@@ -245,28 +245,203 @@ float a_GetDeltaTime( void );
 ---                          Draw                           ---
 ---------------------------------------------------------------
 */
-
+/*
+ * Prepare the scene for rendering
+ *
+ * -- Clears the screen with the current background color
+ * -- Sets render draw color to white (255,255,255,255) for subsequent operations
+ * -- Must be called before drawing operations in each frame
+ * -- Call a_PresentScene() after drawing to display the rendered frame
+ */
 void a_PrepareScene( void );
+/*
+ * Present the rendered scene to the screen
+ *
+ * -- Displays all drawing operations performed since a_PrepareScene()
+ * -- Completes the render cycle started by a_PrepareScene()
+ * -- Should be called once per frame after all drawing operations
+ * -- Double-buffered rendering: swaps front and back buffers
+ */
 void a_PresentScene( void );
-
+/*
+ * Draw a single point at specified coordinates
+ *
+ * `x` - Horizontal position in pixels
+ * `y` - Vertical position in pixels
+ * `color` - RGBA color for the point
+ *
+ * -- Point is drawn as a single pixel
+ * -- Coordinates outside screen bounds are clipped
+ * -- Temporarily changes render color, restores to white afterward
+ */
 void a_DrawPoint( const int x, const int y, const aColor_t color );
+/*
+ * Draw a line between two points
+ *
+ * `x1` - Starting X coordinate
+ * `y1` - Starting Y coordinate
+ * `x2` - Ending X coordinate
+ * `y2` - Ending Y coordinate
+ * `color` - RGBA color for the line
+ *
+ * -- Handles lines at any angle including vertical and horizontal
+ * -- Temporarily changes render color, restores to white afterward
+ */
 void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color );
+/*
+ * Draw a horizontal line
+ *
+ * `x1` - Starting X coordinate
+ * `x2` - Ending X coordinate
+ * `y` - Y coordinate (same for both endpoints)
+ * `color` - RGBA color for the line
+ *
+ * -- Optimized for horizontal lines
+ * -- Order of x1 and x2 doesn't matter (automatically handles swapping)
+ * -- Temporarily changes render color, restores to white afterward
+ */
 void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color );
+/*
+ * Draw a circle outline
+ *
+ * `posX` - Center X coordinate
+ * `posY` - Center Y coordinate
+ * `radius` - Circle radius in pixels
+ * `color` - RGBA color for the circle outline
+ *
+ * -- Draws only the perimeter, not filled
+ * -- Uses Bresenham's circle algorithm for efficiency
+ * -- Radius of 0 draws a single point at center
+ * -- Negative radius is treated as 0
+ */
 void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color );
+/*
+ * Draw a filled circle
+ *
+ * `posX` - Center X coordinate
+ * `posY` - Center Y coordinate
+ * `radius` - Circle radius in pixels
+ * `color` - RGBA color for the filled circle
+ *
+ * -- Fills the entire circle area with color
+ * -- Uses optimized scan-line filling algorithm
+ * -- Radius of 0 draws a single point at center
+ * -- Negative radius is treated as 0
+ */
 void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
 void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color );
+/*
+ * Draw a triangle outline
+ *
+ * `x0` - First vertex X coordinate
+ * `y0` - First vertex Y coordinate
+ * `x1` - Second vertex X coordinate
+ * `y1` - Second vertex Y coordinate
+ * `x2` - Third vertex X coordinate
+ * `y2` - Third vertex Y coordinate
+ * `color` - RGBA color for the triangle outline
+ *
+ * -- Draws three lines connecting the vertices
+ * -- Vertices can be specified in any order (clockwise or counter-clockwise)
+ * -- Degenerate triangles (collinear points) draw as lines
+ */
 void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, const int x2,
                      const int y2, const aColor_t color );
+/*
+ * Draw a filled triangle
+ *
+ * `x0` - First vertex X coordinate
+ * `y0` - First vertex Y coordinate
+ * `x1` - Second vertex X coordinate
+ * `y1` - Second vertex Y coordinate
+ * `x2` - Third vertex X coordinate
+ * `y2` - Third vertex Y coordinate
+ * `color` - RGBA color for the filled triangle
+ *
+ * -- Fills the entire triangle area with color
+ * -- Currently implementation is disabled (commented out)
+ * -- Would use barycentric coordinate filling when implemented
+ * -- Degenerate triangles are handled gracefully
+ */
 void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
                            const int x2, const int y2, const aColor_t color );
+/*
+ * Draw a rectangle outline
+ *
+ * `x` - Top-left X coordinate
+ * `y` - Top-left Y coordinate
+ * `w` - Width in pixels
+ * `h` - Height in pixels
+ * `r` - Red color component (0-255)
+ * `g` - Green color component (0-255)
+ * `b` - Blue color component (0-255)
+ * `a` - Alpha transparency (0-255, 255=opaque)
+ *
+ * -- Draws only the border, not filled
+ * -- Zero or negative dimensions are handled gracefully
+ * -- Temporarily changes render color, restores to white afterward
+ */
 void a_DrawRect( const int x, const int y, const int w, const int h, const int r,
                  const int g, const int b, const int a );
+/*
+ * Draw a filled rectangle
+ *
+ * `x` - Top-left X coordinate
+ * `y` - Top-left Y coordinate
+ * `w` - Width in pixels
+ * `h` - Height in pixels
+ * `r` - Red color component (0-255)
+ * `g` - Green color component (0-255)
+ * `b` - Blue color component (0-255)
+ * `a` - Alpha transparency (0-255, 255=opaque)
+ *
+ * -- Fills the entire rectangle area with color
+ * -- Zero or negative dimensions are handled gracefully
+ * -- Supports alpha blending when alpha < 255
+ * -- Temporarily changes render color, restores to white afterward
+ */
 void a_DrawFilledRect( const int x, const int y, const int w, const int h, const int r,
                        const int g, const int b, const int a );
-
+/*
+ * Blit a surface to the screen at specified position
+ *
+ * `surf` - Source SDL surface to draw
+ * `x` - Destination X coordinate
+ * `y` - Destination Y coordinate
+ *
+ * -- Converts surface to texture and renders it
+ * -- Surface dimensions determine blit size
+ * -- Creates and destroys texture each call (not optimized for repeated use)
+ * -- NULL surface is handled gracefully without crashing
+ * -- Surface remains unchanged after blitting
+ */
 void a_Blit( SDL_Surface* surf, const int x, const int y );
+/*
+ * Blit a rectangular region of a surface to the screen
+ *
+ * `surf` - Source SDL surface to draw from
+ * `src` - Source rectangle within the surface
+ * `x` - Destination X coordinate
+ * `y` - Destination Y coordinate
+ *
+ * -- Blits only the specified rectangular region from source
+ * -- Destination size matches source rectangle dimensions
+ * -- Frees the source surface after creating texture
+ * -- NULL surface is handled gracefully without crashing
+ * -- Source rectangle is clipped to surface bounds
+ */
 void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
-
+/*
+ * Update the window title text
+ *
+ * `title` - New title string for the window
+ *
+ * -- Changes the text displayed in the window's title bar
+ * -- String is copied internally, original can be freed after call
+ * -- Empty string results in blank title
+ * -- NULL title is handled gracefully (implementation dependent)
+ * -- Works on all supported platforms (Windows, Linux, macOS)
+ */
 void a_UpdateTitle( const char *title );
 
 /*
@@ -297,7 +472,19 @@ void a_Quit( void );
 ---                          Input                          ---
 ---------------------------------------------------------------
 */
-
+/*
+ * Process all pending SDL input events and update global input state
+ *
+ * -- Main input processing function that should be called once per frame
+ * -- Polls all SDL events and dispatches them to appropriate handlers
+ * -- Updates global app.keyboard[], app.mouse, and app.input_text state
+ * -- Handles SDL_QUIT events by setting app.running = 0
+ * -- Processes keyboard key down/up, mouse button/wheel, and text input events
+ * -- Must be called after SDL initialization and before accessing input state
+ * -- Thread-safe only if called from the same thread that initialized SDL
+ * -- Returns early if SDL event polling fails (defensive programming)
+ * -- Handles malformed or invalid events gracefully without crashing
+ */
 void a_DoInput( void );
 
 /*

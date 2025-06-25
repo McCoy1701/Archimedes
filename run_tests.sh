@@ -142,9 +142,10 @@ STABLE_MESSAGES=(
     "🎭 PLATO'S CAVE! Your stable code reflects eternal Forms of Truth!"
 )
 
-ACHIEVEMENT_BADGES=(
-    "🏺 AMPHORA" "✨ THUNDERBOLT" "🏛️ TEMPLE" "👑 LAUREL" "🔱 TRIDENT"
-    "🔥 TORCH" "🌟 CONSTELLATION" "🚀 PEGASUS" "💪 HERCULES" "🎯 ARTEMIS"
+# Story-driven symbols that reflect the Sisyphus/Daedalus narrative
+NARRATIVE_SYMBOLS=(
+    "🪨 THE BOULDER'S WEIGHT" "🗿 DAEDALUS'S CHISEL" "🏛️ MINOS'S DECREE" "🕊️ ICARUS'S FEATHER" "🐂 THE MINOTAUR'S ROAR"
+    "🌀 THE LABYRINTH'S SPIRAL" "⛓️ SISYPHUS'S CHAINS" "📜 THE ARCHITECT'S BLUEPRINT" "🔥 THE FORGE'S FLAME" "👑 THE KING'S SHADOW"
 )
 
 echo -e "${PURPLE}🚀 Daedalus Test Suite Runner${NC}"
@@ -240,7 +241,7 @@ update_legend_stats() {
             prev_count=$(echo "$prev_current_challenge" | grep -o '[0-9]\+' | head -1)
             curr_count=$(echo "$curr_challenge" | grep -o '[0-9]\+' | head -1)
 
-            if [ -n "$prev_count" ] && [ "$prev_count" -gt 0 ] && ([ -z "$curr_count" ] || [ "$curr_count" -eq 0 ]); then
+            if [ -n "$prev_count" ] && [ "$prev_count" -gt 0 ] && ([ -z "$curr_count" ] || [ "${curr_count:-0}" -eq 0 ]); then
                 quest_completed=1
             fi
         fi
@@ -273,7 +274,7 @@ update_legend_stats() {
     fi
 
     # Update streak achievements
-    if [ "$curr_streak" -ge 3 ] && [ "$curr_streak" -gt "$longest_streak" ]; then
+    if [ "${curr_streak:-0}" -ge 3 ] && [ "${curr_streak:-0}" -gt "${longest_streak:-0}" ]; then
         divine_streaks_achieved=$((divine_streaks_achieved + 1))
         longest_streak="$curr_streak"
     fi
@@ -404,9 +405,9 @@ get_random_message() {
     echo "${arr[$RANDOM % ${#arr[@]}]}"
 }
 
-# Function to get random achievement badge
-get_random_badge() {
-    echo "${ACHIEVEMENT_BADGES[$RANDOM % ${#ACHIEVEMENT_BADGES[@]}]}"
+# Function to get random narrative symbol
+get_narrative_symbol() {
+    echo "${NARRATIVE_SYMBOLS[$RANDOM % ${#NARRATIVE_SYMBOLS[@]}]}"
 }
 
 # Function to generate current challenge
@@ -481,11 +482,11 @@ analyze_historical_trends() {
         local errors=$(grep "ERRORS=" "$file" | cut -d'=' -f2 | tr -d '\n\r' | tr -d ' ')
         local streak=$(grep "IMPROVEMENT_STREAK=" "$file" | cut -d'=' -f2 | tr -d '\n\r' | tr -d ' ')
 
-        if [ -n "$errors" ] && [ "$errors" -eq 0 ]; then
+        if [ -n "$errors" ] && [ "${errors:-1}" -eq 0 ]; then
             perfect_runs=$((perfect_runs + 1))
         fi
 
-        if [ -n "$streak" ] && [ "$streak" != "" ] && [[ "$streak" =~ ^[0-9]+$ ]] && [ "$streak" -gt "$max_streak" ]; then
+        if [ -n "$streak" ] && [ "$streak" != "" ] && [[ "$streak" =~ ^[0-9]+$ ]] && [ "${streak:-0}" -gt "${max_streak:-0}" ]; then
             max_streak=$streak
         fi
     done
@@ -666,7 +667,7 @@ check_milestones() {
         done
     fi
 
-    if [ "$today_failed_runs" -gt 0 ] && [ "$today_perfect_runs" -gt 0 ]; then
+    if [ "${today_failed_runs:-0}" -gt 0 ] && [ "${today_perfect_runs:-0}" -gt 0 ]; then
         if ! was_milestone_shown_today "phoenix_rising"; then
             eligible_milestones+=("phoenix_rising:🔥 PHOENIX RISING! From failure's ashes to perfect victory!")
         fi
@@ -754,7 +755,7 @@ cleanup_archive() {
     # Count .sp-stats files
     local file_count=$(ls -1 "$SISYPHUS_ARCHIVE_DIR"/*.sp-stats 2>/dev/null | wc -l)
 
-    if [ "$file_count" -gt 30 ]; then
+    if [ "${file_count:-0}" -gt 30 ]; then
         # Remove oldest files (keep newest 30)
         ls -1t "$SISYPHUS_ARCHIVE_DIR"/*.sp-stats 2>/dev/null | tail -n +31 | xargs rm -f
         echo -e "${GRAY}🗑️  Cleaned up old archive files (kept latest 30 runs)${NC}"
@@ -818,7 +819,7 @@ show_archive_stats() {
         local passes=$(grep "PASSES=" "$file" | cut -d'=' -f2 | tr -d '\n\r' | tr -d ' ')
         local efficiency=$(grep "EFFICIENCY_RATIO=" "$file" | cut -d'=' -f2 | tr -d '\n\r' | tr -d ' ')
 
-        if [ -n "$errors" ] && [[ "$errors" =~ ^[0-9]+$ ]] && [ "$errors" -eq 0 ]; then
+        if [ -n "$errors" ] && [[ "$errors" =~ ^[0-9]+$ ]] && [ "${errors:-1}" -eq 0 ]; then
             perfect_runs=$((perfect_runs + 1))
         fi
 
@@ -826,12 +827,12 @@ show_archive_stats() {
             total_tests=$((total_tests + passes))
         fi
 
-        if [ -n "$efficiency" ] && [[ "$efficiency" =~ ^[0-9]+$ ]] && [ "$efficiency" -gt "$max_efficiency" ]; then
+        if [ -n "$efficiency" ] && [[ "$efficiency" =~ ^[0-9]+$ ]] && [ "${efficiency:-0}" -gt "${max_efficiency:-0}" ]; then
             max_efficiency=$efficiency
         fi
     done
 
-    if [ "$total_runs" -gt 0 ]; then
+    if [ "${total_runs:-0}" -gt 0 ]; then
         local success_rate=$((perfect_runs * 100 / total_runs))
         echo -e "${PURPLE}📊 LEGENDARY STATISTICS${NC}"
         echo -e "  🏛️ Total Runs: $total_runs"
@@ -921,10 +922,16 @@ show_progress() {
     local curr_runtime_errors="$5"
     local curr_efficiency_ratio="$6"
     local curr_pure_test_time="$7"
-
-    # Read previous stats using pipe separation to avoid timestamp parsing issues
-    local stats_line="$(read_previous_stats)"
-    IFS='|' read -r prev_errors prev_passes prev_failures prev_compile_errors prev_runtime_errors prev_efficiency_ratio prev_pure_test_time prev_improvement_streak prev_current_challenge prev_timestamp <<< "$stats_line"
+    local prev_errors="$8"
+    local prev_passes="$9"
+    local prev_failures="${10}"
+    local prev_compile_errors="${11}"
+    local prev_runtime_errors="${12}"
+    local prev_efficiency_ratio="${13}"
+    local prev_pure_test_time="${14}"
+    local prev_improvement_streak="${15}"
+    local prev_current_challenge="${16}"
+    local prev_timestamp="${17}"
     echo ""
     echo -e "${PURPLE}📈 Sisyphus Progress Since Last Run${NC}"
     echo -e "Last run: ${YELLOW}$prev_timestamp${NC}"
@@ -969,9 +976,11 @@ show_progress() {
         echo -e "Compile Errors:      ${YELLOW}$prev_compile_errors${NC} → ${YELLOW}$curr_compile_errors${NC} ($(format_change $compile_change "files"))"
         echo -e "Runtime Errors:      ${YELLOW}$prev_runtime_errors${NC} → ${YELLOW}$curr_runtime_errors${NC} ($(format_change $runtime_change "files"))"
 
-    # Overall progress indicator - include both file-level and individual test failures
-    local total_curr_issues=$((curr_errors + curr_failures + curr_compile_errors + curr_runtime_errors))
-    local total_prev_issues=$((prev_errors + prev_failures + prev_compile_errors + prev_runtime_errors))
+    # Overall progress indicator - avoid double-counting test failures
+    # curr_errors represents files with test failures, curr_failures represents individual test failures
+    # We should only count one or the other, not both, to avoid double-counting the same issue
+    local total_curr_issues=$((curr_failures + curr_compile_errors + curr_runtime_errors))
+    local total_prev_issues=$((prev_failures + prev_compile_errors + prev_runtime_errors))
     local total_change=$((total_curr_issues - total_prev_issues))
 
     echo ""
@@ -984,11 +993,11 @@ show_progress() {
     fi
 
     # Success rate comparison
-    if [ "$curr_passes" -gt 0 ] || [ "$prev_passes" -gt 0 ]; then
+    if [ "${curr_passes:-0}" -gt 0 ] || [ "${prev_passes:-0}" -gt 0 ]; then
         local curr_total_tests=$((curr_passes + curr_failures))
         local prev_total_tests=$((prev_passes + prev_failures))
 
-        if [ "$curr_total_tests" -gt 0 ] && [ "$prev_total_tests" -gt 0 ]; then
+        if [ "${curr_total_tests:-0}" -gt 0 ] && [ "${prev_total_tests:-0}" -gt 0 ]; then
             local curr_rate=$(echo "scale=1; $curr_passes * 100 / $curr_total_tests" | bc -l)
             local prev_rate=$(echo "scale=1; $prev_passes * 100 / $prev_total_tests" | bc -l)
             local rate_change=$(echo "scale=1; $curr_rate - $prev_rate" | bc -l)
@@ -1029,7 +1038,7 @@ show_progress() {
 
         if [ "$efficiency_change" -gt 0 ]; then
             echo -e "                     ${GREEN}▲ +${efficiency_change}x more efficient${NC}"
-        elif [ "$efficiency_change" -lt 0 ]; then
+        elif [ "${efficiency_change:-0}" -lt 0 ]; then
             echo -e "                     ${RED}▼ ${efficiency_change}x less efficient${NC}"
         else
             echo -e "                     ${YELLOW}± No change${NC}"
@@ -1330,21 +1339,7 @@ if [ "$TOTAL_BULK_FAILURES" -gt 0 ]; then
     done
 fi
 
-# Write stats first to update the legend file with all XP earned from tests
-write_current_stats "$TOTAL_FILE_ERRORS" "$PASSED_INDIVIDUAL_TESTS" "$FAILED_INDIVIDUAL_TESTS" "$COMPILE_ERRORS" "$RUNTIME_ERRORS" "$EFFICIENCY_RATIO" "$TOTAL_TEST_TIME" "$IMPROVEMENT_STREAK" "$CURRENT_CHALLENGE"
-
-# Now calculate actual session XP as the difference between ending and starting project XP
-ENDING_LEGEND_LINE="$(read_legend_stats)"
-IFS='|' read -r _end_runs _end_quests _end_hydra _end_blueprint _end_oracle _end_divine _end_longest _end_perfect _end_first_quest ENDING_PROJECT_XP _end_level <<< "$ENDING_LEGEND_LINE"
-TOTAL_SESSION_XP=$((ENDING_PROJECT_XP - STARTING_PROJECT_XP))
-
-# Store original XP totals for display (never modify the originals)
-original_session_xp=$TOTAL_SESSION_XP
-
-# Debug final totals before display
-echo -e "${GRAY}[DEBUG] Final totals - Starting XP: $STARTING_PROJECT_XP, Ending XP: $ENDING_PROJECT_XP, Session XP: $TOTAL_SESSION_XP, Successfully run files: $SUCCESSFULLY_RUN_FILES, Failed tests: $FAILED_INDIVIDUAL_TESTS, Bulk penalty: $BULK_FAILURE_PENALTY${NC}" >&2
-
-# Determine efficiency ratio only if we have test time
+# Determine efficiency ratio BEFORE writing stats
 EFFICIENCY_RATIO=0
 if (( $(echo "$TOTAL_TEST_TIME > 0" | bc -l) )); then
     EFFICIENCY_RATIO=$(echo "scale=0; $TOTAL_SHELL_OVERHEAD / $TOTAL_TEST_TIME" | bc -l)
@@ -1428,8 +1423,26 @@ else
     CURRENT_CHALLENGE="🏛️ Mount Olympus Achieved - All tests pass, Daedalus' labyrinth conquered"
 fi
 
-# Show progress comparison before final summary
-show_progress "$TOTAL_FILE_ERRORS" "$PASSED_INDIVIDUAL_TESTS" "$FAILED_INDIVIDUAL_TESTS" "$COMPILE_ERRORS" "$RUNTIME_ERRORS" "$EFFICIENCY_RATIO" "$TOTAL_TEST_TIME"
+# Read previous stats once and pass to both functions
+PREV_STATS_LINE="$(read_previous_stats)"
+IFS='|' read -r PREV_ERRORS PREV_PASSES PREV_FAILURES PREV_COMPILE_ERRORS PREV_RUNTIME_ERRORS PREV_EFFICIENCY_RATIO PREV_PURE_TEST_TIME PREV_IMPROVEMENT_STREAK PREV_CURRENT_CHALLENGE PREV_TIMESTAMP <<< "$PREV_STATS_LINE"
+
+# Show progress comparison BEFORE writing current stats
+show_progress "$TOTAL_FILE_ERRORS" "$PASSED_INDIVIDUAL_TESTS" "$FAILED_INDIVIDUAL_TESTS" "$COMPILE_ERRORS" "$RUNTIME_ERRORS" "$EFFICIENCY_RATIO" "$TOTAL_TEST_TIME" "$PREV_ERRORS" "$PREV_PASSES" "$PREV_FAILURES" "$PREV_COMPILE_ERRORS" "$PREV_RUNTIME_ERRORS" "$PREV_EFFICIENCY_RATIO" "$PREV_PURE_TEST_TIME" "$PREV_IMPROVEMENT_STREAK" "$PREV_CURRENT_CHALLENGE" "$PREV_TIMESTAMP"
+
+# Write stats AFTER showing progress comparison
+write_current_stats "$TOTAL_FILE_ERRORS" "$PASSED_INDIVIDUAL_TESTS" "$FAILED_INDIVIDUAL_TESTS" "$COMPILE_ERRORS" "$RUNTIME_ERRORS" "$EFFICIENCY_RATIO" "$TOTAL_TEST_TIME" "$IMPROVEMENT_STREAK" "$CURRENT_CHALLENGE"
+
+# Now calculate actual session XP as the difference between ending and starting project XP
+ENDING_LEGEND_LINE="$(read_legend_stats)"
+IFS='|' read -r _end_runs _end_quests _end_hydra _end_blueprint _end_oracle _end_divine _end_longest _end_perfect _end_first_quest ENDING_PROJECT_XP _end_level <<< "$ENDING_LEGEND_LINE"
+TOTAL_SESSION_XP=$((ENDING_PROJECT_XP - STARTING_PROJECT_XP))
+
+# Store original XP totals for display (never modify the originals)
+original_session_xp=$TOTAL_SESSION_XP
+
+# Debug final totals before display
+echo -e "${GRAY}[DEBUG] Final totals - Starting XP: $STARTING_PROJECT_XP, Ending XP: $ENDING_PROJECT_XP, Session XP: $TOTAL_SESSION_XP, Successfully run files: $SUCCESSFULLY_RUN_FILES, Failed tests: $FAILED_INDIVIDUAL_TESTS, Bulk penalty: $BULK_FAILURE_PENALTY${NC}" >&2
 
 # Final Summary
 SUCCESSFUL_FILES=$((PASSED_FILES))
@@ -1571,13 +1584,21 @@ show_motivational_message() {
     local curr_efficiency_ratio="$6"
     local curr_pure_test_time="$7"
     local curr_challenge="$8"
-
-    # Read previous stats
-    local stats_line="$(read_previous_stats)"
-    IFS='|' read -r prev_errors prev_passes prev_failures prev_compile_errors prev_runtime_errors prev_efficiency_ratio prev_pure_test_time prev_improvement_streak prev_current_challenge prev_timestamp <<< "$stats_line"
-    # Calculate changes with detailed context - include both file-level and individual test failures
-    local total_curr_issues=$((curr_errors + curr_failures + curr_compile_errors + curr_runtime_errors))
-    local total_prev_issues=$((prev_errors + prev_failures + prev_compile_errors + prev_runtime_errors))
+    local prev_errors="$9"
+    local prev_passes="${10}"
+    local prev_failures="${11}"
+    local prev_compile_errors="${12}"
+    local prev_runtime_errors="${13}"
+    local prev_efficiency_ratio="${14}"
+    local prev_pure_test_time="${15}"
+    local prev_improvement_streak="${16}"
+    local prev_current_challenge="${17}"
+    local prev_timestamp="${18}"
+    # Calculate changes with detailed context - avoid double-counting test failures
+    # curr_errors represents files with test failures, curr_failures represents individual test failures
+    # We should only count one or the other, not both, to avoid double-counting the same issue
+    local total_curr_issues=$((curr_failures + curr_compile_errors + curr_runtime_errors))
+    local total_prev_issues=$((prev_failures + prev_compile_errors + prev_runtime_errors))
     local total_change=$((total_curr_issues - total_prev_issues))
     local pass_change=$((curr_passes - prev_passes))
     local efficiency_change=$((curr_efficiency_ratio - prev_efficiency_ratio))
@@ -1993,90 +2014,92 @@ show_motivational_message() {
         echo -e "    ${FADED}Sisyphus continuous improvement tracking started${NC}"
 
         if [ "$total_curr_issues" -eq 0 ]; then
-            local badge=$(get_random_badge)
-            echo -e "${GREEN}$badge PERFECT INITIALIZATION! All test suites passed on first run${NC}"
-            echo -e "    ${FADED}Zero compilation errors, runtime crashes, or test failures detected${NC}"
+            local symbol=$(get_narrative_symbol)
+            echo -e "${GREEN}$symbol THE ARCHITECT'S DREAM! From the first stone, perfection emerges${NC}"
+            echo -e "    ${FADED}'Impossible! Even I, Daedalus, master of all crafts, have never seen such initial precision!' -Daedalus${NC}"
         elif [ "$total_curr_issues" -le 5 ]; then
-            echo -e "${PURPLE}💪 BASELINE ESTABLISHED! $total_curr_issues issues identified for improvement${NC}"
-            echo -e "    ${FADED}Framework will track progress on: compilation, runtime, and test errors${NC}"
+            echo -e "${PURPLE}🏛️ THE FOUNDATION IS LAID! $total_curr_issues minor flaws await the master's touch${NC}"
+            echo -e "    ${FADED}Sisyphus begins his eternal work: each push of the boulder, each fix of the code.${NC}"
         else
-            echo -e "${RED}🔥 SIGNIFICANT WORK AHEAD! $total_curr_issues issues detected across test suites${NC}"
-            echo -e "    ${FADED}Focus areas: $COMPILE_ERRORS compile errors, $RUNTIME_ERRORS runtime crashes, ${#FAILED_FILES[@]} failing test files${NC}"
+            echo -e "${RED}🌊 THE CHAOS OF CREATION! $total_curr_issues primordial errors swirl in the architectural void${NC}"
+            echo -e "    ${FADED}From such chaos, heroes are born. Let the great work begin, Sisyphus.${NC}"
         fi
     elif [ "$total_change" -lt 0 ]; then
         # IMPROVEMENT DETECTED - Technical progress with gamification
         local improvement=$((total_prev_issues - total_curr_issues))
-        local badge=$(get_random_badge)
+        local symbol=$(get_narrative_symbol)
 
         if [ "$improvement" -ge 10 ]; then
-            echo -e "${GREEN}$badge LEGENDARY REFACTOR! Eliminated $improvement issues in single session${NC}"
-            echo -e "    ${FADED}Major debugging breakthrough - systematic problem solving achieved${NC}"
-            echo -e "${BOLD_WHITE}🎊 ACHIEVEMENT UNLOCKED: Master Debugger (10+ issues resolved)${NC}"
+            local symbol=$(get_narrative_symbol)
+            echo -e "${GREEN}$symbol DAEDALUS WEEPS WITH JOY! The master architect witnesses $improvement flaws vanish like morning mist${NC}"
+            echo -e "    ${FADED}'By the gods, Sisyphus! In one session you have achieved what I thought impossible!'${NC}"
+            echo -e "${BOLD_WHITE}🏛️ LEGENDARY BREAKTHROUGH: The Labyrinth trembles as its deepest mysteries yield to your will${NC}"
         elif [ "$improvement" -ge 5 ]; then
-            echo -e "${GREEN}$badge EXCELLENT PROGRESS! Fixed $improvement critical issues${NC}"
-            echo -e "    ${FADED}Strong debugging session - significant codebase health improvement${NC}"
-            echo -e "${BOLD_WHITE}💥 ACHIEVEMENT UNLOCKED: Bug Slayer (5+ issues resolved)${NC}"
+            local symbol=$(get_narrative_symbol)
+            echo -e "${GREEN}$symbol THE BOULDER ROLLS UPHILL! $improvement grievous errors crumble beneath your relentless effort${NC}"
+            echo -e "    ${FADED}'The gods themselves take notice when mortals achieve such systematic triumph over chaos'${NC}"
+            echo -e "${BOLD_WHITE}⚡ DIVINE RECOGNITION: Even Zeus pauses his thunderbolts to observe your mastery${NC}"
         elif [ "$improvement" -ge 2 ]; then
-            echo -e "${GREEN}$badge SOLID DEBUGGING! Resolved $improvement issues${NC}"
-            echo -e "    ${FADED}Consistent progress - methodical problem solving approach${NC}"
-            echo -e "${BOLD_WHITE}🎯 STREAK BUILDING: Multiple issues resolved efficiently${NC}"
+            local symbol=$(get_narrative_symbol)
+            echo -e "${GREEN}$symbol SISYPHEAN PERSISTENCE! Each of $improvement flaws falls to your methodical assault${NC}"
+            echo -e "    ${FADED}'This is the true nature of the curse: not the pushing, but the perfecting'${NC}"
+            echo -e "${BOLD_WHITE}🔥 THE FORGE BURNS BRIGHT: Your dedication transforms base code into architectural gold${NC}"
         else
-            echo -e "${GREEN}✨ INCREMENTAL PROGRESS! Fixed $improvement issue${NC}"
-            echo -e "    ${FADED}Every bug fixed improves code quality - systematic improvement${NC}"
+            echo -e "${GREEN}⚡ THE LABYRINTH YIELDS! One more passage cleared, one more mystery solved${NC}"
+            echo -e "    ${FADED}'In the endless work, Sisyphus, each small victory is a rebellion against fate'${NC}"
         fi
 
-        # Improvement streak tracking with technical context
+        # Story-driven streak tracking with existential weight
         if [ "$current_streak" -ge 5 ]; then
-            echo -e "${PURPLE}🔥 CONSISTENCY MASTER! $current_streak consecutive improvement sessions${NC}"
-            echo -e "    ${FADED}Sustained debugging excellence - maintaining high development velocity${NC}"
+            echo -e "${PURPLE}🌀 THE ETERNAL RHYTHM! For $current_streak cycles, the boulder has rolled only upward${NC}"
+            echo -e "    ${FADED}Daedalus whispers: 'You have found the secret, Sisyphus. Embrace the absurd, and it becomes divine.'${NC}"
         elif [ "$current_streak" -ge 3 ]; then
-            echo -e "${CYAN}✨ MOMENTUM BUILDING! $current_streak improvements in a row${NC}"
-            echo -e "    ${FADED}Strong problem-solving rhythm - effective debugging workflow established${NC}"
+            echo -e "${CYAN}⛓️ BREAKING THE PATTERN! $current_streak successive triumphs over the Labyrinth's chaos${NC}"
+            echo -e "    ${FADED}The chains of your curse grow lighter with each victory. Purpose emerges from punishment.${NC}"
         elif [ "$current_streak" -ge 2 ]; then
-            echo -e "${YELLOW}🎯 IMPROVEMENT STREAK! $current_streak consecutive fixes${NC}"
-            echo -e "    ${FADED}Pattern of progress detected - methodical approach paying off${NC}"
+            echo -e "${YELLOW}🪨 THE BOULDER LISTENS! $current_streak pushes without it rolling back down${NC}"
+            echo -e "    ${FADED}You begin to understand: the stone is not your enemy, but your teacher.${NC}"
         fi
 
-        # Specific technical achievements with thematic presentation
+        # Narrative-driven technical achievements that advance the story
         if [ "$compile_change" -gt 0 ]; then
-            echo -e "${CYAN}🔨 SYNTAX MASTERY! Fixed $compile_change compilation error(s)${NC}"
-            echo -e "    ${FADED}Code structure improved - compiler errors eliminated${NC}"
+            echo -e "${CYAN}🏗️ DAEDALUS'S BLUEPRINTS PERFECTED! $compile_change architectural flaws corrected${NC}"
+            echo -e "    ${FADED}'The foundation stones no longer crack. Your craftsmanship rivals my own.' -Daedalus${NC}"
         fi
         if [ "$runtime_change" -gt 0 ]; then
-            echo -e "${ORANGE}💥 MEMORY GUARDIAN! Eliminated $runtime_change segfault(s)${NC}"
-            echo -e "    ${FADED}Runtime stability improved - memory safety enhanced${NC}"
+            echo -e "${ORANGE}🐂 MINOTAUR'S RAGE CONTAINED! $runtime_change beast(s) no longer rampage through memory${NC}"
+            echo -e "    ${FADED}The Labyrinth's walls hold firm. No creature shall escape your perfect prison.${NC}"
         fi
         if [ "$pass_change" -gt 0 ]; then
-            echo -e "${GREEN}🚀 TEST VICTORIES! +$pass_change additional tests passing${NC}"
-            echo -e "    ${FADED}Code coverage improved - functionality validation enhanced${NC}"
+            echo -e "${GREEN}🌟 THE THREADS OF ARIADNE! +$pass_change more paths now lead to salvation${NC}"
+            echo -e "    ${FADED}Heroes yet unborn will find their way through the maze because of your work.${NC}"
         fi
     elif [ "$total_change" -gt 0 ]; then
         # REGRESSION DETECTED - Technical analysis with motivational framing
         local setback=$total_change
-        echo -e "${YELLOW}⚠️  REGRESSION ANALYSIS: +$setback new issues introduced${NC}"
 
         if [ "$setback" -le 2 ]; then
-            echo -e "${CYAN}🌊 MINOR SETBACK! $setback new issue(s) detected${NC}"
-            echo -e "    ${FADED}Small regression - normal part of iterative development process${NC}"
-            echo -e "${BOLD_WHITE}✨ DEBUGGING OPPORTUNITY: Quick fixes can restore stability${NC}"
+            echo -e "${CYAN}🌊 THE LABYRINTH SHIFTS! $setback new passage(s) have twisted in the shadows${NC}"
+            echo -e "    ${FADED}'The maze resists us, Sisyphus. It learns, it adapts, it fights back.' -Daedalus${NC}"
+            echo -e "${BOLD_WHITE}🗿 THE ARCHITECT'S TASK: Reshape the rebellious stone with your chisel${NC}"
         elif [ "$setback" -le 5 ]; then
-            echo -e "${ORANGE}🐍 MODERATE REGRESSION! $setback new issues require attention${NC}"
-            echo -e "    ${FADED}Code changes introduced complications - systematic debugging needed${NC}"
-            echo -e "${BOLD_WHITE}🛡️ REFACTORING CHALLENGE: Time to strengthen code architecture${NC}"
+            echo -e "${ORANGE}🐍 THE HYDRA'S REVENGE! Cut off $setback heads, yet more problems sprout from the wound${NC}"
+            echo -e "    ${FADED}The curse reveals its true nature: each solution births new complexities.${NC}"
+            echo -e "${BOLD_WHITE}⚔️ HERO'S TRIAL: Face the growing chaos with Sisyphean determination${NC}"
         else
-            echo -e "${RED}🔥 SIGNIFICANT REGRESSION! $setback new issues detected${NC}"
-            echo -e "    ${FADED}Major instability introduced - comprehensive review recommended${NC}"
-            echo -e "${BOLD_WHITE}👑 ARCHITECTURAL REVIEW: Consider rollback or staged fixes${NC}"
+            echo -e "${RED}🌀 THE LABYRINTH REBELS! $setback new torments emerge from the chaotic depths${NC}"
+            echo -e "    ${FADED}'It has become aware, Sisyphus. The maze now actively opposes its own completion.' -Daedalus${NC}"
+            echo -e "${BOLD_WHITE}👑 MINOS'S JUDGMENT: The King demands answers for this architectural insurrection${NC}"
         fi
 
-        # Technical progress despite regression
+        # Narrative progress that maintains hope despite setbacks
         if [ "$pass_change" -gt 0 ]; then
-            echo -e "${GREEN}🌟 PARTIAL SUCCESS! +$pass_change tests improved despite regression${NC}"
-            echo -e "    ${FADED}Some functionality enhanced - mixed development session${NC}"
+            echo -e "${GREEN}🕊️ ICARUS'S HOPE! +$pass_change small victories shine through the gathering storm${NC}"
+            echo -e "    ${FADED}Even in regression, progress persists. The work continues, the dream endures.${NC}"
         fi
         if [ "$efficiency_change" -gt 0 ]; then
-            echo -e "${PURPLE}✨ PERFORMANCE GAIN! +${efficiency_change}x speed improvement${NC}"
-            echo -e "    ${FADED}Execution efficiency improved - optimization work paying off${NC}"
+            echo -e "${PURPLE}⚡ PROMETHEUS'S GIFT! The code burns ${efficiency_change}x brighter than before${NC}"
+            echo -e "    ${FADED}You have stolen fire from the gods of inefficiency and given it to mortals.${NC}"
         fi
     else
         # NO CHANGE - Mythological stability analysis with story progression
@@ -2093,19 +2116,19 @@ show_motivational_message() {
         echo -e "${CYAN}$message${NC}"
 
         if [ "$total_curr_issues" -eq 0 ]; then
-            # Perfect state - random celebration
+            # Perfect state - existential achievement messages
             local perfect_messages=(
-                "${GREEN}🏛️ MOUNT OLYMPUS ACHIEVED! Daedalus' labyrinth stands complete and flawless${NC}|Divine architecture perfected - gods themselves marvel at your craftsmanship"
-                "${GREEN}👑 KING MINOS APPROVES! The royal decree: 'None shall challenge this perfect maze!'${NC}|Royal satisfaction achieved - labyrinth defenses are impenetrable"
-                "${GREEN}🌟 OLYMPIAN PERFECTION! Zeus himself blesses your flawless construction${NC}|Divine harmony achieved - continue this blessed architectural state"
-                "${GREEN}💎 MASTER CRAFTSMAN! Daedalus weeps with joy at your legendary skill${NC}|Legendary mastery achieved - your name echoes through mythological halls"
+                "${GREEN}🏛️ THE ETERNAL MOMENT! In this instant, Sisyphus, the boulder rests at the summit${NC}|'Impossible,' whispers Daedalus. 'We have achieved what the gods deemed eternal punishment.'"
+                "${GREEN}👑 MINOS'S SILENT APPROVAL! The King stares in wonder at the perfect Labyrinth${NC}|For once, the tyrant has no demands. Your work has exceeded even his cruel imagination."
+                "${GREEN}🌟 THE ABSURD TRANSCENDED! In perfecting the meaningless, you have found meaning${NC}|This is the secret Camus never told: embrace the absurd completely, and it becomes sacred."
+                "${GREEN}🐂 THE MINOTAUR BOWS! Even the beast recognizes the perfection of its prison${NC}|In the deepest chamber, a mournful lowing becomes something almost like... gratitude?"
             )
             local selected_perfect="${perfect_messages[RANDOM % ${#perfect_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_perfect"
             echo -e "$message"
             echo -e "    ${FADED}$context${NC}"
         elif [ "$total_curr_issues" -eq 1 ]; then
-            # Single issue - Minos' final decree
+            # Single issue - The final moment
             if [ "$COMPILE_ERRORS" -gt 0 ]; then
                 echo -e "${YELLOW}👑 MINOS' FINAL DECREE! One blueprint flaw blocks the royal seal${NC}"
                 echo -e "    ${FADED}King Minos awaits: fix the final architectural error to complete the labyrinth${NC}"
@@ -2117,37 +2140,49 @@ show_motivational_message() {
                 echo -e "    ${FADED}King Minos demands: navigate the final passage to prove the maze${NC}"
             fi
         elif [ "$total_curr_issues" -le 3 ]; then
-            # Few issues - near completion variety
+            # Few issues - existential near-completion
             local near_completion_messages=(
                 "${CYAN}🏗️ DAEDALUS INSPECTS! 'Only $total_curr_issues final touches remain on my masterpiece'${NC}|Master architect nods approvingly - the labyrinth nears completion"
-                "${CYAN}🗡️ THESEUS APPROACHES! The hero senses only $total_curr_issues obstacles ahead${NC}|Legendary warrior prepares - victory lies just beyond these final trials"
+                "${CYAN}🗡️  THESEUS APPROACHES! The hero senses only $total_curr_issues obstacles ahead${NC}|Legendary warrior prepares - victory lies just beyond these final trials"
                 "${CYAN}👑 A NOD FROM MINOS! The King sees but $total_curr_issues minor details to perfect in his Labyrinth${NC}|The final judgment is near. Achieve perfection to satisfy the decree of Crete."
                 "${CYAN}🪨 THE BURDEN LIGHTENS! Sisyphus, your task feels easier now; only $total_curr_issues steps remain${NC}|The summit is in sight. One final push will grant you a moment's peace."
+                "${CYAN}🗿 THE CHISEL'S FINAL STROKES! Only $total_curr_issues imperfections mar the eternal work${NC}|'I begin to understand,' Daedalus murmurs, 'why the gods chose you for this task.'"
+                "${CYAN}👑 THE KING'S SOFTENING GAZE! Even Minos seems moved by the near-completion of his terrible dream${NC}|'Perhaps,' he whispers, 'I have been the true monster all along.'"
+                "${CYAN}🪨 THE BOULDER'S WHISPER! The stone itself seems eager to reach the summit - only $total_curr_issues pushes remain${NC}|You realize: the mountain was never your enemy. It was waiting to be climbed."
+
             )
             local selected_near="${near_completion_messages[RANDOM % ${#near_completion_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_near"
             echo -e "$message"
             echo -e "    ${FADED}$context${NC}"
         elif [ "$total_curr_issues" -le 6 ]; then
-            # Moderate issues - active construction/exploration
+            # Moderate issues - philosophical middle ground
             local moderate_messages=(
                 "${PURPLE}🏛️  THE LABYRINTH'S CALL! The winding paths present $total_curr_issues fresh puzzles to be solved${NC}|The master craftsman, Daedalus, watches to see how you navigate the complexity."
                 "${PURPLE}👑 A REPORT FOR KING MINOS! His scouts have noted $total_curr_issues unresolved issues within the maze${NC}|The King expects progress. Each fix brings the Labyrinth closer to his standard of perfection."
                 "${PURPLE}🪨 A FAMILIAR WEIGHT... Sisyphus, your boulder feels heavier with $total_curr_issues new imperfections to address${NC}|The struggle is constant, but so is your strength. Push onward; the summit is earned, not given."
                 "${PURPLE}🐂 THE MINOTAUR'S GROWL! The beast senses $total_curr_issues weaknesses in its prison walls${NC}|The Labyrinth must be flawless to contain its prisoner. Reinforce the logic and seal the exits."
+                "${PURPLE}🌀 THE LABYRINTH BREATHES! $total_curr_issues living contradictions pulse through its corridors${NC}|'It is not malevolent,' Daedalus realizes. 'It is just... alive. And it wants to live perfectly.'"
+                "${PURPLE}👑 MINOS'S INTERNAL STRUGGLE! The King counts $total_curr_issues reasons to continue, and $total_curr_issues reasons to stop${NC}|You see him in the courtyard, weeping. Even tyrants know the weight of their choices."
+                "${PURPLE}🪨 THE MIDDLE DISTANCE! Sisyphus, neither at the bottom nor the top, contemplates $total_curr_issues truths${NC}|In this space between despair and triumph, you find something unexpected: contentment."
             )
             local selected_moderate="${moderate_messages[RANDOM % ${#moderate_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_moderate"
             echo -e "$message"
             echo -e "    ${FADED}$context${NC}"
         else
-            # Many issues - epic quest beginning
+            # Many issues - existential overwhelming
             local epic_quest_messages=(
                 "${RED}👑 A FURIOUS DECREE FROM MINOS! 'This Labyrinth is overrun with $total_curr_issues flaws! Correct them, Sisyphus, or face the full wrath of Crete!'${NC}|The King's patience wears thin. The scale of this task is a trial in itself."
                 "${RED}🏗️  THE ARCHITECT'S DESPAIR! Daedalus cries out, '$total_curr_issues structural failures threaten to collapse my great work!'${NC}|The very foundations of the Labyrinth are compromised. A master builder is needed to prevent total ruin."
                 "${RED}🪨 THE BOULDER'S TRUE WEIGHT! The path to the summit is blocked by $total_curr_issues immense obstacles${NC}|This is your curse and your purpose. Push onward, for the task is eternal and the summit is but a brief respite."
                 "${RED}🧹 THE AUGEAN STABLES! The Labyrinth is flooded with $total_curr_issues sources of filth and chaos${NC}|A task worthy of Heracles himself. It is time for a great cleansing to restore order to the maze."
                 "${RED}🌪️  THE GATES OF TARTARUS ARE BREACHED! $total_curr_issues chaotic spirits have been unleashed within the walls${NC}|A hero's greatest quest is to face the underworld. Bring order to the chaos and prove your mastery."
+                "${RED}🌀 THE PRIMORDIAL CHAOS! $total_curr_issues contradictions swirl in the void before creation${NC}|'This is how the world began,' Daedalus whispers in awe. 'With exactly this much beautiful confusion.'"
+                "${RED}🗿 THE UNCARVED BLOCK! $total_curr_issues infinite possibilities await the sculptor's vision${NC}|You stand before the raw marble of existence. Every error is a choice, every fix a small act of creation."
+                "${RED}🪨 THE ETERNAL BEGINNING! Sisyphus faces $total_curr_issues reasons why the boulder must be pushed${NC}|But you smile. For in the infinite task, you have found infinite purpose. Let the work begin again."
+                "${RED}🔥 THE FORGE OF WORLDS! $total_curr_issues elements await transformation in Hephaestus's flames${NC}|In the beginning was chaos. In the end will be beauty. You are the alchemist of the between."
+
             )
             local selected_epic="${epic_quest_messages[RANDOM % ${#epic_quest_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_epic"
@@ -2188,6 +2223,7 @@ show_motivational_message() {
     )
 
     # Final status assessment with technical recommendations
+    local victory_shown=false
     if [ "$total_curr_issues" -eq 0 ]; then
         # Perfect state - epic victory declarations with new characters
         local victory_messages=(
@@ -2201,6 +2237,7 @@ show_motivational_message() {
         echo -e "$message1"
         echo -e "    ${FADED}$message2${NC}"
         echo -e "$message3"
+        victory_shown=true
     elif [ "$total_curr_issues" -le 3 ]; then
         # Near completion - single line with Sisyphus-themed breakdown
         local final_breakdowns=(
@@ -2302,7 +2339,7 @@ show_motivational_message() {
                 local suggested_file=$(echo "$random_failed_suggestion" | cut -d':' -f1)
                 local suggested_target=$(echo "$random_failed_suggestion" | cut -d':' -f2)
                 local file_path=$(map_target_to_file_path "$suggested_target")
-                echo -e "    ${CYAN}🎯 Complete the trial: ${BOLD_WHITE}$suggested_file${NC}"
+                echo -e "    ${CYAN}🎯 Complete the task: ${BOLD_WHITE}$suggested_file${NC}"
                 echo -e "    Execute: ${YELLOW}make $suggested_target${NC} | ${CYAN}View Test:${NC} \e]8;;file://$(pwd)/$file_path\e\\Click Here\e]8;;\e\\"
             fi
 
@@ -2402,13 +2439,16 @@ show_motivational_message() {
         check_milestones "$historical_analysis"
     fi
 
-    local final_msg=$(get_random_message final_messages)
-    echo -e "${BOLD_WHITE}$final_msg 🏛️${NC}"
+    # Only show final message if no victory message was shown
+    if [ "$victory_shown" = false ]; then
+        local final_msg=$(get_random_message final_messages)
+        echo -e "${BOLD_WHITE}$final_msg 🏛️${NC}"
+    fi
 }
 
 echo ""
-# Show motivational message
-show_motivational_message "$TOTAL_FILE_ERRORS" "$PASSED_INDIVIDUAL_TESTS" "$FAILED_INDIVIDUAL_TESTS" "$COMPILE_ERRORS" "$RUNTIME_ERRORS" "$EFFICIENCY_RATIO" "$TOTAL_TEST_TIME" "$CURRENT_CHALLENGE"
+# Show motivational message with previous stats
+show_motivational_message "$TOTAL_FILE_ERRORS" "$PASSED_INDIVIDUAL_TESTS" "$FAILED_INDIVIDUAL_TESTS" "$COMPILE_ERRORS" "$RUNTIME_ERRORS" "$EFFICIENCY_RATIO" "$TOTAL_TEST_TIME" "$CURRENT_CHALLENGE" "$PREV_ERRORS" "$PREV_PASSES" "$PREV_FAILURES" "$PREV_COMPILE_ERRORS" "$PREV_RUNTIME_ERRORS" "$PREV_EFFICIENCY_RATIO" "$PREV_PURE_TEST_TIME" "$PREV_IMPROVEMENT_STREAK" "$PREV_CURRENT_CHALLENGE" "$PREV_TIMESTAMP"
 
 echo ""
 # Archive status message with historical context

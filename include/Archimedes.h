@@ -316,6 +316,19 @@ void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor
  */
 void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color );
 /*
+ * Draw a circle
+ *
+ * `posX` - Center X coordinate
+ * `posY` - Center Y coordinate
+ * `radius` - Circle radius in pixels
+ * `color` - RGBA color for the circle
+ *
+ * -- Fills the entire circle area with color
+ * -- Radius of 0 draws a single point at center
+ * -- Negative radius is treated as 0
+ */
+void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
+/*
  * Draw a filled circle
  *
  * `posX` - Center X coordinate
@@ -328,7 +341,6 @@ void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t
  * -- Radius of 0 draws a single point at center
  * -- Negative radius is treated as 0
  */
-void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
 void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color );
 /*
  * Draw a triangle outline

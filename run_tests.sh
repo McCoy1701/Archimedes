@@ -1314,6 +1314,8 @@ run_test "Input Performance" "run-test-input-performance"
 run_test "Input Errors" "run-test-input-errors"
 run_test "Input Integration" "run-test-input-integration"
 run_test "Draw Basic" "run-test-draw-basic"
+run_test "Image Basic" "run-test-image-basic"
+run_test "Image Advanced" "run-test-image-advanced"
 
 # Calculate overall execution time
 overall_end=$(date +%s.%N)
@@ -1801,7 +1803,7 @@ show_motivational_message() {
         "🗣️  KING MINOS IN THE DARK|You look down and see a single figure walking the perimeter of the Labyrinth in the dead of night. It is King Minos, alone, inspecting the prison that holds his greatest shame and his greatest weapon."
 
         # --- Storytelling: The Labyrinth in the Deep Night ---
-        "🤫  SECRETS IN THE STONE|In the dead of night, the Labyrinth seems to breathe. The stones shift, revealing passages that Daedalus himself doesn't remember designing. The maze has a will of its own."
+        "🤫 SECRETS IN THE STONE|In the dead of night, the Labyrinth seems to breathe. The stones shift, revealing passages that Daedalus himself doesn't remember designing. The maze has a will of its own."
         "🗺️  A FORGOTTEN BLUEPRINT|You find a hidden scroll under a loose floor tile. It's an older, more chaotic design for the Labyrinth, signed by Daedalus with a trembling hand and a note: 'Too dangerous.'"
         "🕯️  THE LAST CANDLE BURNS|The entire palace sleeps, but you and Daedalus work on. The final candle flickers, its small light a lonely beacon against the immense, dark puzzle of the code."
 

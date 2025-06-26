@@ -18,7 +18,7 @@ int a_InitImage( void )
     snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for cache",
               log_level_strings[new_error.error_type] );
     LOG( new_error.error_msg );
-    
+
     return 1;
   }
 
@@ -47,7 +47,7 @@ SDL_Surface* a_Image( const char *filename )
 
       return NULL;
     }
-    
+
     a_CacheImage( app.img_cache, surf, filename, 0 );
   }
 
@@ -72,7 +72,7 @@ static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface, const char* 
   STRNCPY( new_bucket->filename, filename, MAX_FILENAME_LENGTH );
   new_bucket->ID = ID;
   new_bucket->next = NULL;
-  
+
   if ( head->head != NULL )
   {
 
@@ -98,13 +98,13 @@ static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID )
   aImageCacheNode_t* current;
 
   for ( current = head->head; current != NULL; current = current->next )
-  { 
+  {
     if ( current->ID == ID )
     {
       return current->surf;
     }
   }
-  
+
   return NULL;
 }
 
@@ -113,19 +113,20 @@ static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const ch
   aImageCacheNode_t* current;
 
   for ( current = head->head; current != NULL; current = current->next )
-  { 
+  {
     if ( strcmp( current->filename, filename ) == 0 )
     {
       return current->surf;
     }
   }
-  
+
   return NULL;
 }
 
 int a_CleanUpImageCache( aImageCache_t* img_cache )
 {
   if ( img_cache == NULL )
+      // FAIL: img_cache is NULL
   {
     aError_t new_error;
     new_error.error_type = WARNING;
@@ -137,6 +138,7 @@ int a_CleanUpImageCache( aImageCache_t* img_cache )
 
   if ( img_cache->head == NULL )
   {
+      // FAIL: img_cache->head is NULL
     aError_t new_error;
     new_error.error_type = WARNING;
     snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: img_cache->head is NULL",
@@ -144,7 +146,7 @@ int a_CleanUpImageCache( aImageCache_t* img_cache )
     LOG( new_error.error_msg );
     return 0;
   }
-  
+
   else
   {
     aImageCacheNode_t* current = img_cache->head;
@@ -153,10 +155,11 @@ int a_CleanUpImageCache( aImageCache_t* img_cache )
     while ( current != NULL )
     {
       next = current->next;
+      SDL_FreeSurface( current->surf );
       free( current );
       current = next;
     }
-  
+
     img_cache->head = NULL;
   }
 
@@ -190,7 +193,7 @@ int a_Screenshot( SDL_Renderer *renderer, const char *filename )
     snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to read pixels from renderer: %s",
              log_level_strings[new_error.error_type], SDL_GetError() );
     LOG( new_error.error_msg );
-    
+
     SDL_FreeSurface( aSurface );
     return 0;
   }
@@ -202,12 +205,11 @@ int a_Screenshot( SDL_Renderer *renderer, const char *filename )
     snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to save surface as png: %s, %s",
              log_level_strings[new_error.error_type], filename, SDL_GetError() );
     LOG( new_error.error_msg );
-    
+
     SDL_FreeSurface( aSurface );
     return 0;
   }
-  
+
   SDL_FreeSurface( aSurface );
   return 1;
 }
-

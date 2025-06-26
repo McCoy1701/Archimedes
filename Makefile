@@ -259,6 +259,14 @@ test-input-integration: always $(INPUT_TEST_OBJS)
 run-test-input-integration: test-input-integration
 	@./$(BIN_DIR)/test_input_integration
 
+.PHONY: test-image-basic
+test-image-basic: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_image_basic $(TRUE_TEST_DIR)/image/test_image_basic.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-image-basic
+run-test-image-basic: test-image-basic
+	@./$(BIN_DIR)/test_image_basic
+
 .PHONY: test-draw-basic
 test-draw-basic: always $(INPUT_TEST_OBJS)
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_draw_basic $(TRUE_TEST_DIR)/draw/test_draw_basic.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
@@ -267,17 +275,13 @@ test-draw-basic: always $(INPUT_TEST_OBJS)
 run-test-draw-basic: test-draw-basic
 	@./$(BIN_DIR)/test_draw_basic
 
-# Test help
-.PHONY: test-help
-test-help:
-	@echo "Available test commands:"
-	@echo "  make test                              - Run all tests with global summary"
-	@echo "  make run-test-input-basic              - Run basic input tests"
-	@echo "  make run-test-input-advanced           - Run advanced input tests"
-	@echo "  make run-test-input-edge               - Run input edge case tests"
-	@echo "  make run-test-input-performance        - Run input performance tests"
-	@echo "  make run-test-input-errors             - Run input error tests"
-	@echo "  make run-test-input-integration        - Run input integration tests"
+.PHONY: test-image-advanced
+test-image-advanced: always $(INPUT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_image_advanced $(TRUE_TEST_DIR)/image/test_image_advanced.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+
+.PHONY: run-test-image-advanced
+run-test-image-advanced: test-image-advanced
+	@./$(BIN_DIR)/test_image_advanced
 
 # Global test runner (summary output)
 # Traditional approach (current - kept for compatibility)

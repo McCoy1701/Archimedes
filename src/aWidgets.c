@@ -433,7 +433,6 @@ static void ChangeWidgetValue( int value )
     case WT_SELECT:
       select = ( aSelectWidget_t* ) app.active_widget->data;
       select->value += value;
-      printf("%d\n", select->value);
 
       if ( select->value < 0 )
       {
@@ -691,7 +690,6 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 
   object = cJSON_GetObjectItem( root, "components" );
   container->num_components = cJSON_GetArraySize( object );
-  printf("sizeof %s %d\n", w->name, container->num_components );
 
   container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) * container->num_components );
   if ( container->components == NULL )

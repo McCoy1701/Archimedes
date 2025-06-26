@@ -125,8 +125,7 @@ static void initFontPNG( char* filename, int font_type, int glyph_width, int gly
     dest.x += dest.w;
     rect.x += rect.w;
   }
-  SDL_FreeSurface( font_surf );
-  IMG_SavePNG( surface, "resources/fonts/test.png" );
+
   app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 

@@ -38,6 +38,7 @@ SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy )
   if ( destroy )
   {
     SDL_FreeSurface( surf );
+    surf = NULL;
   }
 
   return texture;

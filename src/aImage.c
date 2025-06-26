@@ -125,7 +125,7 @@ static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const ch
 
 int a_CleanUpImageCache( aImageCache_t* img_cache )
 {
-  if ( img_cache == NULL )
+  if ( app.img_cache == NULL )
       // FAIL: img_cache is NULL
   {
     aError_t new_error;
@@ -136,7 +136,7 @@ int a_CleanUpImageCache( aImageCache_t* img_cache )
     return 1;
   }
 
-  if ( img_cache->head == NULL )
+  if ( app.img_cache->head == NULL )
   {
       // FAIL: img_cache->head is NULL
     aError_t new_error;
@@ -149,18 +149,24 @@ int a_CleanUpImageCache( aImageCache_t* img_cache )
 
   else
   {
-    aImageCacheNode_t* current = img_cache->head;
+    aImageCacheNode_t* current = app.img_cache->head;
     aImageCacheNode_t* next = NULL;
 
     while ( current != NULL )
     {
       next = current->next;
-      SDL_FreeSurface( current->surf );
+      if ( current->surf != NULL )
+      {
+        SDL_FreeSurface( current->surf );
+        current->surf = NULL;
+
+      }
+
       free( current );
       current = next;
     }
 
-    img_cache->head = NULL;
+    app.img_cache->head = NULL;
   }
 
   return 0;

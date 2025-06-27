@@ -17,16 +17,8 @@ void a_DoInput( void )
 {
   SDL_Event event;
 
-  // Defensive check: Ensure we have a valid event structure
-  memset(&event, 0, sizeof(event));
-
   while ( SDL_PollEvent( &event ) )
   {
-    // Validate event structure integrity (basic sanity check)
-    if (event.type < 0 || event.type > SDL_LASTEVENT) {
-      printf("Warning: Invalid SDL event type received: %d\n", event.type);
-      continue;
-    }
 
     switch ( event.type )
     {
@@ -35,55 +27,30 @@ void a_DoInput( void )
         break;
 
       case SDL_KEYDOWN:
-        if (&event.key != NULL) {
-          a_DoKeyDown( &event.key );
-        } else {
-          printf("Warning: NULL keyboard event in SDL_KEYDOWN\n");
-        }
+        a_DoKeyDown( &event.key );
         break;
 
       case SDL_KEYUP:
-        if (&event.key != NULL) {
-          a_DoKeyUp( &event.key );
-        } else {
-          printf("Warning: NULL keyboard event in SDL_KEYUP\n");
-        }
+        a_DoKeyUp( &event.key );
         break;
 
       case SDL_MOUSEBUTTONDOWN:
-        if (&event.button != NULL) {
-          a_DoMouseDown( &event.button );
-        } else {
-          printf("Warning: NULL mouse button event in SDL_MOUSEBUTTONDOWN\n");
-        }
+        a_DoMouseDown( &event.button );
         break;
 
       case SDL_MOUSEBUTTONUP:
-        if (&event.button != NULL) {
-          a_DoMouseUp( &event.button );
-        } else {
-          printf("Warning: NULL mouse button event in SDL_MOUSEBUTTONUP\n");
-        }
+        a_DoMouseUp( &event.button );
         break;
 
       case SDL_MOUSEWHEEL:
-        if (&event.wheel != NULL) {
-          a_DoMouseWheel( &event.wheel );
-        } else {
-          printf("Warning: NULL mouse wheel event in SDL_MOUSEWHEEL\n");
-        }
+        a_DoMouseWheel( &event.wheel );
         break;
 
       case SDL_TEXTINPUT:
-        if (event.text.text != NULL) {
-          // Additional validation for text input
-          if (strlen(event.text.text) > 0 && strlen(event.text.text) < 32) {
-            STRNCPY( app.input_text, event.text.text, MAX_INPUT_LENGTH );
-          } else {
-            printf("Warning: Invalid text input length: %zu\n", strlen(event.text.text));
-          }
+        if (strlen(event.text.text) > 0 && strlen(event.text.text) < 32) {
+          STRNCPY( app.input_text, event.text.text, MAX_INPUT_LENGTH );
         } else {
-          printf("Warning: NULL text in SDL_TEXTINPUT event\n");
+          printf("Warning: Invalid text input length: %zu\n", strlen(event.text.text));
         }
         break;
 

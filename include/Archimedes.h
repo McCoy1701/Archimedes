@@ -36,6 +36,13 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
+#define FONT_SIZE 32 
+#define FONT_TEXTURE_SIZE 512
+#define MAX_GLYPHS 400
+#define MAX_GLYPH_SIZE 8
+#define MAX_WORD_LENGTH 32
+#define MAX_LINE_LENGTH 1024
+
 #ifndef __DAEDALUS_H__
 
 #define MAX_LINE_LENGTH        1024
@@ -200,6 +207,7 @@ typedef struct
   aWidget_t* active_widget;
   double font_scale;
   int font_type;
+  SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
   TTF_Font* fonts[FONT_MAX];
   SDL_Texture* font_textures[FONT_MAX];
   aMouse_t mouse;

@@ -5,22 +5,16 @@
 
 #include "Archimedes.h"
 
-#define FONT_SIZE 32 
-#define FONT_TEXTURE_SIZE 512
-#define MAX_GLYPHS 400
-#define MAX_GLYPH_SIZE 8
-#define MAX_WORD_LENGTH 32
-#define MAX_LINE_LENGTH 1024
-
 static void initFont( char* filename, int font_type, int font_size );
 static void initFontPNG( char* filename, int font_type, int glyph_width, int glyph_height );
-static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width, int draw );
+static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int font_type,
+                            int align, int max_width, int draw );
 static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int font_type, int align );
 static int NextGlyph( const char* string, int* i, char* glyph_buffer );
 
 static SDL_Color white_ = {255, 255, 255, 255};
 //static TTF_Font* fonts[FONT_MAX];
-static SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
+//static SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
 //static SDL_Texture* font_textures[FONT_MAX];
 
 //static char* characters = " !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¥¦§ª«¬°±²µ¶·º»¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿŒœŸſƒΆΈΉΊΌΎΏΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϕ•‼ⁿ₧€Ω←↑→↓↔↕↨∂∅∈∏∑∙√∞∟∩∫≈≡≤≥⌀⌂⌐⌠⌡⎮─│┌┐└┘├┤┬┴┼═║╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬▀▄█▌▐░▒▓■▬▲►▼◄○◘◙☺☻☼♀♂♠♣♥♦♪♫♬✓";
@@ -47,7 +41,7 @@ void a_CalcTextDimensions( char* text, int font_type, int* w, int* h )
 
   while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
   {
-    g = &glyphs[font_type][n];
+    g = &app.glyphs[font_type][n];
     *w += g->w * app.font_scale;
     *h = MAX( g->h * app.font_scale, *h );
   }
@@ -67,7 +61,8 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type )
   return a_ToTexture( surface, 1 );
 }
 
-void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width )
+void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
+                 int align, int max_width )
 {
   if ( max_width > 0 )
   {
@@ -86,7 +81,7 @@ static void initFontPNG( char* filename, int font_type, int glyph_width, int gly
   SDL_Rect dest, rect;
   int i;
 
-  memset( &glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
+  memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
   
   font_surf = a_Image( filename );
   if( font_surf == NULL )
@@ -120,7 +115,7 @@ static void initFontPNG( char* filename, int font_type, int glyph_width, int gly
 
     SDL_BlitSurface( font_surf, &rect, surface, &dest );
     
-    glyphs[font_type][i++] = dest;
+    app.glyphs[font_type][i++] = dest;
 
     dest.x += dest.w;
     rect.x += rect.w;
@@ -136,7 +131,7 @@ static void initFont( char* filename, int font_type, int font_size )
   int i, n;
   char glyph_buffer[MAX_GLYPH_SIZE];
 
-  memset( &glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
+  memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
 
   app.fonts[font_type] = TTF_OpenFont( filename, font_size );
   if( app.fonts[font_type] == NULL )
@@ -176,7 +171,7 @@ static void initFont( char* filename, int font_type, int font_size )
     }
 
     SDL_BlitSurface( text, NULL, surface, &dest );
-    glyphs[font_type][n] = dest;
+    app.glyphs[font_type][n] = dest;
 
     SDL_FreeSurface( text );
     dest.x += dest.w;
@@ -202,7 +197,7 @@ static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int f
 
   while ( ( n = NextGlyph( text, &i, glyph_buffer ) ) != 0 )
   {
-    word_width += glyphs[font_type][n].w * app.font_scale;
+    word_width += app.glyphs[font_type][n].w * app.font_scale;
     
     if ( n != ' ' )
     {
@@ -220,7 +215,7 @@ static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int f
 
         memset( line, 0, MAX_LINE_LENGTH );
 
-        y += glyphs[font_type][' '].h * app.font_scale;
+        y += app.glyphs[font_type][' '].h * app.font_scale;
         line_width = 0;
       }
       
@@ -244,7 +239,7 @@ static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int f
     DrawTextLine( line, x, y, r, g, b, font_type, align );
   }
 
-  return y + glyphs[font_type][' '].h * app.font_scale;
+  return y + app.glyphs[font_type][' '].h * app.font_scale;
 }
 
 static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int font_type, int align )
@@ -276,7 +271,7 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
     for ( int j = 0; j < len; j++ )
     {
       c = text[j];
-      glyph = &glyphs[font_type][c];
+      glyph = &app.glyphs[font_type][c];
 
       dest.x = x;
       dest.y = y;
@@ -294,7 +289,7 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
   {
     while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
     {
-      glyph = &glyphs[font_type][n];
+      glyph = &app.glyphs[font_type][n];
 
       dest.x = x;
       dest.y = y;

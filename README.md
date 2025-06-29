@@ -2,6 +2,35 @@
 
 A lightweight, cross-platform C game development framework built on SDL2 that provides essential 2D graphics, audio, input handling, and UI widget functionality.
 
+## Build
+To build natively
+```
+make native
+./bin/native
+```
+
+To build the shared object file also install/uninstall them from usr/lib/ and usr/include
+```
+make shared
+
+make install
+make uninstall
+```
+
+To build Archimedes directly for Emscripten this will build a index/index.js
+that can be use almost anywhere on the web.
+*This isn't how you're supposed to use Archimedes, but it's a good way to test if everything is setup right*
+```
+make EM
+python3 -m http.server 8000 //you can go to localhost:8000/index for a basic display
+```
+
+To build static archive for Emscripten use
+*this is installed in your projects lib/*
+```
+make EMARCH
+```
+
 ## Overview
 
 Archimedes is a minimalist game development library written in C that abstracts common SDL2 operations into a clean, easy-to-use API. The framework is designed for developers who want to create 2D games and applications without dealing with the complexity of raw SDL2 programming. It supports both native compilation and web deployment through Emscripten, making it perfect for cross-platform game development.

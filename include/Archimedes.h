@@ -452,8 +452,10 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
  * -- NULL surface is handled gracefully without crashing
  * -- Source rectangle is clipped to surface bounds
  */
-void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
-void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x, const int y );
+void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
+                     const int scale );
+void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
+                        const int y, const int scale );
 
 /*
  * Update the window title text

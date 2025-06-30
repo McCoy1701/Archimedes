@@ -422,6 +422,7 @@ void a_DrawRect( const int x, const int y, const int w, const int h, const int r
  */
 void a_DrawFilledRect( const int x, const int y, const int w, const int h, const int r,
                        const int g, const int b, const int a );
+
 /*
  * Blit a surface to the screen at specified position
  *
@@ -436,6 +437,7 @@ void a_DrawFilledRect( const int x, const int y, const int w, const int h, const
  * -- Surface remains unchanged after blitting
  */
 void a_Blit( SDL_Surface* surf, const int x, const int y );
+
 /*
  * Blit a rectangular region of a surface to the screen
  *
@@ -450,7 +452,9 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
  * -- NULL surface is handled gracefully without crashing
  * -- Source rectangle is clipped to surface bounds
  */
-void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
+void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y );
+void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x, const int y );
+
 /*
  * Update the window title text
  *

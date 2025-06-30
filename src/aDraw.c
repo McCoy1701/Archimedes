@@ -184,7 +184,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y )
   SDL_DestroyTexture(img);
 }
 
-void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y )
+void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -206,6 +206,18 @@ void a_BlitRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y )
   }
 
   SDL_RenderCopy(app.renderer, img, &src, &dest);
+}
+
+void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x, const int y )
+{
+  SDL_Rect dest;
+
+  dest.x = x;
+  dest.y = y;
+  dest.w = src.w;
+  dest.h = src.h;
+
+  SDL_RenderCopy(app.renderer, texture, &src, &dest);
 }
 
 void a_UpdateTitle( const char *title )

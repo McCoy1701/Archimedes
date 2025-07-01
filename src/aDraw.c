@@ -1,3 +1,4 @@
+#include <SDL2/SDL_render.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -210,7 +211,7 @@ void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
 }
 
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
-                        const int y, const int scale )
+                        const int y, const int scale, aColor_t color )
 {
   SDL_Rect dest;
 
@@ -218,8 +219,11 @@ void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
   dest.y = y;
   dest.w = src.w * scale;
   dest.h = src.h * scale;
+  SDL_SetTextureColorMod( texture, color.r, color.g, color.b );
+  SDL_SetTextureAlphaMod( texture, color.a );
 
   SDL_RenderCopy(app.renderer, texture, &src, &dest);
+
 }
 
 void a_UpdateTitle( const char *title )

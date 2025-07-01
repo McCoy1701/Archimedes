@@ -24,7 +24,6 @@ void a_InitFonts( void )
 {
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 48 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 32 );
-  initFontPNG( "resources/fonts/CodePage737Font.png", FONT_GAME, 9, 16 );
 
   app.font_scale = 1;
   app.font_type = FONT_ENTER_COMMAND;
@@ -131,7 +130,7 @@ static void initFont( char* filename, int font_type, int font_size )
   int i, n;
   char glyph_buffer[MAX_GLYPH_SIZE];
 
-  memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
+  //memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS ); //TODO: Find out why this breaks on Mat's PC
 
   app.fonts[font_type] = TTF_OpenFont( filename, font_size );
   if( app.fonts[font_type] == NULL )

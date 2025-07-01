@@ -455,7 +455,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
 void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
                      const int scale );
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
-                        const int y, const int scale );
+                        const int y, const int scale, aColor_t color );
 
 /*
  * Update the window title text

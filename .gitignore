@@ -9,3 +9,6 @@ core
 #c
 bin/
 obj/
+
+.sisyphus/
+sisyphus.legend

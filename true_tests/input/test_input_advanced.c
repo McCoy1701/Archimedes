@@ -358,6 +358,7 @@ int test_high_frequency_input_handling(void) {
     // Simulate rapid key presses (like rapid fire or button mashing)
     SDL_Scancode rapid_key = SDL_SCANCODE_SPACE;
 
+    LOOP_TEST_START();
     for (int cycle = 0; cycle < 100; cycle++) {
         // Press
         app.keyboard[rapid_key] = 1;
@@ -368,7 +369,8 @@ int test_high_frequency_input_handling(void) {
         app.keyboard[rapid_key] = 0;
         TEST_ASSERT(app.keyboard[rapid_key] == 0, "Key should be released in rapid cycle");
     }
-
+    LOOP_TEST_END();
+    LOOP_TEST_START();
     // Test rapid mouse clicks
     for (int click = 0; click < 50; click++) {
         app.mouse.button = SDL_BUTTON_LEFT;
@@ -382,6 +384,7 @@ int test_high_frequency_input_handling(void) {
         app.mouse.pressed = 0;
         TEST_ASSERT(app.mouse.pressed == 0, "Mouse should register rapid releases");
     }
+    LOOP_TEST_END();
 
     return 1;
 }

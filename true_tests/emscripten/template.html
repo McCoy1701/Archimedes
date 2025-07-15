@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archimedes Emscripten Test Suite</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #4a9eff;
+            margin: 0;
+            font-size: 2em;
+        }
+        
+        .header p {
+            color: #cccccc;
+            margin: 5px 0;
+        }
+        
+        .test-info {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #4a9eff;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .control-group {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 8px 0;
+            color: #4a9eff;
+            font-size: 1em;
+        }
+        
+        .control-group p {
+            margin: 2px 0;
+            font-size: 0.9em;
+            color: #cccccc;
+        }
+        
+        .canvas-container {
+            position: relative;
+            border: 2px solid #4a9eff;
+            border-radius: 8px;
+            background-color: #000;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+        }
+        
+        canvas {
+            display: block;
+            border-radius: 6px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2a2a2a;
+            padding: 10px 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            border: 1px solid #444;
+        }
+        
+        .status-left {
+            color: #4a9eff;
+            font-weight: bold;
+        }
+        
+        .status-right {
+            color: #cccccc;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #444;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9eff, #00ff88);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #4a9eff;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #444;
+            border-top: 4px solid #4a9eff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background-color: #4a2c2c;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #ff6b6b;
+        }
+        
+        .success {
+            background-color: #2c4a2c;
+            color: #6bff6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #6bff6b;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-group {
+                min-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ Archimedes Engine</h1>
+        <p>Emscripten Test Suite - Text, Drawing & Initialization</p>
+    </div>
+    
+    <div class="test-info">
+        <h2 id="test-title">Loading Test Suite...</h2>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="test-description">Initializing Archimedes engine...</p>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <h3>Navigation</h3>
+            <p>← → Arrow Keys</p>
+            <p>Previous/Next Scene</p>
+        </div>
+        <div class="control-group">
+            <h3>Control</h3>
+            <p>↑ Restart Scene</p>
+            <p>↓ Auto-Advance</p>
+        </div>
+        <div class="control-group">
+            <h3>Mouse/Touch</h3>
+            <p>Click to Advance</p>
+            <p>Swipe on Mobile</p>
+        </div>
+        <div class="control-group">
+            <h3>Other</h3>
+            <p>ESC Quit</p>
+            <p>R Restart</p>
+        </div>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=0></canvas>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-left">
+            <span id="scene-info">Scene 1/4</span>
+        </div>
+        <div class="status-right">
+            <span id="test-status">Ready</span> | 
+            <span id="fps-counter">FPS: --</span> | 
+            <span id="performance">Loading...</span>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading Archimedes Test Suite...</p>
+        <p>Compiling WASM, loading resources...</p>
+    </div>
+    
+    <div class="footer">
+        <p>Built with Emscripten | SDL2 | WebAssembly</p>
+        <p>Use arrow keys to navigate between test scenes</p>
+    </div>
+
+    <script>
+        // Global state
+        let currentScene = 0;
+        let totalScenes = 4;
+        let autoAdvance = false;
+        let isLoading = true;
+        let testResults = { passed: 0, failed: 0 };
+        let startTime = Date.now();
+        let frameCount = 0;
+        let lastFPSUpdate = 0;
+        
+        // URL parameter handling
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('scene')) {
+            currentScene = parseInt(urlParams.get('scene')) - 1;
+        }
+        if (urlParams.has('auto')) {
+            autoAdvance = urlParams.get('auto') === 'true';
+        }
+        
+        // Enhanced keyboard handling
+        document.addEventListener('keydown', function(e) {
+            if (isLoading) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    previousScene();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    nextScene();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    restartScene();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    toggleAutoAdvance();
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    // Note: Exit is handled by the C code, not JavaScript
+                    console.log('Escape key pressed - exit handled by C code');
+                    break;
+                case 'r':
+                case 'R':
+                    e.preventDefault();
+                    restartScene();
+                    break;
+            }
+        });
+        
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        document.addEventListener('touchend', function(e) {
+            if (isLoading) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 50) nextScene();
+                else if (deltaX < -50) previousScene();
+            } else {
+                if (deltaY > 50) toggleAutoAdvance();
+                else if (deltaY < -50) restartScene();
+            }
+        });
+        
+        // Mouse click to advance
+        document.getElementById('canvas').addEventListener('click', function() {
+            if (!isLoading) nextScene();
+        });
+        
+        // Scene navigation functions
+        function nextScene() {
+            if (currentScene < totalScenes - 1) {
+                currentScene++;
+                updateSceneInfo();
+                // Signal C code if available
+                if (typeof Module !== 'undefined' && Module.ccall) {
+                    try {
+                        Module.ccall('emscripten_next_scene', 'void', [], []);
+                    } catch(e) {
+                        console.log('Next scene signal not available yet');
+                    }
+                }
+            }
+        }
+        
+        function previousScene() {
+            if (currentScene > 0) {
+                currentScene--;
+                updateSceneInfo();
+                // Signal C code if available
+                if (typeof Module !== 'undefined' && Module.ccall) {
+                    try {
+                        Module.ccall('emscripten_previous_scene', 'void', [], []);
+                    } catch(e) {
+                        console.log('Previous scene signal not available yet');
+                    }
+                }
+            }
+        }
+        
+        function restartScene() {
+            // Signal C code if available
+            if (typeof Module !== 'undefined' && Module.ccall) {
+                try {
+                    Module.ccall('emscripten_restart_scene', 'void', [], []);
+                } catch(e) {
+                    console.log('Restart scene signal not available yet');
+                }
+            }
+        }
+        
+        function toggleAutoAdvance() {
+            autoAdvance = !autoAdvance;
+            updateTestStatus();
+        }
+        
+        // UI update functions
+        function updateSceneInfo() {
+            document.getElementById('scene-info').textContent = `Scene ${currentScene + 1}/${totalScenes}`;
+            const progress = ((currentScene + 1) / totalScenes) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+        }
+        
+        function updateTestStatus() {
+            const statusEl = document.getElementById('test-status');
+            if (autoAdvance) {
+                statusEl.textContent = 'Auto-Advance ON';
+            } else {
+                statusEl.textContent = 'Manual Mode';
+            }
+        }
+        
+        function updateFPS() {
+            const now = Date.now();
+            frameCount++;
+            
+            if (now - lastFPSUpdate >= 1000) {
+                const fps = Math.round(frameCount * 1000 / (now - lastFPSUpdate));
+                document.getElementById('fps-counter').textContent = `FPS: ${fps}`;
+                frameCount = 0;
+                lastFPSUpdate = now;
+            }
+        }
+        
+        function updatePerformance() {
+            const runtime = Math.round((Date.now() - startTime) / 1000);
+            document.getElementById('performance').textContent = `Runtime: ${runtime}s`;
+        }
+        
+        // Emscripten integration
+        var Module = {
+            preRun: [],
+            postRun: [],
+            canvas: (function() {
+                const canvas = document.getElementById('canvas');
+                canvas.width = 800;
+                canvas.height = 600;
+                return canvas;
+            })(),
+            setStatus: function(text) {
+                if (text) {
+                    document.getElementById('test-description').textContent = text;
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                    isLoading = false;
+                    updateSceneInfo();
+                    updateTestStatus();
+                    
+                    // Start performance monitoring
+                    setInterval(updateFPS, 100);
+                    setInterval(updatePerformance, 1000);
+                }
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                if (left > 0) {
+                    const progress = Math.round((this.totalDependencies - left) / this.totalDependencies * 100);
+                    document.getElementById('progress-fill').style.width = `${progress}%`;
+                    Module.setStatus(`Loading dependencies... (${this.totalDependencies - left}/${this.totalDependencies})`);
+                } else {
+                    Module.setStatus('');
+                }
+            }
+        };
+        
+        // Error handling
+        window.onerror = function(msg, file, line, col, error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<strong>Error:</strong> ${msg}<br><small>File: ${file}:${line}</small>`;
+            document.body.appendChild(errorDiv);
+        };
+        
+        // Expose functions for C code to call
+        window.emscripten_update_scene = function(scene, total) {
+            currentScene = scene;
+            totalScenes = total;
+            updateSceneInfo();
+        };
+        
+        window.emscripten_update_test_title = function(title) {
+            document.getElementById('test-title').textContent = title;
+        };
+        
+        window.emscripten_update_test_description = function(description) {
+            document.getElementById('test-description').textContent = description;
+        };
+        
+        window.emscripten_test_passed = function() {
+            testResults.passed++;
+            updateTestResults();
+        };
+        
+        window.emscripten_test_failed = function() {
+            testResults.failed++;
+            updateTestResults();
+        };
+        
+        function updateTestResults() {
+            const total = testResults.passed + testResults.failed;
+            const successRate = total > 0 ? Math.round((testResults.passed / total) * 100) : 0;
+            document.getElementById('test-status').textContent = `${testResults.passed}✓ ${testResults.failed}✗ (${successRate}%)`;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Archimedes Emscripten Test Suite Initialized');
+            updateSceneInfo();
+            updateTestStatus();
+        });
+    </script>
+    
+    {{{ SCRIPT }}}
+</body>
+</html>

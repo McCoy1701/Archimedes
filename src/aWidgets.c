@@ -12,6 +12,7 @@
 static aWidget_t widget_head;
 static aWidget_t* widget_tail;
 
+// Function prototypes with static linkage (internal to this compilation unit)
 static void LoadWidgets( const char* filename );
 static int GetWidgetType( char* type );
 static void ChangeWidgetValue( int value );
@@ -39,6 +40,19 @@ static double cursor_blink;
 static int handle_input_widget;
 static int handle_control_widget;
 
+/**
+ * @brief Handles the logic and interactions for all active widgets.
+ *
+ * This function is the main update loop for the widget system. It processes mouse clicks,
+ * keyboard inputs (left, right, space, return), and manages the active widget state.
+ * It also handles transitions to specific input or control modes if an appropriate
+ * widget is activated.
+ *
+ * It checks for mouse clicks to activate widgets based on their coordinates.
+ * For container widgets, it iterates through their components to find the clicked one.
+ * Keyboard inputs are handled for navigating widgets (though up/down are commented out)
+ * and triggering actions or entering specific widget interaction modes (input/control).
+ */
 void a_DoWidget( void )
 {
   aWidget_t* temp;
@@ -220,7 +234,13 @@ void a_DoWidget( void )
   }
 }
 
-
+/**
+ * @brief Draws all visible widgets.
+ *
+ * This function iterates through the linked list of widgets, starting from `widget_head.next`,
+ * and calls the appropriate drawing function for each widget based on its type.
+ * Hidden widgets are skipped as they are not drawn.
+ */
 void a_DrawWidgets( void )
 {
   aWidget_t* w;
@@ -258,6 +278,16 @@ void a_DrawWidgets( void )
   }
 }
 
+/**
+ * @brief Initializes the widget system from a configuration file.
+ *
+ * This function sets up the initial state of the widget system.
+ * It clears the widget head, sets the tail, loads widgets from the specified
+ * filename, and initializes various global widget-related variables such as
+ * `slider_delay`, `cursor_blink`, `handle_input_widget`, and `handle_control_widget`.
+ *
+ * @param filename The path to the file containing widget configuration data.
+ */
 void a_InitWidgets( const char* filename )
 {
   memset( &widget_head, 0, sizeof( aWidget_t ) );
@@ -271,6 +301,17 @@ void a_InitWidgets( const char* filename )
   handle_control_widget = 0;
 }
 
+/**
+ * @brief Retrieves a widget by its name.
+ *
+ * This function searches through the linked list of widgets (starting from `widget_head.next`)
+ * to find a widget with a matching name. If a widget with the given name is found,
+ * a pointer to that widget is returned. If no widget is found, an SDL warning
+ * message is logged, and `NULL` is returned.
+ *
+ * @param name The string name of the widget to retrieve.
+ * @return A pointer to the `aWidget_t` if found, otherwise `NULL`.
+ */
 aWidget_t* a_GetWidget( char* name )
 {
   aWidget_t* w;
@@ -288,6 +329,16 @@ aWidget_t* a_GetWidget( char* name )
   return NULL;
 }
 
+/**
+ * @brief Retrieves a container widget by its name and casts it to `aContainerWidget_t`.
+ *
+ * This function first calls `a_GetWidget` to locate a widget by the given name.
+ * If the widget is found, it attempts to cast its `data` member to an `aContainerWidget_t*`.
+ * Error messages are printed to stdout if the widget is not found or if the cast results in NULL.
+ *
+ * @param name The string name of the container widget to retrieve.
+ * @return A pointer to the `aContainerWidget_t` if successful, otherwise `NULL`.
+ */
 aContainerWidget_t* a_GetContainerFromWidget( char* name )
 {
   aWidget_t* widget = NULL;
@@ -310,6 +361,15 @@ aContainerWidget_t* a_GetContainerFromWidget( char* name )
   return container;
 }
 
+/**
+ * @brief Loads widget configurations from a JSON file.
+ *
+ * This function reads a JSON file, parses its content, and then iterates through
+ * the JSON objects to create individual widgets using `CreateWidget`. After
+ * processing, it cleans up allocated cJSON objects and the file buffer.
+ *
+ * @param filename The path to the JSON configuration file.
+ */
 static void LoadWidgets( const char* filename )
 {
   cJSON* root, *node;
@@ -329,6 +389,17 @@ static void LoadWidgets( const char* filename )
   free( text );
 }
 
+/**
+ * @brief Converts a widget type string to its corresponding integer enum value.
+ *
+ * This function takes a string representing a widget type (e.g., "WT_BUTTON")
+ * and returns the predefined integer constant for that type. If an unknown
+ * widget type string is provided, a warning message is logged via SDL, and -1
+ * is returned.
+ *
+ * @param type A string representing the widget type.
+ * @return The integer enum value of the widget type, or -1 if unknown.
+ */
 static int GetWidgetType( char* type )
 {
   if ( strcmp( type, "WT_BUTTON" ) == 0 )
@@ -366,6 +437,15 @@ static int GetWidgetType( char* type )
   return -1;
 }
 
+/**
+ * @brief Handles input logic for an active input widget.
+ *
+ * This function is called when `handle_input_widget` is true. It appends
+ * characters from `app.input_text` to the active input widget's text buffer,
+ * respecting its `max_length`. It also handles backspace to delete characters
+ * and Escape/Return keys to exit input mode and potentially trigger the
+ * widget's action.
+ */
 static void DoInputWidget( void )
 {
   aInputWidget_t* input;
@@ -404,6 +484,14 @@ static void DoInputWidget( void )
   }
 }
 
+/**
+ * @brief Handles input logic for an active control widget.
+ *
+ * This function is called when `handle_control_widget` is true. It captures
+ * the last key pressed (excluding Escape), assigns its scancode value to the
+ * active control widget, and then potentially triggers the widget's action.
+ * After processing, it exits control mode.
+ */
 static void DoControlWidget( void )
 {
   if ( app.last_key_pressed != -1 )
@@ -423,6 +511,16 @@ static void DoControlWidget( void )
   }
 }
 
+/**
+ * @brief Changes the value of the active widget based on its type.
+ *
+ * This function is typically called in response to left/right arrow key presses.
+ * It updates the `value` for `WT_SELECT` widgets (cycling through options) and
+ * `WT_SLIDER` widgets (adjusting the slider value within bounds). It also
+ * manages `slider_delay` for sliders and triggers the widget's action.
+ *
+ * @param value The amount by which to change the widget's value (e.g., -1 for left, 1 for right).
+ */
 static void ChangeWidgetValue( int value )
 {
   aSelectWidget_t* select;
@@ -477,6 +575,17 @@ static void ChangeWidgetValue( int value )
   }
 }
 
+/**
+ * @brief Creates a new widget and adds it to the global widget list.
+ *
+ * This function parses a JSON object (`cJSON* root`) representing a widget's
+ * configuration. It allocates memory for a new `aWidget_t`, populates its
+ * common properties (name, label, type, position, colors, etc.), and links
+ * it into a global linked list of widgets. It then calls a specialized
+ * creation function based on the widget's `type` to handle type-specific data.
+ *
+ * @param root A cJSON object containing the configuration for the widget to be created.
+ */
 static void CreateWidget( cJSON* root )
 {
   aWidget_t* w;
@@ -550,11 +659,32 @@ static void CreateWidget( cJSON* root )
   }
 }
 
+/**
+ * @brief Creates type-specific data for a Button widget.
+ *
+ * This function calculates and sets the width (`w`) and height (`h`) of the
+ * given button widget based on the dimensions of its label text. It primarily
+ * uses `a_CalcTextDimensions` for this purpose.
+ *
+ * @param w A pointer to the `aWidget_t` structure for the button.
+ * @param root A cJSON object containing the configuration for the button.
+ */
 static void CreateButtonWidget( aWidget_t* w, cJSON* root )
 {
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 }
 
+/**
+ * @brief Creates type-specific data for a Select widget.
+ *
+ * This function allocates and initializes an `aSelectWidget_t` structure,
+ * linking it to the `data` member of the base widget. It parses the "options"
+ * array from the JSON root to populate the select widget's options and
+ * determines the necessary width and height for displaying the longest option.
+ *
+ * @param w A pointer to the `aWidget_t` structure for the select widget.
+ * @param root A cJSON object containing the configuration for the select widget.
+ */
 static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* options, *node;
@@ -614,6 +744,17 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
   s->h = temp_h;
 }
 
+/**
+ * @brief Creates type-specific data for a Slider widget.
+ *
+ * This function allocates and initializes an `aSliderWidget_t` structure,
+ * linking it to the `data` member of the base widget. It retrieves the
+ * slider's `step` and `wait_on_change` properties from the JSON root and
+ * calculates the slider's position and dimensions relative to its label.
+ *
+ * @param w A pointer to the `aWidget_t` structure for the slider widget.
+ * @param root A cJSON object containing the configuration for the slider widget.
+ */
 static void CreateSliderWidget( aWidget_t* w, cJSON* root )
 {
   aSliderWidget_t* s;
@@ -632,6 +773,18 @@ static void CreateSliderWidget( aWidget_t* w, cJSON* root )
 	s->h = w->h;
 }
 
+/**
+ * @brief Creates type-specific data for an Input widget.
+ *
+ * This function allocates and initializes an `aInputWidget_t` structure,
+ * linking it to the `data` member of the base widget. It retrieves the
+ * `max_length` for the input text from the JSON root and allocates a buffer
+ * for the text. It also initializes a default text and calculates the
+ * input field's dimensions.
+ *
+ * @param w A pointer to the `aWidget_t` structure for the input widget.
+ * @param root A cJSON object containing the configuration for the input widget.
+ */
 static void CreateInputWidget( aWidget_t* w, cJSON* root )
 {
   aInputWidget_t* input;
@@ -652,6 +805,16 @@ static void CreateInputWidget( aWidget_t* w, cJSON* root )
   a_CalcTextDimensions( input->text, app.font_type, &input->w, &input->h );
 }
 
+/**
+ * @brief Creates type-specific data for a Control (key binding) widget.
+ *
+ * This function allocates and initializes an `aControlWidget_t` structure,
+ * linking it to the `data` member of the base widget. It primarily calculates
+ * the dimensions of the base widget based on its label text.
+ *
+ * @param w A pointer to the `aWidget_t` structure for the control widget.
+ * @param root A cJSON object containing the configuration for the control widget.
+ */
 static void CreateControlWidget( aWidget_t* w, cJSON* root )
 {
   aControlWidget_t* control;
@@ -663,6 +826,19 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
   a_CalcTextDimensions( w->label, app.font_type, &w->w, &w->h );
 }
 
+/**
+ * @brief Creates type-specific data for a Container widget.
+ *
+ * This function allocates and initializes an `aContainerWidget_t` structure,
+ * linking it to the `data` member of the base widget. It parses the "components"
+ * array from the JSON root, recursively creating and positioning child widgets
+ * within the container. It supports different flexing modes (horizontal/vertical)
+ * for component arrangement and calculates the overall dimensions of the container
+ * based on its components.
+ *
+ * @param w A pointer to the `aWidget_t` structure for the container widget.
+ * @param root A cJSON object containing the configuration for the container widget.
+ */
 static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 {
   cJSON* object, *node;
@@ -854,6 +1030,17 @@ static char* ReadFile( const char* filename )
   return buffer;
 }
 
+/**
+ * @brief Draws a Container widget and all its visible components on the screen.
+ *
+ * This function handles the rendering of a container widget. It first draws
+ * a background box for the container itself if it's `boxed`. Then, it iterates
+ * through all the components (child widgets) within the container and recursively
+ * calls their respective drawing functions, ensuring that only visible components
+ * are drawn.
+ *
+ * @param w A pointer to the `aWidget_t` structure representing the container widget to draw.
+ */
 static void DrawButtonWidget( aWidget_t* w )
 {
   SDL_Color c;

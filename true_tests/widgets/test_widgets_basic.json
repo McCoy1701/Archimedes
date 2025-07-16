@@ -1,0 +1,137 @@
+{
+  "button_test": {
+    "name": "button_test",
+    "label": "Test Button",
+    "type": "WT_BUTTON",
+    "x": 100,
+    "y": 200,
+    "boxed": 1,
+    "hidden": 0,
+    "padding": 10,
+    "fg": [255, 255, 255, 255],
+    "bg": [64, 64, 64, 255]
+  },
+  
+  "select_test": {
+    "name": "select_test",
+    "label": "Choose Option:",
+    "type": "WT_SELECT",
+    "x": 100,
+    "y": 250,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 5,
+    "fg": [255, 255, 0, 255],
+    "bg": [32, 32, 32, 255],
+    "options": ["Option A", "Option B", "Option C", "Option D"]
+  },
+  
+  "slider_test": {
+    "name": "slider_test",
+    "label": "Volume:",
+    "type": "WT_SLIDER",
+    "x": 100,
+    "y": 300,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 0,
+    "fg": [0, 255, 0, 255],
+    "bg": [0, 0, 0, 255],
+    "step": 5,
+    "wait_on_change": 0
+  },
+  
+  "input_test": {
+    "name": "input_test",
+    "label": "Name:",
+    "type": "WT_INPUT",
+    "x": 100,
+    "y": 350,
+    "boxed": 1,
+    "hidden": 0,
+    "padding": 8,
+    "fg": [0, 255, 255, 255],
+    "bg": [48, 48, 48, 255],
+    "max_length": 32
+  },
+  
+  "control_test": {
+    "name": "control_test",
+    "label": "Jump Key:",
+    "type": "WT_CONTROL",
+    "x": 100,
+    "y": 400,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 5,
+    "fg": [255, 0, 255, 255],
+    "bg": [0, 0, 0, 255]
+  },
+  
+  "hidden_button": {
+    "name": "hidden_button",
+    "label": "Hidden Button",
+    "type": "WT_BUTTON",
+    "x": 400,
+    "y": 200,
+    "boxed": 1,
+    "hidden": 1,
+    "padding": 10,
+    "fg": [255, 255, 255, 255],
+    "bg": [128, 0, 0, 255]
+  },
+  
+  "slider_wait": {
+    "name": "slider_wait",
+    "label": "Brightness:",
+    "type": "WT_SLIDER",
+    "x": 400,
+    "y": 250,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 0,
+    "fg": [255, 255, 255, 255],
+    "bg": [0, 0, 0, 255],
+    "step": 10,
+    "wait_on_change": 1
+  },
+  
+  "multi_button1": {
+    "name": "multi_button1",
+    "label": "Button 1",
+    "type": "WT_BUTTON",
+    "x": 100,
+    "y": 470,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 5,
+    "fg": [255, 128, 0, 255],
+    "bg": [0, 0, 0, 255]
+  },
+  
+  "multi_button2": {
+    "name": "multi_button2",
+    "label": "Button 2",
+    "type": "WT_BUTTON",
+    "x": 250,
+    "y": 470,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 5,
+    "fg": [128, 255, 0, 255],
+    "bg": [0, 0, 0, 255]
+  },
+  
+  "multi_button3": {
+    "name": "multi_button3",
+    "label": "Button 3",
+    "type": "WT_BUTTON",
+    "x": 400,
+    "y": 470,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 5,
+    "fg": [0, 128, 255, 255],
+    "bg": [0, 0, 0, 255]
+  }
+}

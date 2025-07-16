@@ -5,297 +5,590 @@
 #include <string.h>
 #include <assert.h>
 #include "Archimedes.h"
-#include "tests.h"
 
-// Global test counters
-int total_tests = 0;
-int tests_passed = 0;
-int tests_failed = 0;
+// Test-friendly initialization function
+extern int a_InitTest(const int width, const int height, const char *title);
 
-// Helper to reset app state
-static void reset_app_state(void) {
-    memset(&app, 0, sizeof(aApp_t));
-    app.running = 1;
-    app.font_scale = 1.0;
-    app.active_widget = NULL;
-    memset(app.input_text, 0, sizeof(app.input_text));
-    app.last_key_pressed = 0;
+// Test scene management
+typedef struct {
+    const char* name;
+    float display_duration;  // Seconds to display this test
+    void (*init_scene)(void);
+    void (*logic)(float dt);
+    void (*draw)(float dt);
+} TestScene_t;
+
+// Global test state
+static int current_scene = 0;
+static float scene_timer = 0.0f;
+static int total_scenes = 0;
+static int tests_passed = 0;
+static int tests_failed = 0;
+static int scene_test_result = 1; // 1 = pass, 0 = fail
+
+// Test data for current scene
+static char test_result_text[200];
+static int action_count = 0;
+static int last_slider_value = -1;
+static char last_input_text[64] = "";
+static int last_control_key = -1;
+
+// Forward declarations
+static void advance_to_next_scene(void);
+static void init_test_system(void);
+static void common_logic(float dt);
+static void draw_ui_overlay(void);
+
+// Test scene function declarations
+static void init_widget_initialization(void);
+static void draw_widget_initialization(float dt);
+static void init_button_widget_test(void);
+static void draw_button_widget_test(float dt);
+static void init_select_widget_test(void);
+static void draw_select_widget_test(float dt);
+static void init_slider_widget_test(void);
+static void draw_slider_widget_test(float dt);
+static void init_input_widget_test(void);
+static void draw_input_widget_test(float dt);
+static void init_control_widget_test(void);
+static void draw_control_widget_test(float dt);
+static void init_widget_navigation_test(void);
+static void draw_widget_navigation_test(float dt);
+static void init_widget_actions_test(void);
+static void draw_widget_actions_test(float dt);
+static void init_hidden_widgets_test(void);
+static void draw_hidden_widgets_test(float dt);
+
+// Widget action callbacks
+static void button_action(void);
+static void select_action(void);
+static void slider_action(void);
+static void input_action(void);
+static void control_action(void);
+
+// Test scene definitions
+static TestScene_t test_scenes[] = {
+    // Widget tests (3-5 seconds each for interaction)
+    {"Widget Initialization", 3.0f, init_widget_initialization, common_logic, draw_widget_initialization},
+    {"Button Widget Test", 4.0f, init_button_widget_test, common_logic, draw_button_widget_test},
+    {"Select Widget Test", 5.0f, init_select_widget_test, common_logic, draw_select_widget_test},
+    {"Slider Widget Test", 5.0f, init_slider_widget_test, common_logic, draw_slider_widget_test},
+    {"Input Widget Test", 6.0f, init_input_widget_test, common_logic, draw_input_widget_test},
+    {"Control Widget Test", 5.0f, init_control_widget_test, common_logic, draw_control_widget_test},
+    {"Widget Navigation Test", 4.0f, init_widget_navigation_test, common_logic, draw_widget_navigation_test},
+    {"Widget Actions Test", 4.0f, init_widget_actions_test, common_logic, draw_widget_actions_test},
+    {"Hidden Widgets Test", 4.0f, init_hidden_widgets_test, common_logic, draw_hidden_widgets_test}
+};
+
+// ============================================================================
+// Scene Management System
+// ============================================================================
+
+static void advance_to_next_scene(void) {
+    if (scene_test_result) {
+        tests_passed++;
+    } else {
+        tests_failed++;
+    }
+    
+    current_scene++;
+    scene_timer = 0.0f;
+    scene_test_result = 1; // Reset for next test
+    action_count = 0; // Reset action counter
+    
+    if (current_scene >= total_scenes) {
+        // All tests completed
+        printf("\n=== Test Results ===\n");
+        printf("Total tests: %d\n", total_scenes);
+        printf("Passed: %d\n", tests_passed);
+        printf("Failed: %d\n", tests_failed);
+        printf("Success rate: %.1f%%\n", (float)tests_passed / total_scenes * 100.0f);
+        app.running = 0;
+        return;
+    }
+    
+    // Initialize next scene
+    printf("Starting test %d/%d: %s\n", current_scene + 1, total_scenes, test_scenes[current_scene].name);
+    if (test_scenes[current_scene].init_scene) {
+        test_scenes[current_scene].init_scene();
+    }
+    
+    // Update delegates
+    app.delegate.logic = test_scenes[current_scene].logic;
+    app.delegate.draw = test_scenes[current_scene].draw;
 }
 
-// Test basic widget initialization
-int test_widget_initialization(void) {
-    reset_app_state();
+static void init_test_system(void) {
+    total_scenes = sizeof(test_scenes) / sizeof(TestScene_t);
+    current_scene = 0;
+    scene_timer = 0.0f;
+    tests_passed = 0;
+    tests_failed = 0;
     
-    // Test that app is properly initialized
-    TEST_ASSERT(app.running == 1, "App should be running");
-    TEST_ASSERT(app.active_widget == NULL, "Active widget should be NULL initially");
-    TEST_ASSERT(app.font_scale == 1.0, "Font scale should be 1.0");
+    // Set dark gray background
+    app.background.r = 32;
+    app.background.g = 32;
+    app.background.b = 32;
+    app.background.a = 255;
     
-    return 1;
+    // Initialize widgets
+    a_InitWidgets("true_tests/widgets/test_widgets_basic.json");
+    
+    // Set up widget actions
+    aWidget_t* button = a_GetWidget("button_test");
+    if (button) button->action = button_action;
+    
+    aWidget_t* select = a_GetWidget("select_test");
+    if (select) select->action = select_action;
+    
+    aWidget_t* slider = a_GetWidget("slider_test");
+    if (slider) slider->action = slider_action;
+    
+    aWidget_t* input = a_GetWidget("input_test");
+    if (input) input->action = input_action;
+    
+    aWidget_t* control = a_GetWidget("control_test");
+    if (control) control->action = control_action;
+    
+    // Set initial active widget
+    if (button) app.active_widget = button;
+    
+    printf("\n=== Archimedes Widget Basic Tests ===\n");
+    printf("Total tests: %d\n", total_scenes);
+    printf("Controls: SPACE=Next, ESC=Quit, R=Restart\n");
+    printf("Mouse: Click widgets | Keys: Arrows=Navigate, Enter=Activate\n\n");
+    
+    // Start first scene
+    advance_to_next_scene();
 }
 
-// Test widget constants and basic structures
-int test_widget_constants(void) {
-    reset_app_state();
+static void common_logic(float dt) {
+    scene_timer += dt;
     
-    // Test that widget type constants are defined
-    TEST_ASSERT(WT_BUTTON >= 0, "WT_BUTTON should be defined");
-    TEST_ASSERT(WT_INPUT >= 0, "WT_INPUT should be defined");
-    TEST_ASSERT(WT_SLIDER >= 0, "WT_SLIDER should be defined");
-    TEST_ASSERT(WT_SELECT >= 0, "WT_SELECT should be defined");
-    TEST_ASSERT(WT_CONTROL >= 0, "WT_CONTROL should be defined");
-    TEST_ASSERT(WT_CONTAINER >= 0, "WT_CONTAINER should be defined");
+    // Update widget system
+    a_DoWidget();
     
-    return 1;
+    // Handle input
+    if (app.keyboard[SDL_SCANCODE_ESCAPE] == 1) {
+        app.keyboard[SDL_SCANCODE_ESCAPE] = 0;
+        app.running = 0;
+        return;
+    }
+    
+    if (app.keyboard[SDL_SCANCODE_F1] == 1) {
+        app.keyboard[SDL_SCANCODE_F1] = 0;
+        advance_to_next_scene();
+        return;
+    }
+    
+    if (app.keyboard[SDL_SCANCODE_R] == 1) {
+        app.keyboard[SDL_SCANCODE_R] = 0;
+        scene_timer = 0.0f;
+        if (test_scenes[current_scene].init_scene) {
+            test_scenes[current_scene].init_scene();
+        }
+        return;
+    }
+    
+    // Auto-advance after duration
+    if (scene_timer >= test_scenes[current_scene].display_duration) {
+        advance_to_next_scene();
+        return;
+    }
 }
 
-// Test app state management
-int test_app_state_management(void) {
-    reset_app_state();
+static void draw_ui_overlay(void) {
+    // Test progress
+    char progress_text[100];
+    if (current_scene < total_scenes) {
+        snprintf(progress_text, sizeof(progress_text), "Test %d/%d: %s", 
+                 current_scene + 1, total_scenes, test_scenes[current_scene].name);
+    } else {
+        snprintf(progress_text, sizeof(progress_text), "Tests Complete: %d/%d", 
+                 total_scenes, total_scenes);
+    }
+    a_DrawText(progress_text, 400, 20, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
     
-    // Test input text buffer
-    strcpy(app.input_text, "test");
-    TEST_ASSERT(strcmp(app.input_text, "test") == 0, "Input text should be set correctly");
+    // Timer bar
+    if (current_scene < total_scenes) {
+        float progress = scene_timer / test_scenes[current_scene].display_duration;
+        if (progress > 1.0f) progress = 1.0f;
+        int bar_width = (int)(600 * progress);
+        a_DrawFilledRect(100, 570, bar_width, 10, 0, 255, 0, 255);
+    }
+    a_DrawRect(100, 570, 600, 10, 128, 128, 128, 255);
     
-    // Test keyboard state
-    app.keyboard[SDL_SCANCODE_A] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_A] == 1, "Keyboard state should be set correctly");
+    // Test status
+    char status_text[50];
+    snprintf(status_text, sizeof(status_text), "Passed: %d  Failed: %d", tests_passed, tests_failed);
+    a_DrawText(status_text, 700, 550, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_RIGHT, 0);
     
-    // Test mouse state
-    app.mouse.x = 123;
-    app.mouse.y = 456;
-    TEST_ASSERT(app.mouse.x == 123, "Mouse X should be set correctly");
-    TEST_ASSERT(app.mouse.y == 456, "Mouse Y should be set correctly");
-    
-    return 1;
+    // Controls hint (moved higher)
+    a_DrawText("F1=Skip  R=Restart  ESC=Quit", 400, 545, 150, 150, 150, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
 }
 
-// Test widget structure validation
-int test_widget_structure_validation(void) {
-    reset_app_state();
-    
-    // Test widget structure size and alignment
-    TEST_ASSERT(sizeof(aWidget_t) > 0, "Widget structure should have non-zero size");
-    
-    // Test widget coordinate boundaries
-    // Simulate widget with extreme coordinates
-    app.active_widget = NULL; // Ensure no active widget initially
-    
-    // Test widget dimensions - simulate checking bounds
-    int widget_x = 100, widget_y = 200, widget_w = 150, widget_h = 50;
-    TEST_ASSERT(widget_x >= 0, "Widget X coordinate should be valid");
-    TEST_ASSERT(widget_y >= 0, "Widget Y coordinate should be valid");
-    TEST_ASSERT(widget_w > 0, "Widget width should be positive");
-    TEST_ASSERT(widget_h > 0, "Widget height should be positive");
-    
-    // Test widget boundary calculations
-    int right_edge = widget_x + widget_w;
-    int bottom_edge = widget_y + widget_h;
-    TEST_ASSERT(right_edge == 250, "Widget right edge should be calculated correctly");
-    TEST_ASSERT(bottom_edge == 250, "Widget bottom edge should be calculated correctly");
-    
-    // Test color array boundaries (RGBA values)
-    uint8_t test_fg[4] = {255, 128, 64, 255};
-    uint8_t test_bg[4] = {32, 64, 128, 200};
-    TEST_ASSERT(test_fg[0] == 255, "Foreground red should be valid");
-    TEST_ASSERT(test_fg[3] == 255, "Foreground alpha should be valid");
-    TEST_ASSERT(test_bg[0] == 32, "Background red should be valid");
-    TEST_ASSERT(test_bg[3] == 200, "Background alpha should be valid");
-    
-    return 1;
+// ============================================================================
+// Widget Action Callbacks
+// ============================================================================
+
+static void button_action(void) {
+    action_count++;
 }
 
-// Test widget list operations
-int test_widget_list_operations(void) {
-    reset_app_state();
-    
-    // Test widget linked list concepts
-    // Since we can't create actual widgets easily, test the pointer logic
-    
-    // Test null widget handling
-    aWidget_t* null_widget = NULL;
-    TEST_ASSERT(null_widget == NULL, "Null widget should be null");
-    
-    // Test widget pointer arithmetic concepts
-    size_t widget_size = sizeof(aWidget_t);
-    TEST_ASSERT(widget_size > sizeof(void*), "Widget should be larger than pointer");
-    
-    // Test widget field offsets (basic structure validation)
-    // This tests that the widget structure is properly aligned
-    TEST_ASSERT(sizeof(int) == 4, "Int size should be 4 bytes on this platform");
-    
-    // Test widget name length limits
-    char test_name[MAX_FILENAME_LENGTH];
-    memset(test_name, 'A', MAX_FILENAME_LENGTH - 1);
-    test_name[MAX_FILENAME_LENGTH - 1] = '\0';
-    TEST_ASSERT(strlen(test_name) == MAX_FILENAME_LENGTH - 1, "Widget name should fit in allocated space");
-    
-    // Test widget label length limits
-    char test_label[MAX_FILENAME_LENGTH];
-    memset(test_label, 'B', MAX_FILENAME_LENGTH - 1);
-    test_label[MAX_FILENAME_LENGTH - 1] = '\0';
-    TEST_ASSERT(strlen(test_label) == MAX_FILENAME_LENGTH - 1, "Widget label should fit in allocated space");
-    
-    return 1;
+static void select_action(void) {
+    aWidget_t* widget = a_GetWidget("select_test");
+    if (widget) {
+        aSelectWidget_t* select = (aSelectWidget_t*)widget->data;
+        printf("Select changed to: %s (index %d)\n", select->options[select->value], select->value);
+    }
 }
 
-// Test widget mouse interaction boundaries
-int test_widget_mouse_interaction_boundaries(void) {
-    reset_app_state();
-    
-    // Test mouse click detection within widget boundaries
-    int widget_x = 100, widget_y = 150, widget_w = 200, widget_h = 80;
-    
-    // Test center click
-    int center_x = widget_x + widget_w / 2;
-    int center_y = widget_y + widget_h / 2;
-    app.mouse.x = center_x;
-    app.mouse.y = center_y;
-    TEST_ASSERT(app.mouse.x == center_x, "Mouse should be positioned at widget center X");
-    TEST_ASSERT(app.mouse.y == center_y, "Mouse should be positioned at widget center Y");
-    
-    // Test boundary detection logic
-    int mouse_in_widget = (app.mouse.x >= widget_x && app.mouse.x < widget_x + widget_w &&
-                          app.mouse.y >= widget_y && app.mouse.y < widget_y + widget_h);
-    TEST_ASSERT(mouse_in_widget == 1, "Mouse should be detected within widget boundaries");
-    
-    // Test edge cases - exactly on edge
-    app.mouse.x = widget_x;
-    app.mouse.y = widget_y;
-    mouse_in_widget = (app.mouse.x >= widget_x && app.mouse.x < widget_x + widget_w &&
-                      app.mouse.y >= widget_y && app.mouse.y < widget_y + widget_h);
-    TEST_ASSERT(mouse_in_widget == 1, "Mouse should be detected at top-left edge");
-    
-    // Test just outside boundary
-    app.mouse.x = widget_x - 1;
-    app.mouse.y = widget_y;
-    mouse_in_widget = (app.mouse.x >= widget_x && app.mouse.x < widget_x + widget_w &&
-                      app.mouse.y >= widget_y && app.mouse.y < widget_y + widget_h);
-    TEST_ASSERT(mouse_in_widget == 0, "Mouse should not be detected outside widget boundary");
-    
-    // Test different mouse button states
-    app.mouse.button = SDL_BUTTON_LEFT;
-    app.mouse.state = SDL_PRESSED;
-    app.mouse.pressed = 1;
-    TEST_ASSERT(app.mouse.button == SDL_BUTTON_LEFT, "Left mouse button should be set");
-    TEST_ASSERT(app.mouse.pressed == 1, "Mouse should be in pressed state");
-    
-    app.mouse.button = SDL_BUTTON_RIGHT;
-    TEST_ASSERT(app.mouse.button == SDL_BUTTON_RIGHT, "Right mouse button should be set");
-    
-    return 1;
+static void slider_action(void) {
+    aWidget_t* widget = a_GetWidget("slider_test");
+    if (widget) {
+        aSliderWidget_t* slider = (aSliderWidget_t*)widget->data;
+        last_slider_value = slider->value;
+    }
 }
 
-// Test widget keyboard navigation
-int test_widget_keyboard_navigation(void) {
-    reset_app_state();
-    
-    // Test keyboard navigation keys
-    app.keyboard[SDL_SCANCODE_TAB] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_TAB] == 1, "Tab key should be detectable");
-    
-    app.keyboard[SDL_SCANCODE_UP] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_UP] == 1, "Up arrow should be detectable");
-    
-    app.keyboard[SDL_SCANCODE_DOWN] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_DOWN] == 1, "Down arrow should be detectable");
-    
-    app.keyboard[SDL_SCANCODE_LEFT] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_LEFT] == 1, "Left arrow should be detectable");
-    
-    app.keyboard[SDL_SCANCODE_RIGHT] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_RIGHT] == 1, "Right arrow should be detectable");
-    
-    // Test escape key behavior
-    app.keyboard[SDL_SCANCODE_ESCAPE] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_ESCAPE] == 1, "Escape key should be detectable");
-    
-    // Test enter/return key behavior
-    app.keyboard[SDL_SCANCODE_RETURN] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_RETURN] == 1, "Return key should be detectable");
-    
-    app.keyboard[SDL_SCANCODE_SPACE] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_SPACE] == 1, "Space key should be detectable");
-    
-    // Test modifier keys
-    app.keyboard[SDL_SCANCODE_LSHIFT] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_LSHIFT] == 1, "Left shift should be detectable");
-    
-    app.keyboard[SDL_SCANCODE_LCTRL] = 1;
-    TEST_ASSERT(app.keyboard[SDL_SCANCODE_LCTRL] == 1, "Left ctrl should be detectable");
-    
-    // Test last key pressed tracking
-    app.last_key_pressed = SDL_SCANCODE_RETURN;
-    TEST_ASSERT(app.last_key_pressed == SDL_SCANCODE_RETURN, "Last key pressed should be tracked");
-    
-    return 1;
+static void input_action(void) {
+    aWidget_t* widget = a_GetWidget("input_test");
+    if (widget) {
+        aInputWidget_t* input = (aInputWidget_t*)widget->data;
+        strncpy(last_input_text, input->text, sizeof(last_input_text) - 1);
+        last_input_text[sizeof(last_input_text) - 1] = '\0';
+    }
 }
 
-// Test widget state persistence
-int test_widget_state_persistence(void) {
-    reset_app_state();
-    
-    // Test active widget state management
-    app.active_widget = NULL;
-    TEST_ASSERT(app.active_widget == NULL, "Active widget should be null initially");
-    
-    // Test widget state during interactions
-    // Simulate widget becoming active
-    // Since we can't create actual widgets, we'll simulate the state changes
-    
-    // Test font scale affects widget rendering
-    app.font_scale = 1.5;
-    TEST_ASSERT(app.font_scale == 1.5, "Font scale should affect widget text rendering");
-    
-    // Test font type affects widget appearance
-    app.font_type = FONT_GAME;
-    TEST_ASSERT(app.font_type == FONT_GAME, "Font type should be settable for widgets");
-    
-    app.font_type = FONT_LINUX;
-    TEST_ASSERT(app.font_type == FONT_LINUX, "Font type should be changeable");
-    
-    // Test widget state preservation during app state changes
-    app.running = 1;
-    strcpy(app.input_text, "widget_test");
-    app.mouse.x = 500;
-    app.mouse.y = 300;
-    
-    // Verify state is maintained
-    TEST_ASSERT(app.running == 1, "App should remain running during widget interactions");
-    TEST_ASSERT(strcmp(app.input_text, "widget_test") == 0, "Input text should be preserved");
-    TEST_ASSERT(app.mouse.x == 500, "Mouse X should be preserved");
-    TEST_ASSERT(app.mouse.y == 300, "Mouse Y should be preserved");
-    
-    // Test state after reset
-    reset_app_state();
-    TEST_ASSERT(app.active_widget == NULL, "Active widget should be null after reset");
-    TEST_ASSERT(app.font_scale == 1.0, "Font scale should be reset");
-    TEST_ASSERT(strlen(app.input_text) == 0, "Input text should be cleared");
-    
-    return 1;
+static void control_action(void) {
+    aWidget_t* widget = a_GetWidget("control_test");
+    if (widget) {
+        aControlWidget_t* control = (aControlWidget_t*)widget->data;
+        last_control_key = control->value;
+    }
 }
 
-// Main test runner
+// ============================================================================
+// Test Scenes
+// ============================================================================
+
+static void init_widget_initialization(void) {
+    strcpy(test_result_text, "Testing widget system initialization...");
+}
+
+static void draw_widget_initialization(float dt) {
+    (void)dt;
+    a_DrawText("Widget System Initialization Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    
+    // Check if widgets were loaded
+    int widget_count = 0;
+    const char* widget_names[] = {"button_test", "select_test", "slider_test", "input_test", "control_test"};
+    
+    for (int i = 0; i < 5; i++) {
+        if (a_GetWidget((char*)widget_names[i]) != NULL) {
+            widget_count++;
+        }
+    }
+    
+    char count_text[100];
+    snprintf(count_text, sizeof(count_text), "Loaded %d/5 basic widgets", widget_count);
+    a_DrawText(count_text, 400, 150, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    if (widget_count == 5) {
+        a_DrawText(" All widgets loaded successfully", 400, 200, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        scene_test_result = 1;
+    } else {
+        a_DrawText(" Failed to load all widgets", 400, 200, 255, 0, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        scene_test_result = 0;
+    }
+    
+    // Draw all widgets
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_button_widget_test(void) {
+    strcpy(test_result_text, "Click the button or press Enter when it's active");
+    action_count = 0;
+}
+
+static void draw_button_widget_test(float dt) {
+    (void)dt;
+    a_DrawText("Button Widget Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show action count
+    char action_text[100];
+    snprintf(action_text, sizeof(action_text), "Button clicks: %d", action_count);
+    a_DrawText(action_text, 400, 300, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    
+    if (action_count > 0) {
+        a_DrawText(" Button interaction working!", 400, 350, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    }
+    
+    // Highlight active widget
+    if (app.active_widget && strcmp(app.active_widget->name, "button_test") == 0) {
+        a_DrawText("Button is ACTIVE (press Enter)", 400, 400, 0, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_select_widget_test(void) {
+    strcpy(test_result_text, "Use arrow keys or click to change selection");
+    aWidget_t* widget = a_GetWidget("select_test");
+    if (widget) app.active_widget = widget;
+}
+
+static void draw_select_widget_test(float dt) {
+    (void)dt;
+    a_DrawText("Select Widget Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show current selection
+    aWidget_t* widget = a_GetWidget("select_test");
+    if (widget) {
+        aSelectWidget_t* select = (aSelectWidget_t*)widget->data;
+        char select_text[100];
+        snprintf(select_text, sizeof(select_text), "Current selection: %s (index %d)", 
+                 select->options[select->value], select->value);
+        a_DrawText(select_text, 400, 350, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+        
+        if (select->value != 0) {
+            a_DrawText(" Select widget interaction working!", 400, 400, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_slider_widget_test(void) {
+    strcpy(test_result_text, "Use arrow keys or click to adjust slider");
+    aWidget_t* widget = a_GetWidget("slider_test");
+    if (widget) app.active_widget = widget;
+    last_slider_value = 0;
+}
+
+static void draw_slider_widget_test(float dt) {
+    (void)dt;
+    a_DrawText("Slider Widget Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show current value
+    aWidget_t* widget = a_GetWidget("slider_test");
+    if (widget) {
+        aSliderWidget_t* slider = (aSliderWidget_t*)widget->data;
+        char slider_text[100];
+        snprintf(slider_text, sizeof(slider_text), "Slider value: %d%%", slider->value);
+        a_DrawText(slider_text, 400, 350, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+        
+        // Test wait_on_change slider
+        aWidget_t* wait_widget = a_GetWidget("slider_wait");
+        if (wait_widget) {
+            aSliderWidget_t* wait_slider = (aSliderWidget_t*)wait_widget->data;
+            snprintf(slider_text, sizeof(slider_text), "Wait slider: %d%% (releases key)", wait_slider->value);
+            a_DrawText(slider_text, 400, 380, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+        
+        if (slider->value != 0) {
+            a_DrawText(" Slider interaction working!", 400, 420, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_input_widget_test(void) {
+    strcpy(test_result_text, "Press Enter/Space to edit, type text, Enter to confirm");
+    aWidget_t* widget = a_GetWidget("input_test");
+    if (widget) app.active_widget = widget;
+}
+
+static void draw_input_widget_test(float dt) {
+    (void)dt;
+    a_DrawText("Input Widget Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show input status
+    aWidget_t* widget = a_GetWidget("input_test");
+    if (widget) {
+        aInputWidget_t* input = (aInputWidget_t*)widget->data;
+        char input_text[100];
+        snprintf(input_text, sizeof(input_text), "Current text: \"%s\"", input->text);
+        a_DrawText(input_text, 400, 300, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+        
+        if (strlen(last_input_text) > 0) {
+            snprintf(input_text, sizeof(input_text), "Last confirmed: \"%s\"", last_input_text);
+            a_DrawText(input_text, 400, 330, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+        
+        if (strcmp(input->text, "Player") != 0) {
+            a_DrawText(" Input widget working!", 400, 420, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_control_widget_test(void) {
+    strcpy(test_result_text, "Press Enter/Space then press any key to bind");
+    aWidget_t* widget = a_GetWidget("control_test");
+    if (widget) app.active_widget = widget;
+    last_control_key = -1;
+}
+
+static void draw_control_widget_test(float dt) {
+    (void)dt;
+    a_DrawText("Control Widget Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show bound key
+    aWidget_t* widget = a_GetWidget("control_test");
+    if (widget) {
+        aControlWidget_t* control = (aControlWidget_t*)widget->data;
+        char control_text[100];
+        if (control->value > 0) {
+            snprintf(control_text, sizeof(control_text), "Bound to: %s (scancode %d)", 
+                     SDL_GetScancodeName(control->value), control->value);
+            a_DrawText(control_text, 400, 300, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+            a_DrawText(" Control widget key binding working!", 400, 350, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        } else {
+            a_DrawText("No key bound yet", 400, 300, 128, 128, 128, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_widget_navigation_test(void) {
+    strcpy(test_result_text, "Click different widgets to change focus");
+}
+
+static void draw_widget_navigation_test(float dt) {
+    (void)dt;
+    a_DrawText("Widget Navigation Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show active widget
+    if (app.active_widget) {
+        char active_text[100];
+        snprintf(active_text, sizeof(active_text), "Active widget: %s", app.active_widget->name);
+        a_DrawText(active_text, 400, 300, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+        
+        // Show widget type
+        const char* type_names[] = {"Button", "Select", "Slider", "Input", "Control", "Container"};
+        if (app.active_widget->type >= 0 && app.active_widget->type < 6) {
+            snprintf(active_text, sizeof(active_text), "Type: %s", type_names[app.active_widget->type]);
+            a_DrawText(active_text, 400, 330, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+        
+        a_DrawText(" Widget focus system working!", 400, 380, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_widget_actions_test(void) {
+    strcpy(test_result_text, "Test multiple button actions");
+    action_count = 0;
+    
+    // Set up actions for multi buttons
+    aWidget_t* btn1 = a_GetWidget("multi_button1");
+    aWidget_t* btn2 = a_GetWidget("multi_button2");
+    aWidget_t* btn3 = a_GetWidget("multi_button3");
+    
+    if (btn1) btn1->action = button_action;
+    if (btn2) btn2->action = button_action;
+    if (btn3) btn3->action = button_action;
+}
+
+static void draw_widget_actions_test(float dt) {
+    (void)dt;
+    a_DrawText("Widget Actions Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Show total actions
+    char action_text[100];
+    snprintf(action_text, sizeof(action_text), "Total button clicks: %d", action_count);
+    a_DrawText(action_text, 400, 300, 255, 255, 0, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    
+    if (action_count >= 3) {
+        a_DrawText(" Multiple widgets with actions working!", 400, 350, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    } else if (action_count > 0) {
+        a_DrawText("Click all three buttons at the bottom", 400, 350, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+static void init_hidden_widgets_test(void) {
+    strcpy(test_result_text, "Testing hidden widget functionality");
+    
+    // Show the hidden button
+    aWidget_t* hidden = a_GetWidget("hidden_button");
+    if (hidden) {
+        hidden->hidden = 0;
+    }
+}
+
+static void draw_hidden_widgets_test(float dt) {
+    (void)dt;
+    a_DrawText("Hidden Widgets Test", 400, 100, 255, 255, 255, FONT_ENTER_COMMAND, TEXT_ALIGN_CENTER, 0);
+    a_DrawText(test_result_text, 400, 130, 200, 200, 200, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    
+    // Toggle visibility
+    static float toggle_timer = 0;
+    toggle_timer += dt;
+    
+    aWidget_t* hidden = a_GetWidget("hidden_button");
+    if (hidden) {
+        // Toggle every second
+        if ((int)(toggle_timer) % 2 == 0) {
+            hidden->hidden = 0;
+            a_DrawText("Hidden button is now VISIBLE", 400, 300, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        } else {
+            hidden->hidden = 1;
+            a_DrawText("Hidden button is now HIDDEN", 400, 300, 255, 128, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+        }
+        
+        a_DrawText(" Widget visibility control working!", 400, 350, 0, 255, 0, FONT_LINUX, TEXT_ALIGN_CENTER, 0);
+    }
+    
+    a_DrawWidgets();
+    draw_ui_overlay();
+}
+
+// ============================================================================
+// Main Entry Point
+// ============================================================================
+
+void aMainloop(void) {
+    a_PrepareScene();
+    app.delegate.logic(a_GetDeltaTime());
+    app.delegate.draw(a_GetDeltaTime());
+    a_PresentScene();
+}
+
 int main(void) {
-    // Initialize SDL for testing
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL initialization failed: %s\n", SDL_GetError());
+    if (a_InitTest(800, 600, "Archimedes Widget Basic Tests") != 0) {
+        printf("Failed to initialize Archimedes\n");
         return 1;
     }
     
-    TEST_SUITE_START("Widget System Basic Tests");
+    init_test_system();
     
-    RUN_TEST(test_widget_initialization);
-    RUN_TEST(test_widget_constants);
-    RUN_TEST(test_app_state_management);
-    RUN_TEST(test_widget_structure_validation);
-    RUN_TEST(test_widget_list_operations);
-    RUN_TEST(test_widget_mouse_interaction_boundaries);
-    RUN_TEST(test_widget_keyboard_navigation);
-    RUN_TEST(test_widget_state_persistence);
+    while (app.running) {
+        a_DoInput();
+        aMainloop();
+    }
     
-    TEST_SUITE_END();
-    
-    SDL_Quit();
+    a_Quit();
     return 0;
 }

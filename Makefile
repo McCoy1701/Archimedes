@@ -296,16 +296,16 @@ run-test-image-advanced: test-image-advanced
 	@./$(BIN_DIR)/test_image_advanced
 
 .PHONY: test-widgets-basic
-test-widgets-basic: always $(INPUT_TEST_OBJS)
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_widgets_basic $(TRUE_TEST_DIR)/widgets/test_widgets_basic.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+test-widgets-basic: always $(INIT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_widgets_basic $(TRUE_TEST_DIR)/widgets/test_widgets_basic.c $(INIT_TEST_OBJS) $(TEST_LIBS)
 
 .PHONY: run-test-widgets-basic
 run-test-widgets-basic: test-widgets-basic
 	@./$(BIN_DIR)/test_widgets_basic
 
 .PHONY: test-widgets-advanced
-test-widgets-advanced: always $(INPUT_TEST_OBJS)
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_widgets_advanced $(TRUE_TEST_DIR)/widgets/test_widgets_advanced.c $(INPUT_TEST_OBJS) $(TEST_LIBS)
+test-widgets-advanced: always $(INIT_TEST_OBJS)
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_widgets_advanced $(TRUE_TEST_DIR)/widgets/test_widgets_advanced.c $(INIT_TEST_OBJS) $(TEST_LIBS)
 
 .PHONY: run-test-widgets-advanced
 run-test-widgets-advanced: test-widgets-advanced
@@ -368,7 +368,7 @@ EMSCRIPTEN_TEST_DIR = $(TRUE_TEST_DIR)/emscripten
 EMSCRIPTEN_OUTPUT_DIR = $(INDEX_DIR)/emscripten
 
 # Emscripten test flags
-EMSCRIPTEN_TEST_FLAGS = -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_TTF=2 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='["_main","_exit","_emscripten_next_scene","_emscripten_previous_scene","_emscripten_restart_scene","_emscripten_toggle_auto_advance"]' -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' -s EXIT_RUNTIME=1 --preload-file resources/
+EMSCRIPTEN_TEST_FLAGS = -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_TTF=2 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='["_main","_exit","_emscripten_next_scene","_emscripten_previous_scene","_emscripten_restart_scene","_emscripten_toggle_auto_advance"]' -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","print","printErr"]' -s EXIT_RUNTIME=1 --preload-file resources/
 
 # Emscripten test base objects
 $(OBJ_DIR)/em_emscripten_test_base.o: $(EMSCRIPTEN_TEST_DIR)/emscripten_test_base.c
@@ -389,8 +389,20 @@ run-test-emscripten-text-draw-init: test-emscripten-text-draw-init
 	@sleep 2
 	@xdg-open "http://localhost:8080/test_emscripten_text_draw_init.html" || echo "Please open http://localhost:8080/test_emscripten_text_draw_init.html in your browser"
 
+.PHONY: test-emscripten-widgets
+test-emscripten-widgets: always $(BIN_DIR)/libArchimedes.a $(OBJ_DIR)/em_emscripten_test_base.o
+	mkdir -p $(EMSCRIPTEN_OUTPUT_DIR)
+	$(ECC) $(CINC) $(EMSCRIPTEN_TEST_FLAGS) --shell-file $(EMSCRIPTEN_TEST_DIR)/template.html --preload-file $(EMSCRIPTEN_TEST_DIR)/../emscripten_widgets/test_emscripten_widgets.json@test_emscripten_widgets.json -o $(EMSCRIPTEN_OUTPUT_DIR)/test_emscripten_widgets.html $(EMSCRIPTEN_TEST_DIR)/../emscripten_widgets/test_emscripten_widgets.c $(OBJ_DIR)/em_emscripten_test_base.o $(BIN_DIR)/libArchimedes.a
+.PHONY: run-test-emscripten-widgets
+run-test-emscripten-widgets: test-emscripten-widgets
+	@echo "=== Starting Sacred Chamber of Divine Automata ==="
+	@echo "🏛️ Opening the Sacred Web Portal..."
+	@echo "⚡ Use Ctrl+C to exit the divine realm"
+	@cd $(EMSCRIPTEN_OUTPUT_DIR) && python3 -m http.server 8080 &
+	@sleep 2
+	@xdg-open "http://localhost:8080/test_emscripten_widgets.html" || echo "🌟 Please open http://localhost:8080/test_emscripten_widgets.html to enter the Sacred Chamber!"
 .PHONY: test-emscripten-all
-test-emscripten-all: test-emscripten-text-draw-init
+test-emscripten-all: test-emscripten-text-draw-init test-emscripten-widgets
 	@echo "All Emscripten tests compiled successfully"
 
 .PHONY: clean-emscripten

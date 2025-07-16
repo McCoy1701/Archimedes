@@ -1,0 +1,250 @@
+{
+  "main_container": {
+    "name": "main_container",
+    "label": "Main Container",
+    "type": "WT_CONTAINER",
+    "x": 50,
+    "y": 150,
+    "boxed": 1,
+    "hidden": 0,
+    "padding": 15,
+    "flex": 1,
+    "spacing": 20,
+    "fg": [255, 255, 255, 255],
+    "bg": [32, 32, 48, 255],
+    "components": [
+      {
+        "name": "container_button1",
+        "label": "Play",
+        "type": "WT_BUTTON",
+        "x": 0,
+        "y": 0,
+        "boxed": 1,
+        "hidden": 0,
+        "padding": 8,
+        "fg": [0, 255, 0, 255],
+        "bg": [0, 64, 0, 255]
+      },
+      {
+        "name": "container_button2",
+        "label": "Pause",
+        "type": "WT_BUTTON",
+        "x": 0,
+        "y": 0,
+        "boxed": 1,
+        "hidden": 0,
+        "padding": 8,
+        "fg": [255, 255, 0, 255],
+        "bg": [64, 64, 0, 255]
+      },
+      {
+        "name": "container_button3",
+        "label": "Stop",
+        "type": "WT_BUTTON",
+        "x": 0,
+        "y": 0,
+        "boxed": 1,
+        "hidden": 0,
+        "padding": 8,
+        "fg": [255, 0, 0, 255],
+        "bg": [64, 0, 0, 255]
+      }
+    ]
+  },
+  
+  "vertical_container": {
+    "name": "vertical_container",
+    "label": "Settings",
+    "type": "WT_CONTAINER",
+    "x": 450,
+    "y": 150,
+    "boxed": 1,
+    "hidden": 0,
+    "padding": 10,
+    "flex": 2,
+    "spacing": 15,
+    "fg": [255, 255, 255, 255],
+    "bg": [48, 32, 32, 255],
+    "components": [
+      {
+        "name": "vert_slider1",
+        "label": "Music:",
+        "type": "WT_SLIDER",
+        "x": 0,
+        "y": 0,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [255, 128, 128, 255],
+        "bg": [0, 0, 0, 255],
+        "step": 5,
+        "wait_on_change": 0
+      },
+      {
+        "name": "vert_slider2",
+        "label": "Sound:",
+        "type": "WT_SLIDER",
+        "x": 0,
+        "y": 0,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [128, 255, 128, 255],
+        "bg": [0, 0, 0, 255],
+        "step": 5,
+        "wait_on_change": 0
+      },
+      {
+        "name": "vert_select",
+        "label": "Quality:",
+        "type": "WT_SELECT",
+        "x": 0,
+        "y": 0,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [128, 128, 255, 255],
+        "bg": [0, 0, 0, 255],
+        "options": ["Low", "Medium", "High", "Ultra"]
+      }
+    ]
+  },
+  
+  "mixed_container": {
+    "name": "mixed_container",
+    "label": "Player Info",
+    "type": "WT_CONTAINER",
+    "x": 50,
+    "y": 350,
+    "boxed": 1,
+    "hidden": 0,
+    "padding": 12,
+    "flex": 0,
+    "spacing": 10,
+    "fg": [255, 255, 255, 255],
+    "bg": [32, 48, 32, 255],
+    "components": [
+      {
+        "name": "player_input",
+        "label": "Player:",
+        "type": "WT_INPUT",
+        "x": 60,
+        "y": 370,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [255, 255, 255, 255],
+        "bg": [0, 0, 0, 255],
+        "max_length": 20
+      },
+      {
+        "name": "action_key",
+        "label": "Action:",
+        "type": "WT_CONTROL",
+        "x": 60,
+        "y": 400,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [255, 255, 0, 255],
+        "bg": [0, 0, 0, 255]
+      },
+      {
+        "name": "team_select",
+        "label": "Team:",
+        "type": "WT_SELECT",
+        "x": 60,
+        "y": 430,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [0, 255, 255, 255],
+        "bg": [0, 0, 0, 255],
+        "options": ["Red Team", "Blue Team", "Green Team", "Yellow Team"]
+      }
+    ]
+  },
+  
+  "nested_container": {
+    "name": "nested_container",
+    "label": "Nested Test",
+    "type": "WT_CONTAINER",
+    "x": 450,
+    "y": 350,
+    "boxed": 1,
+    "hidden": 1,
+    "padding": 10,
+    "flex": 2,
+    "spacing": 10,
+    "fg": [255, 255, 255, 255],
+    "bg": [48, 48, 64, 255],
+    "components": [
+      {
+        "name": "inner_container",
+        "label": "Inner",
+        "type": "WT_CONTAINER",
+        "x": 0,
+        "y": 0,
+        "boxed": 1,
+        "hidden": 0,
+        "padding": 5,
+        "flex": 1,
+        "spacing": 5,
+        "fg": [255, 255, 255, 255],
+        "bg": [64, 64, 80, 255],
+        "components": [
+          {
+            "name": "nested_btn1",
+            "label": "A",
+            "type": "WT_BUTTON",
+            "x": 0,
+            "y": 0,
+            "boxed": 0,
+            "hidden": 0,
+            "padding": 3,
+            "fg": [255, 0, 128, 255],
+            "bg": [0, 0, 0, 255]
+          },
+          {
+            "name": "nested_btn2",
+            "label": "B",
+            "type": "WT_BUTTON",
+            "x": 0,
+            "y": 0,
+            "boxed": 0,
+            "hidden": 0,
+            "padding": 3,
+            "fg": [128, 0, 255, 255],
+            "bg": [0, 0, 0, 255]
+          }
+        ]
+      },
+      {
+        "name": "bottom_input",
+        "label": "Code:",
+        "type": "WT_INPUT",
+        "x": 0,
+        "y": 0,
+        "boxed": 0,
+        "hidden": 0,
+        "padding": 0,
+        "fg": [255, 255, 128, 255],
+        "bg": [0, 0, 0, 255],
+        "max_length": 10
+      }
+    ]
+  },
+  
+  "stress_button_template": {
+    "name": "stress_btn",
+    "label": "X",
+    "type": "WT_BUTTON",
+    "x": 0,
+    "y": 0,
+    "boxed": 0,
+    "hidden": 0,
+    "padding": 2,
+    "fg": [255, 255, 255, 255],
+    "bg": [0, 0, 0, 255]
+  }
+}

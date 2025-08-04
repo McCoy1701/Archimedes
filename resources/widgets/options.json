@@ -1,0 +1,63 @@
+[
+  {
+    "type" : "WT_SELECT",
+    "name" : "difficulty",
+    "x" : 300,
+    "y" : 250,
+    "label" : "Difficulty",
+    "options" : [
+      "Very Easy",
+      "Easy",
+      "Normal",
+      "Hard",
+      "Very Hard"
+    ]
+  },
+  {
+    "type" : "WT_SLIDER",
+    "name" : "sound",
+    "x" : 300,
+    "y" : 300,
+    "label" : "Sound",
+    "step" : 1,
+    "wait_on_change" : 1
+  },
+  {
+    "type" : "WT_SELECT",
+    "name" : "subtitles",
+    "x" : 300,
+    "y" : 350,
+    "label" : "Subtitles",
+    "options" : [
+      "On",
+      "Off"
+    ]
+  },
+  {
+    "type" : "WT_INPUT",
+    "name" : "name",
+    "x" : 300,
+    "y" : 400,
+    "label" : "Name",
+    "max_length" : 16
+  },
+  {
+    "type" : "WT_SELECT",
+    "name" : "language",
+    "x" : 300,
+    "y" : 450,
+    "label" : "Language",
+    "options" : [
+      "English",
+      "Shona",
+      "ZIMBABWESE"
+    ]
+  },
+  {
+    "type" : "WT_BUTTON",
+    "name" : "exit",
+    "x" : 300,
+    "y" : 500,
+    "label" : "Exit"
+  }
+]

@@ -1,5 +1,4 @@
 .vscode/
-resources/
 htmlTemplate/
 compile_commands.json
 .cache/

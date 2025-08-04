@@ -53,7 +53,7 @@ $(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_D
 .PHONY: native
 native: always $(BIN_DIR)/native
 
-$(OBJ_DIR)/n_main.o: $(TEM_DIR)/main.c
+$(OBJ_DIR)/n_main.o: $(TEST_DIR)/test.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(OBJ_DIR)/n_aAudio.o: $(SRC_DIR)/aAudio.c

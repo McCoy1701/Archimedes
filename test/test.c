@@ -16,7 +16,7 @@ void aInitGame( void )
   app.delegate.logic = aDoLoop;
   app.delegate.draw  = aRenderLoop;
 
-  test_cache = ( aImageCache_t* )malloc( sizeof( aImageCache_t ) );
+/*  test_cache = ( aImageCache_t* )malloc( sizeof( aImageCache_t ) );
   if ( test_cache == NULL )
   {
     aError_t new_error;
@@ -34,7 +34,7 @@ void aInitGame( void )
   {
     printf( "Failed to load image\n" );
   }
-  at_TestImageCache( app.img_cache );
+  at_TestImageCache( app.img_cache );*/
 }
 
 static void aDoLoop( float dt )
@@ -51,7 +51,8 @@ static void aRenderLoop( float dt )
   int x = 100;
   int y = 100;
 
-  a_Blit(surf, x, y);
+  //a_Blit(surf, x, y);
+  a_DrawText("Hello, World!", x, y, 255, 255, 255, FONT_CODE_PAGE_437, TEXT_ALIGN_CENTER, 0 );
 }
 
 void aMainloop( void )
@@ -74,12 +75,12 @@ int main( void )
     aMainloop();
   }
 
-  at_TestImageCache( test_cache );
+  /*at_TestImageCache( test_cache );
   at_TestImageCache( app.img_cache );
   a_CleanUpImageCache( test_cache );
   a_CleanUpImageCache( app.img_cache );
   at_TestImageCache( test_cache );
-  at_TestImageCache( app.img_cache );
+  at_TestImageCache( app.img_cache );*/
   a_Quit();
 
   return 0;

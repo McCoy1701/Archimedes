@@ -52,10 +52,12 @@ void a_InitFonts( void )
   // Smaller fonts for web environment to prevent overlap and fit better
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 24 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 18 );
+  initFontPNG( "resources/fonts/CodePage437.png", FONT_CODE_PAGE_437, 9, 16 );
 #else
   // Regular fonts for native builds
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 48 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 32 );
+  initFontPNG( "resources/fonts/CodePage437.png", FONT_CODE_PAGE_437, 9, 16 );
 #endif
 
   app.font_scale = 1;
@@ -423,6 +425,25 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
     for ( int j = 0; j < len; j++ )
     {
       c = text[j];
+      glyph = &app.glyphs[font_type][c];
+
+      dest.x = x;
+      dest.y = y;
+      dest.w = glyph->w * app.font_scale;
+      dest.h = glyph->h * app.font_scale;
+
+      SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
+
+      x += glyph->w * app.font_scale;
+
+    }
+  }
+  
+  else if ( font_type == FONT_CODE_PAGE_437 )
+  {
+    for ( int j = 0; j < len; j++ )
+    {
+      c = text[j] - 1;
       glyph = &app.glyphs[font_type][c];
 
       dest.x = x;

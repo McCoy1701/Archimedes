@@ -5,17 +5,27 @@
 
 #include "Archimedes.h"
 
-static void initFont( char* filename, int font_type, int font_size );
-static void initFontPNG( char* filename, int font_type, int glyph_width, int glyph_height );
-static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int font_type,
-                            int align, int max_width, int draw );
-static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int font_type, int align );
+static void initFont( const char* filename, const int font_type,
+                      const int font_size );
+
+static void initFontPNG( const char* filename, const int font_type,
+                         const int glyph_width, const int glyph_height );
+
+static int DrawTextWrapped( const char* text, const int x, const int y,
+                            const aColor_t bg, const aColor_t fg,
+                            const int font_type, const int align, 
+                            const int max_width, const int draw );
+
+static void DrawTextLine( const char* text, const int x, const int y,
+                          const aColor_t bg, const aColor_t fg,
+                          const int font_type, const int align );
+
 static int NextGlyph( const char* string, int* i, char* glyph_buffer );
 
 // Input validation helpers
 static int validate_text_parameters( const char* text, int font_type );
-static int validate_color_parameters( int r, int g, int b );
-static int is_valid_utf8_sequence( const char* text, int start_pos, int* sequence_length );
+static int validate_color_parameters( const int r, const int g, const int b );
+static int is_valid_utf8_sequence( const char* text, const int start_pos, int* sequence_length );
 
 static SDL_Color white_ = {255, 255, 255, 255};
 //static TTF_Font* fonts[FONT_MAX];
@@ -76,7 +86,7 @@ void a_InitFonts( void )
  * @param w Pointer to store the calculated width in pixels
  * @param h Pointer to store the calculated height in pixels
  */
-void a_CalcTextDimensions( char* text, int font_type, int* w, int* h )
+void a_CalcTextDimensions( const char* text, const int font_type, int* w, int* h )
 {
   int i, n;
   SDL_Rect* g;
@@ -120,7 +130,7 @@ void a_CalcTextDimensions( char* text, int font_type, int* w, int* h )
  * @param max_width Maximum width in pixels before wrapping
  * @return Total height in pixels of the wrapped text
  */
-int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
+int a_GetWrappedTextHeight( const char* text, const int font_type, const int max_width )
 {
   // Validate input parameters
   int validation_result = validate_text_parameters( text, font_type );
@@ -134,7 +144,7 @@ int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
     return 0;
   }
   
-  return DrawTextWrapped( text, 0, 0, 255, 255, 255, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
+  return DrawTextWrapped( text, 0, 0, black, white, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
 }
 
 /**
@@ -148,7 +158,7 @@ int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
  * @param font_type The font type to use for rendering
  * @return SDL_Texture pointer containing the rendered text, or NULL on failure
  */
-SDL_Texture* a_GetTextTexture( char* text, int font_type )
+SDL_Texture* a_GetTextTexture( const char* text, const int font_type )
 {
   SDL_Surface* surface;
   
@@ -185,8 +195,9 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type )
  * @param align Text alignment (TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT)
  * @param max_width Maximum width for text wrapping (0 = no wrapping)
  */
-void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
-                 int align, int max_width )
+void a_DrawText( const char* text, const int x, const int y,
+                 const aColor_t bg, const aColor_t fg,
+                 const int font_type, const int align, const int max_width )
 {
   // Validate input parameters
   int validation_result = validate_text_parameters( text, font_type );
@@ -195,7 +206,13 @@ void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
     return;
   }
   
-  validation_result = validate_color_parameters( r, g, b );
+  validation_result = validate_color_parameters( bg.r, bg.g, bg.b );
+  if ( validation_result != ARCH_TEXT_SUCCESS ) {
+    // Silently fail for now to maintain API compatibility
+    return;
+  }
+  
+  validation_result = validate_color_parameters( fg.r, fg.g, fg.b );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
@@ -203,16 +220,17 @@ void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
   
   if ( max_width > 0 )
   {
-    DrawTextWrapped( text, x, y, r, g, b, font_type, align, max_width, 1 );
+    DrawTextWrapped( text, x, y, bg, fg, font_type, align, max_width, 1 );
   }
 
   else
   {
-    DrawTextLine( text, x, y, r, g, b, font_type, align );
+    DrawTextLine( text, x, y, bg, fg, font_type, align );
   }
 }
 
-static void initFontPNG( char* filename, int font_type, int glyph_width, int glyph_height )
+static void initFontPNG( const char* filename, const int font_type,
+                         const int glyph_width, const int glyph_height )
 {
   SDL_Surface* surface, *font_surf;
   SDL_Rect dest, rect;
@@ -261,7 +279,7 @@ static void initFontPNG( char* filename, int font_type, int glyph_width, int gly
   app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 
-static void initFont( char* filename, int font_type, int font_size )
+static void initFont( const char* filename, const int font_type, const int font_size )
 {
   SDL_Surface* surface, *text;
   SDL_Rect dest;
@@ -317,11 +335,15 @@ static void initFont( char* filename, int font_type, int font_size )
   app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 
-static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width, int draw )
+static int DrawTextWrapped( const char* text, const int x, const int y,
+                            const aColor_t bg, const aColor_t fg, 
+                            const int font_type, const int align,
+                            const int max_width, const int draw )
 {
   char word[MAX_WORD_LENGTH], line[MAX_LINE_LENGTH], glyph_buffer[MAX_GLYPH_SIZE];
   int i, n, word_width, line_width, len;
   int word_len, line_len, glyph_len;
+  int new_x = x, new_y = y;
 
   i = 0;
 
@@ -354,12 +376,12 @@ static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int f
       {
         if ( draw )
         {
-          DrawTextLine( line, x, y, r, g, b, font_type, align );
+          DrawTextLine( line, new_x, new_y, bg, fg, font_type, align );
         }
 
         memset( line, 0, MAX_LINE_LENGTH );
 
-        y += app.glyphs[font_type][' '].h * app.font_scale;
+        new_y += app.glyphs[font_type][' '].h * app.font_scale;
         line_width = 0;
       }
       
@@ -390,15 +412,18 @@ static int DrawTextWrapped( char* text, int x, int y, int r, int g, int b, int f
 
   if ( draw )
   {
-    DrawTextLine( line, x, y, r, g, b, font_type, align );
+    DrawTextLine( line, new_x, new_y, bg, fg, font_type, align );
   }
 
-  return y + app.glyphs[font_type][' '].h * app.font_scale;
+  return new_y + app.glyphs[font_type][' '].h * app.font_scale;
 }
 
-static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int font_type, int align )
+static void DrawTextLine( const char* text, const int x, const int y,
+                          const aColor_t bg, const aColor_t fg,
+                          const int font_type, const int align )
 {
   int i, n, w, h, len, c;
+  int new_x = x, new_y = y;
   SDL_Rect* glyph, dest;
 
   if ( align != TEXT_ALIGN_LEFT )
@@ -407,15 +432,15 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
 
     if ( align == TEXT_ALIGN_CENTER )
     {
-      x -= ( w / 2 );
+      new_x -= ( w / 2 );
     }
     else if ( align == TEXT_ALIGN_RIGHT )
     {
-      x -= w;
+      new_x -= w;
     }
   }
 
-  SDL_SetTextureColorMod( app.font_textures[font_type], r, g, b );
+  SDL_SetTextureColorMod( app.font_textures[font_type], fg.r, fg.g, fg.b );
 
   i = 0;
   len = strlen( text );
@@ -427,14 +452,14 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
       c = text[j];
       glyph = &app.glyphs[font_type][c];
 
-      dest.x = x;
-      dest.y = y;
+      dest.x = new_x;
+      dest.y = new_y;
       dest.w = glyph->w * app.font_scale;
       dest.h = glyph->h * app.font_scale;
 
       SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
 
-      x += glyph->w * app.font_scale;
+      new_x += glyph->w * app.font_scale;
 
     }
   }
@@ -446,14 +471,14 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
       c = text[j] - 1;
       glyph = &app.glyphs[font_type][c];
 
-      dest.x = x;
-      dest.y = y;
+      dest.x = new_x;
+      dest.y = new_y;
       dest.w = glyph->w * app.font_scale;
       dest.h = glyph->h * app.font_scale;
 
       SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
 
-      x += glyph->w * app.font_scale;
+      new_x += glyph->w * app.font_scale;
 
     }
   }
@@ -464,19 +489,19 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
     {
       glyph = &app.glyphs[font_type][n];
 
-      dest.x = x;
-      dest.y = y;
+      dest.x = new_x;
+      dest.y = new_y;
       dest.w = glyph->w * app.font_scale;
       dest.h = glyph->h * app.font_scale;
 
       SDL_RenderCopy( app.renderer, app.font_textures[font_type], glyph, &dest );
 
-      x += glyph->w * app.font_scale;
+      new_x += glyph->w * app.font_scale;
     }
   }
 }
 
-static unsigned int decode_utf8_codepoint( const char* string, int start_pos, int length )
+static unsigned int decode_utf8_codepoint( const char* string, const int start_pos, const int length )
 {
   unsigned int codepoint = 0;
   
@@ -568,7 +593,7 @@ static int NextGlyph( const char* string, int* i, char* glyph_buffer )
  * @param font_type The font type to validate
  * @return ARCH_TEXT_SUCCESS on success, error code on failure
  */
-static int validate_text_parameters( const char* text, int font_type )
+static int validate_text_parameters( const char* text, const int font_type )
 {
   if ( text == NULL ) {
     return ARCH_TEXT_ERROR_NULL_POINTER;
@@ -604,7 +629,7 @@ static int validate_color_parameters( int r, int g, int b )
  * @param sequence_length Output parameter for sequence length
  * @return ARCH_TEXT_SUCCESS if valid, error code if invalid
  */
-static int is_valid_utf8_sequence( const char* text, int start_pos, int* sequence_length )
+static int is_valid_utf8_sequence( const char* text, const int start_pos, int* sequence_length )
 {
   if ( text == NULL || sequence_length == NULL ) {
     return ARCH_TEXT_ERROR_NULL_POINTER;

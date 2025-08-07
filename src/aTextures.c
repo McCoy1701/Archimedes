@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include "Archimedes.h"
 
-static SDL_Texture* GetTexture( char* name );
-static void AddTextureToCache( char* name, SDL_Texture* sdl_texture );
+static SDL_Texture* GetTexture( const char* name );
+static void AddTextureToCache( const char* name, SDL_Texture* sdl_texture );
 
 static aTexture_t  textures_head;
 static aTexture_t* textures_tail;
@@ -13,7 +13,7 @@ void a_InitTextures( void )
   textures_tail = &textures_head;
 }
 
-SDL_Texture* a_LoadTexture( char* filename )
+SDL_Texture* a_LoadTexture( const char* filename )
 {
   SDL_Texture* texture;
 
@@ -44,7 +44,7 @@ SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy )
   return texture;
 }
 
-static SDL_Texture* GetTexture( char* name )
+static SDL_Texture* GetTexture( const char* name )
 {
   aTexture_t* t;
 
@@ -59,7 +59,7 @@ static SDL_Texture* GetTexture( char* name )
   return NULL;
 }
 
-static void AddTextureToCache( char* name, SDL_Texture* sdl_texture )
+static void AddTextureToCache( const char* name, SDL_Texture* sdl_texture )
 {
   aTexture_t* texture;
 

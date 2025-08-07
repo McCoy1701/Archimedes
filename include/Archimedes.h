@@ -87,6 +87,20 @@ enum
 
 typedef struct
 {
+  int x, y;
+  int w, h;
+} aRect_t;
+
+typedef struct
+{
+  Uint8 r;
+  Uint8 g;
+  Uint8 b;
+  Uint8 a;
+} aColor_t;
+
+typedef struct
+{
   char error_msg[MAX_LINE_LENGTH];
   int  error_type;
 } aError_t;
@@ -95,15 +109,14 @@ typedef struct _widget_t
 {
   int type;
   char name[MAX_FILENAME_LENGTH];
-  int x, y;
-  int w, h;
+  aRect_t rect;
   char label[MAX_FILENAME_LENGTH];
   int boxed;
   int hidden;
   int padding;
   int flex;
-  uint8_t fg[4];
-  uint8_t bg[4];
+  aColor_t fg;
+  aColor_t bg;
   struct _widget_t* next;
   struct _widget_t* prev;
   void (*action)( void );
@@ -112,8 +125,7 @@ typedef struct _widget_t
 
 typedef struct
 {
-  int x, y;
-  int w, h;
+  aRect_t rect;
   int spacing;
   int num_components;
   aWidget_t* components;
@@ -123,16 +135,14 @@ typedef struct
 {
   int num_options;
   char** options;
-  int x, y;
-  int w, h;
+  aRect_t rect;
   int value;
   char* text_name[MAX_NAME_LENGTH];
 } aSelectWidget_t;
 
 typedef struct
 {
-  int x, y;
-  int w, h;
+  aRect_t rect;
   int value;
   int step;
   int wait_on_change;
@@ -140,8 +150,7 @@ typedef struct
 
 typedef struct
 {
-  int x, y;
-  int w, h;
+  aRect_t rect;
   int max_length;
   char* text;
 } aInputWidget_t;
@@ -151,14 +160,6 @@ typedef struct
   int x, y;
   int value;
 } aControlWidget_t;
-
-typedef struct
-{
-  Uint8 r;
-  Uint8 g;
-  Uint8 b;
-  Uint8 a;
-} aColor_t;
 
 typedef struct
 {
@@ -468,8 +469,7 @@ void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y
  * @note Temporarily changes render color, restores to white afterward
  * @see a_DrawFilledRect()
  */
-void a_DrawRect( const int x, const int y, const int w, const int h, const int r,
-                 const int g, const int b, const int a );
+void a_DrawRect( const aRect_t rect, const aColor_t color );
 /**
  * @brief Draw a filled rectangle
  * 
@@ -491,8 +491,7 @@ void a_DrawRect( const int x, const int y, const int w, const int h, const int r
  * @note Temporarily changes render color, restores to white afterward
  * @see a_DrawRect()
  */
-void a_DrawFilledRect( const int x, const int y, const int w, const int h, const int r,
-                       const int g, const int b, const int a );
+void a_DrawFilledRect( const aRect_t rect, const aColor_t color );
 
 /**
  * @brief Blit a surface to the screen at specified position
@@ -537,7 +536,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
 void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
                      const int scale );
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
-                        const int y, const int scale, aColor_t color );
+                        const int y, const int scale, const aColor_t color );
 
 /*
  * Update the window title text
@@ -662,10 +661,18 @@ enum
   TEXT_ALIGN_RIGHT
 };
 
-int a_GetWrappedTextHeight( char* text, int font_type, int max_width );
-void a_CalcTextDimensions( char* text, int font_type, int* w, int* h );
-void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width );
-SDL_Texture* a_GetTextTexture( char* text, int font_type );
+int a_GetWrappedTextHeight( const char* text, const int font_type,
+                            const int max_width );
+
+void a_CalcTextDimensions( const char* text, const int font_type,
+                           int* w, int* h );
+
+void a_DrawText( const char* text, const int x, const int y, 
+                 const aColor_t bg, const aColor_t fg,
+                 const int font_type, const int align, const int max_width );
+
+SDL_Texture* a_GetTextTexture( const char* text, const int font_type );
+
 void a_InitFonts( void );
 
 /*
@@ -674,7 +681,7 @@ void a_InitFonts( void );
 ---------------------------------------------------------------
 */
 
-SDL_Texture* a_LoadTexture( char* filename );
+SDL_Texture* a_LoadTexture( const char* filename );
 SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy );
 void a_InitTextures( void );
 
@@ -729,7 +736,7 @@ void a_DoWidget( void );
  * @param name The string name of the widget to retrieve.
  * @return A pointer to the `aWidget_t` if found, otherwise `NULL`.
  */
-aWidget_t* a_GetWidget( char* name );
+aWidget_t* a_GetWidget( const char* name );
 
 /**
  * @brief Retrieves a container widget by its name and casts it to `aContainerWidget_t`.
@@ -741,7 +748,7 @@ aWidget_t* a_GetWidget( char* name );
  * @param name The string name of the container widget to retrieve.
  * @return A pointer to the `aContainerWidget_t` if successful, otherwise `NULL`.
  */
-aContainerWidget_t* a_GetContainerFromWidget( char* name );
+aContainerWidget_t* a_GetContainerFromWidget( const char* name );
 
 /**
  * @brief Initializes the widget system from a configuration file.

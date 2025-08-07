@@ -292,19 +292,19 @@ void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y
   }*/
 }
 
-void a_DrawRect( const int x, const int y, const int w, const int h, const int r, const int g, const int b, const int a )
+void a_DrawRect( const aRect_t rect, const aColor_t color )
 {
-  SDL_SetRenderDrawColor(app.renderer, r, g, b, a);
-  SDL_Rect rect = { x, y, w, h };
-  SDL_RenderDrawRect( app.renderer, &rect );
+  SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
+  SDL_Rect sdl_rect = (SDL_Rect){ rect.x, rect.y, rect.w, rect.h };
+  SDL_RenderDrawRect( app.renderer, &sdl_rect );
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
 
-void a_DrawFilledRect( const int x, const int y, const int w, const int h, const int r, const int g, const int b, const int a )
+void a_DrawFilledRect( const aRect_t rect, const aColor_t color )
 {
-  SDL_SetRenderDrawColor( app.renderer, r, g, b, a );
-  SDL_Rect rect = { x, y, w, h };
+  SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
+  SDL_Rect sdl_rect = (SDL_Rect){ rect.x, rect.y, rect.w, rect.h };
   SDL_RenderFillRect( app.renderer, &rect );
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
@@ -406,7 +406,7 @@ void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
 }
 
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
-                        const int y, const int scale, aColor_t color )
+                        const int y, const int scale, const aColor_t color )
 {
   SDL_Rect dest;
 

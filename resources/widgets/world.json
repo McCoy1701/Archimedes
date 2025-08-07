@@ -1,0 +1,362 @@
+[
+  {
+    "type"       : "WT_CONTAINER",
+    "name"       : "tab_bar",
+    "x"          : 10,
+    "y"          : 10,
+    "label"      : "Tabs",
+    "boxed"      : 1,
+    "hidden"     : 0,
+    "padding"    : 6,
+    "flex"       : 1,
+    "spacing"    : 10,
+    "fg"         : [ 255, 255,   0, 255 ],
+    "bg"         : [ 129, 151, 150, 255 ],
+    "components" : [
+    {
+      "type"   : "WT_BUTTON",
+      "name"   : "world",
+      "x"      : 10,
+      "y"      : 10,
+      "label"  : "World",
+      "boxed"  : 1,
+      "hidden" : 0,
+      "padding": 1,
+      "fg"     : [ 0, 0, 0, 255 ],
+      "bg"     : [ 164, 221, 219, 0 ]
+    },
+    {
+      "type"   : "WT_BUTTON",
+      "name"   : "item",
+      "x"      : 100,
+      "y"      : 10,
+      "label"  : "Item",
+      "boxed"  : 1,
+      "hidden" : 0,
+      "padding": 0,
+      "fg"     : [ 0, 0, 0, 255 ],
+      "bg"     : [ 115, 190, 211, 0 ]
+
+    },
+    {
+      "type"   : "WT_BUTTON",
+      "name"   : "entity",
+      "x"      : 175,
+      "y"      : 10,
+      "label"  : "Entity",
+      "boxed"  : 1,
+      "hidden" : 0,
+      "padding": 0,
+      "fg"     : [ 0, 0, 0, 255 ],
+      "bg"     : [ 79, 143, 186, 100 ]
+    },
+    {
+      "type"   : "WT_BUTTON",
+      "name"   : "colors",
+      "x"      : 280,
+      "y"      : 10,
+      "label"  : "Colors",
+      "boxed"  : 1,
+      "hidden" : 0,
+      "padding": 0,
+      "fg"     : [ 0, 0, 0, 255 ],
+      "bg"     : [ 60, 94, 139, 100 ]
+    },
+    {
+      "type"   : "WT_BUTTON",
+      "name"   : "ui",
+      "x"      : 390,
+      "y"      : 10,
+      "label"  : "UI",
+      "boxed"  : 1,
+      "hidden" : 0,
+      "padding": 1,
+      "fg"     : [ 0, 0, 0, 255 ],
+      "bg"     : [ 37, 58, 94, 100 ]
+    }
+    ]
+  },
+  {
+    "type"       : "WT_CONTAINER",
+    "name"       : "world_menu_bar",
+    "x"          : 10,
+    "y"          : 670,
+    "label"      : "Menu",
+    "boxed"      : 1,
+    "hidden"     : 0,
+    "padding"    : 6,
+    "flex"       : 1,
+    "spacing"    : 10,
+    "fg"         : [ 255, 255,   0, 255 ],
+    "bg"         : [ 168, 181, 178, 255 ],
+    "components" : [
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "creation",
+        "x"       : 10,
+        "y"       : 670,
+        "label"   : "Creation",
+        "boxed"   : 1,
+        "hidden"  : 0,
+        "padding": 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "edit",
+        "x"       : 150,
+        "y"       : 670,
+        "label"   : "Edit",
+        "boxed"   : 1,
+        "hidden"  : 0,
+        "padding": 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "save",
+        "x"       : 220,
+        "y"       : 670,
+        "label"   : "Save",
+        "boxed"   : 1,
+        "hidden"  : 0,
+        "padding": 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "load",
+        "x"       : 303,
+        "y"       : 670,
+        "label"   : "Load",
+        "boxed"   : 1,
+        "hidden"  : 0,
+        "padding": 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      }
+    ]
+  },
+  {
+    "type"       : "WT_CONTAINER",
+    "name"       : "generation_menu",
+    "x"          : 250,
+    "y"          : 250,
+    "label"      : "Generation",
+    "boxed"      : 1,
+    "hidden"     : 1,
+    "padding"    : 6,
+    "flex"       : 2,
+    "spacing"    : 10,
+    "fg"         : [ 255, 255,   0, 255 ],
+    "bg"         : [ 255, 255, 255, 0 ],
+    "components" : [
+      {
+        "type"    : "WT_SELECT",
+        "name"    : "world_size",
+        "x"       : 250,
+        "y"       : 250,
+        "label"   : "World Size",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ],
+        "options" : [
+          "Small",
+          "Medium",
+          "Large"
+        ]
+      },
+      {
+        "type"    : "WT_SELECT",
+        "name"    : "region_size",
+        "x"       : 250,
+        "y"       : 300,
+        "label"   : "Region Size",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ],
+        "options" : [
+          "Small",
+          "Medium",
+          "Large"
+        ]
+      },
+      {
+        "type"    : "WT_SELECT",
+        "name"    : "local_size",
+        "x"       : 250,
+        "y"       : 350,
+        "label"   : "Local Size",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ],
+        "options" : [
+          "Small",
+          "Medium",
+          "Large"
+        ]
+      },
+      {
+        "type"    : "WT_SELECT",
+        "name"    : "z_height",
+        "x"       : 250,
+        "y"       : 400,
+        "label"   : "Z Height",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ],
+        "options" : [
+          "Small",
+          "Medium",
+          "Large"
+        ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "generate",
+        "x"       : 250,
+        "y"       : 450,
+        "label"   : "Generate",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      }
+    ]
+  },
+  {
+    "type"       : "WT_CONTAINER",
+    "name"       : "edit_menu",
+    "x"          : 450,
+    "y"          : 570,
+    "label"      : "Edit",
+    "boxed"      : 0,
+    "hidden"     : 1,
+    "padding"    : 6,
+    "flex"       : 2,
+    "spacing"    : 10,
+    "fg"         : [ 255, 255,   0, 255 ],
+    "bg"         : [ 255, 255, 255, 0 ],
+    "components" : [
+      {
+        "type"    : "WT_INPUT",
+        "name"    : "file_name",
+        "x"       : 250,
+        "y"       : 250,
+        "label"   : "File Name",
+        "max_length" : 16,
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "",
+        "x"       : 250,
+        "y"       : 450,
+        "label"   : "Generate",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      }
+    ]
+  },
+  {
+    "type"       : "WT_CONTAINER",
+    "name"       : "save_menu",
+    "x"          : 580,
+    "y"          : 320,
+    "label"      : "Save",
+    "boxed"      : 1,
+    "hidden"     : 1,
+    "padding"    : 6,
+    "flex"       : 1,
+    "spacing"    : 10,
+    "fg"         : [ 255, 255,   0, 255 ],
+    "bg"         : [ 255, 255, 255, 0 ],
+    "components" : [
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "save_yes",
+        "x"       : 250,
+        "y"       : 250,
+        "label"   : "Yes",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "save_no",
+        "x"       : 250,
+        "y"       : 450,
+        "label"   : "No",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      }
+    ]
+  },
+  {
+    "type"       : "WT_CONTAINER",
+    "name"       : "load_menu",
+    "x"          : 640,
+    "y"          : 480,
+    "label"      : "Load",
+    "boxed"      : 1,
+    "hidden"     : 1,
+    "padding"    : 6,
+    "flex"       : 2,
+    "spacing"    : 10,
+    "fg"         : [ 255, 255,   0, 255 ],
+    "bg"         : [ 255, 255, 255, 0 ],
+    "components" : [
+      {
+        "type"    : "WT_INPUT",
+        "name"    : "file_name",
+        "x"       : 250,
+        "y"       : 250,
+        "label"   : "File Name",
+        "max_length" : 16,
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 0 ]
+      },
+      {
+        "type"    : "WT_BUTTON",
+        "name"    : "Load_button",
+        "x"       : 250,
+        "y"       : 450,
+        "label"   : "Load",
+        "boxed"   : 1,
+        "hidden"  : 1,
+        "padding" : 1,
+        "fg"      : [   0,   0,   0, 255 ],
+        "bg"      : [ 255, 255, 255, 255 ]
+      }
+    ]
+  }
+]
+

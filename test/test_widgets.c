@@ -60,7 +60,7 @@ void aInitGame( void )
     }
   }
   
-  w = a_GetWidget( "menu_bar" );
+  w = a_GetWidget( "world_menu_bar" );
   container = ( aContainerWidget_t* )w->data;
   for ( int i = 0; i < container->num_components; i++ )
   {
@@ -184,9 +184,9 @@ static void e_WorldEditorDoLoop( float dt )
 
 static void e_WorldEditorRenderLoop( float dt )
 {
-  a_DrawFilledRect( 100, 100, 32, 32, 255, 0, 255, 255 );
-  a_DrawFilledRect( 300, 300, 32, 32, 0, 255, 255, 255 );
-  a_DrawText( "Whore", 400, 250, 255, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0 );
+  //a_DrawFilledRect( 100, 100, 32, 32, 255, 0, 255, 255 );
+  //a_DrawFilledRect( 300, 300, 32, 32, 0, 255, 255, 255 );
+  //a_DrawText( "Whore", 400, 250, 255, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0 );
 
   a_DrawWidgets();
 }

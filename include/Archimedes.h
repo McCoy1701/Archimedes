@@ -52,6 +52,7 @@
 
 #ifndef __DAEDALUS_H__
 
+#define MAGIC_NUMBER "CAFEBABE"
 #define MAX_LINE_LENGTH        1024
 #define MAX_FILENAME_LENGTH    256
 #define MAX_NAME_LENGTH        32
@@ -160,6 +161,27 @@ typedef struct
   int x, y;
   int value;
 } aControlWidget_t;
+
+typedef struct {
+  char magic_number[8];
+  uint8_t version;
+  uint16_t num_widgets;
+  char filename[MAX_FILENAME_LENGTH];
+} aWidgetFileHeader_t;
+
+typedef struct aWidgetList_t {
+  struct aWidgetList_t* next;
+  struct aWidgetList_t* prev;
+
+  struct aWidgetList_t* child;
+
+  int type;
+
+  char* value_string;
+  int value_int;
+  char* string;
+
+} aWidgetList_t;
 
 typedef struct
 {
@@ -551,6 +573,8 @@ void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
  */
 void a_UpdateTitle( const char *title );
 
+void a_SetPixel( SDL_Surface *surface, int x, int y, aColor_t c );
+
 /*
 ---------------------------------------------------------------
 ---                          Image                          ---
@@ -762,6 +786,14 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name );
  */
 void a_InitWidgets( const char* filename );
 int a_ClearWidgetCache( aWidget_t* widget );
+
+/*
+---------------------------------------------------------------
+---                      Widget Parser                      ---
+---------------------------------------------------------------
+*/
+
+aWidgetList_t* a_WidgetParser( const char* filename );
 
 /*
 ---------------------------------------------------------------

@@ -305,7 +305,7 @@ void a_DrawFilledRect( const aRect_t rect, const aColor_t color )
 {
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   SDL_Rect sdl_rect = (SDL_Rect){ rect.x, rect.y, rect.w, rect.h };
-  SDL_RenderFillRect( app.renderer, &rect );
+  SDL_RenderFillRect( app.renderer, &sdl_rect );
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
 }
 
@@ -424,6 +424,31 @@ void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
 void a_UpdateTitle( const char *title )
 {
   SDL_SetWindowTitle( app.window, title );
+}
+
+void a_SetPixel( SDL_Surface *surface, int x, int y, aColor_t c )
+{
+  if (x < 0 || x >= surface->w || y < 0 || y >= surface->h) {
+    return;
+  }
+  
+  uint32_t color;
+  color = ( c.a << 24 ) | ( c.r << 16 ) | ( c.g << 8 ) | c.b;
+
+  if (SDL_MUSTLOCK(surface)) {
+    if (SDL_LockSurface(surface) < 0) {
+      return;
+    }
+  }
+
+  Uint8 *pixel_address = (Uint8 *)surface->pixels + y * surface->pitch 
+                         + x * surface->format->BytesPerPixel;
+
+  *(Uint32 *)pixel_address = color;
+
+  if (SDL_MUSTLOCK(surface)) {
+    SDL_UnlockSurface(surface);
+  }
 }
 
 /**

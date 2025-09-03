@@ -2,8 +2,8 @@
 
 #include "Archimedes.h"
 
-static void e_WorldEditorDoLoop( float );
-static void e_WorldEditorRenderLoop( float );
+static void e_Logic( float );
+static void e_Draw( float );
 static void we_CreationDoLoop( float );
 static void we_CreationRenderLoop( float );
 
@@ -22,10 +22,12 @@ static aWidget_t* w;
 
 void aInitGame( void )
 {
-  app.delegate.logic = e_WorldEditorDoLoop;
-  app.delegate.draw  = e_WorldEditorRenderLoop;
+  app.delegate.logic = e_Logic;
+  app.delegate.draw  = e_Draw;
   
-  a_InitWidgets( "resources/widgets/world.json" );
+  a_AUFParser( "resources/widgets/world.auf" );
+
+  /*a_InitWidgets( "resources/widgets/world.json" );
   
   app.active_widget = a_GetWidget( "tab_bar" );
 
@@ -86,6 +88,7 @@ void aInitGame( void )
       current->action = we_load;
     }
   }
+  */
 
 }
 
@@ -169,7 +172,7 @@ static void ui( void )
 
 }
 
-static void e_WorldEditorDoLoop( float dt )
+static void e_Logic( float dt )
 {
   a_DoInput();
   
@@ -182,7 +185,7 @@ static void e_WorldEditorDoLoop( float dt )
   a_DoWidget();
 }
 
-static void e_WorldEditorRenderLoop( float dt )
+static void e_Draw( float dt )
 {
   //a_DrawFilledRect( 100, 100, 32, 32, 255, 0, 255, 255 );
   //a_DrawFilledRect( 300, 300, 32, 32, 0, 255, 255, 255 );

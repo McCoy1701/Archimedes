@@ -14,85 +14,55 @@ INDEX_DIR=index
 TEST_DIR=test
 JSON_DIR=json
 
+
 .PHONY: all
-all: native
+all: $(BIN_DIR)/native
 
-.PHONY: shared
-shared: always $(BIN_DIR)/libArchimedes.so
+NATIVE_OBJS = \
+							$(OBJ_DIR)/aAudio.o\
+							$(OBJ_DIR)/aAUFParser.o\
+							$(OBJ_DIR)/aDeltaTime.o\
+							$(OBJ_DIR)/aDraw.o\
+							$(OBJ_DIR)/aImage.o\
+							$(OBJ_DIR)/aInitialize.o\
+							$(OBJ_DIR)/aInput.o\
+							$(OBJ_DIR)/aText.o\
+							$(OBJ_DIR)/aTextures.o\
+							$(OBJ_DIR)/aWidgets.o
 
-$(OBJ_DIR)/aAudio.o: $(SRC_DIR)/aAudio.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+TEMPLATE_OBJS = \
+							$(OBJ_DIR)/test_widgets.o\
 
-$(OBJ_DIR)/aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aDraw.o: $(SRC_DIR)/aDraw.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aImage.o: $(SRC_DIR)/aImage.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aInitialize.o: $(SRC_DIR)/aInitialize.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aInput.o: $(SRC_DIR)/aInput.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aText.o: $(SRC_DIR)/aText.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aTextures.o: $(SRC_DIR)/aTextures.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/aWidgets.o: $(SRC_DIR)/aWidgets.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o $(OBJ_DIR)/aTextures.o $(OBJ_DIR)/aWidgets.o
-	$(CC) -shared $^ -o $@ $(CFLAGS)
-
-.PHONY: native
-native: always $(BIN_DIR)/native
-
-$(OBJ_DIR)/n_main.o: $(TEST_DIR)/test.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
-$(OBJ_DIR)/n_aAudio.o: $(SRC_DIR)/aAudio.c
+$(OBJ_DIR)/%.o: $(TEST_DIR)/%.c | $(OBJ_DIR)
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
-$(OBJ_DIR)/n_aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aDraw.o: $(SRC_DIR)/aDraw.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aImage.o: $(SRC_DIR)/aImage.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aInitialize.o: $(SRC_DIR)/aInitialize.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aInput.o: $(SRC_DIR)/aInput.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aText.o: $(SRC_DIR)/aText.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aTextures.o: $(SRC_DIR)/aTextures.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(OBJ_DIR)/n_aWidgets.o: $(SRC_DIR)/aWidgets.c
-	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
-
-$(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o
+$(BIN_DIR)/native: $(NATIVE_OBJS) $(TEMPLATE_OBJS) | $(BIN_DIR)
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
 
-.PHONY: test_widgets
-test_widgets: always $(BIN_DIR)/test_widgets
 
-$(OBJ_DIR)/test_widgets.o: $(TEST_DIR)/test_widgets.c
+.PHONY: shared
+shared: $(BIN_DIR)/libArchimedes.so
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(BIN_DIR)/libArchimedes.so: $(NATIVE_OBJS) | $(BIN_DIR)
+	$(CC) -shared $^ -o $@ $(CFLAGS)
+
+
+.PHONY: test_widgets
+test_widgets: $(BIN_DIR)/test_widgets
+
+TEST_WIDGETS_OBJS = \
+							$(OBJ_DIR)/test_widgets.o
+
+$(OBJ_DIR)/%.o: $(TEST_DIR)/%.c | $(OBJ_DIR)
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
-$(BIN_DIR)/test_widgets: $(OBJ_DIR)/test_widgets.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o
+$(BIN_DIR)/test_widgets: $(NATIVE_OBJS) $(TEST_WIDGETS_OBJS) | $(BIN_DIR)
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
 
 
@@ -152,6 +122,13 @@ $(OBJ_DIR)/test.o: $(TEST_DIR)/test.c
 
 $(BIN_DIR)/test: $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o $(OBJ_DIR)/t_aImage.o $(OBJ_DIR)/test.o
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
+
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
 
 
 .PHONY: install

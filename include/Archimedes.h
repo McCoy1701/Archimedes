@@ -169,19 +169,20 @@ typedef struct {
   char filename[MAX_FILENAME_LENGTH];
 } aWidgetFileHeader_t;
 
-typedef struct aWidgetList_t {
-  struct aWidgetList_t* next;
-  struct aWidgetList_t* prev;
+typedef struct aAUF_t {
+  struct aAUF_t* next;
+  struct aAUF_t* prev;
 
-  struct aWidgetList_t* child;
+  struct aAUF_t* child;
 
   int type;
 
   char* value_string;
   int value_int;
+  double value_double;
   char* string;
 
-} aWidgetList_t;
+} aAUF_t;
 
 typedef struct
 {
@@ -793,7 +794,8 @@ int a_ClearWidgetCache( aWidget_t* widget );
 ---------------------------------------------------------------
 */
 
-aWidgetList_t* a_WidgetParser( const char* filename );
+aAUF_t* a_WidgetParser( const char* filename );
+int a_SaveAUF( aWidget_t* widget_head, const char* filename );
 
 /*
 ---------------------------------------------------------------

@@ -213,7 +213,7 @@ int main( void )
   while( app.running ) {
     aMainloop();
   }
-
+  //a_FreeAUF();
   a_Quit();
 
   return 0;

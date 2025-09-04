@@ -2,7 +2,8 @@ CC = gcc
 ECC = emcc
 EMAR = emar rcs
 CINC = -Iinclude/
-CFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
+CFLAGS = -Wall -Wextra -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
+SFLAGS = -Wall -Wextra -fPIC -pedantic -Iinclude/ -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
 EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 TEM_DIR=template
@@ -13,10 +14,6 @@ OBJ_DIR=obj
 INDEX_DIR=index
 TEST_DIR=test
 JSON_DIR=json
-
-
-.PHONY: all
-all: $(BIN_DIR)/native
 
 NATIVE_OBJS = \
 							$(OBJ_DIR)/aAudio.o\
@@ -33,6 +30,21 @@ NATIVE_OBJS = \
 TEMPLATE_OBJS = \
 							$(OBJ_DIR)/test_widgets.o\
 
+
+.PHONY: all
+all: $(BIN_DIR)/native
+
+.PHONY: shared
+shared: $(BIN_DIR)/libArchimedes.so
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) -c $< -o $@ $(SFLAGS)
+
+$(BIN_DIR)/libArchimedes.so: $(NATIVE_OBJS) | $(BIN_DIR)
+	$(CC) -shared $^ -o $@ $(SFLAGS)
+
+
+.PHONY: native
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
@@ -41,16 +53,6 @@ $(OBJ_DIR)/%.o: $(TEST_DIR)/%.c | $(OBJ_DIR)
 
 $(BIN_DIR)/native: $(NATIVE_OBJS) $(TEMPLATE_OBJS) | $(BIN_DIR)
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
-
-
-.PHONY: shared
-shared: $(BIN_DIR)/libArchimedes.so
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(BIN_DIR)/libArchimedes.so: $(NATIVE_OBJS) | $(BIN_DIR)
-	$(CC) -shared $^ -o $@ $(CFLAGS)
 
 
 .PHONY: test_widgets

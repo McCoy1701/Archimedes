@@ -17,99 +17,31 @@ static void AddChildAUF( aAUF_t* root, aAUF_t* child );
 
 static char* ReadFile( const char* filename, int* file_size );
 
+static int CountNewLines( const char* file_string, const int file_size );
+static char** ParseLinesInFile( const char* file_string, const int file_size,
+                                const int nl_count );
+
+
 aAUF_t* a_AUFParser( const char* filename )
 {
+  char** line;
   char* file_string;
   int file_size = 0;
-  char** line;
-  
-  int line_start  = 0;
-  int line_end    = 0;
-  int line_length = 0;
+  int newline_count = 0;
   
   file_string = ReadFile( filename, &file_size );
 
-  //printf( "%d\n%s\n", file_size, file_string );
-  
-  int newline_count = 0;
+  newline_count = CountNewLines( file_string, file_size );
 
-  for ( int i = 0; i < file_size; i++ )
-  {
-    if ( file_string[i] == '\n' )
-    {
-      line_end = i;
-      line_length = line_end - line_start;
-      line_start = line_end + 1; 
-      
-      if ( line_length == 0 )
-      {
-        continue;
-      }
-      
-      //printf( "i%d\n", i );
-      newline_count++;
-    }
-  }
-
-  line = ( char** )malloc( sizeof( char* ) * newline_count );
-
-  if ( line == NULL )
-  {
-    printf("Failed to allocate memory for line\n");
-    return NULL;
-  }
-  
-  printf( "Line allocated: %d\n", newline_count );
-
-  line_start  = 0;
-  line_end    = 0;
-  line_length = 0;
-  int line_count  = 0;
-
-  for ( int i = 0; i < file_size; i++ )
-  {
-    if ( file_string[i] == '\n' )
-    {
-      line_end = i;
-      line_length = line_end - line_start;
-      
-      printf( "LS:%d, LE:%d, LL:%d, LC:%d \n", line_start, line_end, line_length, line_count );
-      line_start = line_end + 1; 
-      
-      if ( line_length == 0 )
-      {
-        continue;
-      }
-
-      line[line_count] = ( char* )malloc( sizeof(char) * ( line_length + 1 ) );
-      if ( line[line_count] == NULL )
-      {
-        printf( "Failed to allocate memory for line at %d\n", line_count );
-        for ( int j = 0; j < line_count; j++)
-        {
-          free( line[j] );
-        }
-
-        free( line );
-        return NULL;
-      }
-      
-      printf( "Line[%d] allocated: %d\n", line_count, line_length+1 );
-      
-      for( int j = 0; j <= line_length; j++ )
-      {
-        line[line_count][j] = file_string[j+line_start];
-      }
-
-      line[line_count][line_length+1] = '\0';
-
-      line_count++;
-    }
-  }
+  line = ParseLinesInFile( file_string, file_size, newline_count );
 
   for ( int i = 0; i < newline_count; i++ )
   {
-    printf( "Line: %s\n", line[i] );
+    if ( line[i] != NULL )
+    {
+      printf( "Line: %s\n", line[i] );
+
+    }
   }
 
   //printf( "nl%d\n", newline_count );
@@ -129,6 +61,18 @@ int a_SaveAUF( aWidget_t* widget_head, const char* filename )
 
   STRNCPY( header.filename, filename, MAX_FILENAME_LENGTH );
   
+
+  return 0;
+}
+
+int a_FreeAUF( char** line, const int nl_count )
+{
+  for ( int j = 0; j < nl_count; j++)
+  {
+    free( line[j] );
+  }
+
+  free( line );
 
   return 0;
 }
@@ -204,5 +148,82 @@ static char* ReadFile( const char* filename, int* file_size )
   *file_size = fileSize;
 
   return fileString;
+}
+
+static int CountNewLines( const char* file_string, const int file_size )
+{
+  int nl_count = 0;
+
+  for ( int i = 0; i < file_size; i++ )
+  {
+    if ( file_string[i] == '\n' )
+    {
+      nl_count++;
+    }
+  }
+
+  return nl_count;
+}
+
+static char** ParseLinesInFile( const char* file_string, const int file_size,
+                                const int nl_count )
+{
+  char** new_line = ( char** )malloc( sizeof( char* ) * nl_count );
+
+  if ( new_line == NULL )
+  {
+    printf("Failed to allocate memory for line\n");
+    return NULL;
+  }
+  
+  int line_start  = 0;
+  int line_end    = 0;
+  int line_length = 0;
+  int line_count  = 0;
+
+  for ( int i = 0; i < file_size; i++ )
+  {
+    if ( file_string[i] == '\n' )
+    {
+      line_end = i;
+      line_length = line_end - line_start;
+      
+      if ( line_length == 0 )
+      {
+        line_start = line_end + 1;
+
+        new_line[line_count] = NULL;
+
+        line_count++;
+        continue;
+      }
+      
+      new_line[line_count] = ( char* )malloc( sizeof(char) * ( line_length + 1 ) );
+      if ( new_line[line_count] == NULL )
+      {
+        for ( int j = 0; j < line_count; j++)
+        {
+          free( new_line[j] );
+        }
+
+        free( new_line );
+        return NULL;
+      }
+
+      for( int j = 0; j < line_length; j++ )
+      {
+        new_line[line_count][j] = file_string[j+line_start];
+      }
+
+      new_line[line_count][line_length] = '\0';
+
+      line_start = line_end + 1;
+      
+      line_count++;
+
+    }
+  }
+
+  return new_line;
 }
 

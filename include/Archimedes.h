@@ -80,6 +80,19 @@ enum
   FONT_MAX
 };
 
+enum
+{
+  AUF_Invalid,
+  AUF_False,
+  AUF_True,
+  AUF_NULL,
+  AUF_Number,
+  AUF_String,
+  AUF_Array,
+  AUF_Object,
+  AUF_Raw
+};
+
 /*
 ---------------------------------------------------------------
 ---                         Structs                         ---
@@ -796,6 +809,7 @@ int a_ClearWidgetCache( aWidget_t* widget );
 
 aAUF_t* a_WidgetParser( const char* filename );
 int a_SaveAUF( aWidget_t* widget_head, const char* filename );
+int a_FreeAUF( char** line, const int nl_count );
 
 /*
 ---------------------------------------------------------------

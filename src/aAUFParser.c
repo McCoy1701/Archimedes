@@ -7,13 +7,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Archimedes.h"
 
 static aAUF_t* NewAUF( void );
-static void AddNextAUF( aAUF_t* root, aAUF_t* next );
-static void AddPrevAUF( aAUF_t* root, aAUF_t* prev );
-static void AddChildAUF( aAUF_t* root, aAUF_t* child );
+static int AddAUFToRoot( aAUF_t* root, aAUF_t* node );
+static int AddChildAUF( aAUF_t* root, aAUF_t* child );
 
 static char* ReadFile( const char* filename, int* file_size );
 
@@ -21,6 +21,7 @@ static int CountNewLines( const char* file_string, const int file_size );
 static char** ParseLinesInFile( const char* file_string, const int file_size,
                                 const int nl_count );
 
+static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count );
 
 aAUF_t* a_AUFParser( const char* filename )
 {
@@ -35,21 +36,20 @@ aAUF_t* a_AUFParser( const char* filename )
 
   line = ParseLinesInFile( file_string, file_size, newline_count );
 
-  for ( int i = 0; i < newline_count; i++ )
+  /*for ( int i = 0; i < newline_count; i++ )
   {
     if ( line[i] != NULL )
     {
       printf( "Line: %s\n", line[i] );
 
     }
-  }
+  }*/
 
-  //printf( "nl%d\n", newline_count );
+  aAUF_t* new_root = NULL;
 
-  //aAUF_t* new_list = NewAUF();
+  ParserLineToRoot( new_root, line, newline_count );
 
-  //return new_list;
-  return NULL;
+  return new_root;
 }
 
 int a_SaveAUF( aWidget_t* widget_head, const char* filename )
@@ -93,19 +93,70 @@ static aAUF_t* NewAUF( void )
   return new_list;
 }
 
-static void AddNextAUF( aAUF_t* root, aAUF_t* next )
+static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count )
 {
+  for ( int i = 0; i < nl_count; i++ )
+  {
+    if ( line[i] != NULL )
+    {
+      char* string = line[i];
+      int str_len  = strlen( string );
 
+    }
+  }
+
+  return 0;
 }
 
-static void AddPrevAUF( aAUF_t* root, aAUF_t* prev )
+static int AddAUFToRoot( aAUF_t* root, aAUF_t* node )
 {
+  if ( root == NULL || node == NULL )
+  {
+    printf("Root or Next is NULL: %s:%d\n", __FILE__, __LINE__ );
+    return 1;
+  }
 
+  aAUF_t* head = root;
+
+  aAUF_t* new_AUF = node;
+  if ( new_AUF == NULL )
+  {
+    printf("Failed to create new_AUF: %s:%d\n", __FILE__, __LINE__ );
+    return 1;
+  }
+
+  if ( head == NULL )
+  {
+    head = new_AUF;
+    new_AUF->prev = head;
+  }
+
+  else
+  {
+    aAUF_t* current = head;
+    while ( current->next != NULL )
+    {
+      current = current->next;
+    }
+
+    current->next = new_AUF;
+    new_AUF->prev = current;
+  }
+
+  return 0;
 }
 
-static void AddChildAUF( aAUF_t* root, aAUF_t* child )
+static int AddChildAUF( aAUF_t* root, aAUF_t* child )
 {
+  if ( root == NULL || child == NULL )
+  {
+    printf("Root or Child is NULL: %s:%d\n", __FILE__, __LINE__ );
+    return 1;
+  }
+  
+  root->child = child;
 
+  return 0;
 }
 
 static char* ReadFile( const char* filename, int* file_size )

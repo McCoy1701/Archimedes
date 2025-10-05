@@ -68,3 +68,78 @@ The library follows a modular architecture with separate components for graphics
 - **Cross-platform**: Native compilation for desktop and web deployment via Emscripten
 - **Memory Management**: Efficient caching systems for images and textures
 - **Error Handling**: Comprehensive logging system with multiple severity levels
+
+## Quick Start
+
+### Minimal Example
+
+```c
+#include <Archimedes.h>
+
+int playerX = 400, playerY = 300;
+
+void logic(float dt) {
+    a_DoInput();
+
+    if (app.keyboard[SDL_SCANCODE_W]) playerY -= 5;
+    if (app.keyboard[SDL_SCANCODE_S]) playerY += 5;
+    if (app.keyboard[SDL_SCANCODE_A]) playerX -= 5;
+    if (app.keyboard[SDL_SCANCODE_D]) playerX += 5;
+
+    if (app.keyboard[SDL_SCANCODE_ESCAPE]) app.running = 0;
+}
+
+void render(float dt) {
+    a_DrawFilledCircle(playerX, playerY, 20, blue);
+    a_DrawText("Use WASD to move", 10, 10, 255, 255, 255,
+               FONT_GAME, TEXT_ALIGN_LEFT, 0);
+}
+
+int main(void) {
+    a_Init(SCREEN_WIDTH, SCREEN_HEIGHT, "My Game");
+
+    app.delegate.logic = logic;
+    app.delegate.draw = render;
+
+    while (app.running) {
+        a_PrepareScene();
+        app.delegate.logic(a_GetDeltaTime());
+        app.delegate.draw(a_GetDeltaTime());
+        a_PresentScene();
+    }
+
+    a_Quit();
+    return 0;
+}
+```
+
+### Compile and Run
+
+```bash
+# Install the library
+make shared
+sudo make install
+
+# Compile your game
+gcc main.c -o game -lArchimedes -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
+
+# Run
+./game
+```
+
+## Documentation
+
+Comprehensive usage guides available in the [Wiki](https://github.com/McCoy1701/Archimedes/wiki):
+
+### Core Modules
+- [Initialization](https://github.com/McCoy1701/Archimedes/wiki/Usage-Initialize) - Framework setup and lifecycle
+- [Drawing](https://github.com/McCoy1701/Archimedes/wiki/Usage-Drawing) - Graphics primitives and rendering
+- [Input](https://github.com/McCoy1701/Archimedes/wiki/Usage-Input) - Keyboard and mouse handling
+- [Text](https://github.com/McCoy1701/Archimedes/wiki/Usage-Text) - Font rendering and text display
+- [Delta Time](https://github.com/McCoy1701/Archimedes/wiki/Usage-Delta-Time) - Frame-rate independent timing
+
+### Utility Modules
+- [Image](https://github.com/McCoy1701/Archimedes/wiki/Usage-Image) - PNG loading and caching
+- [Audio](https://github.com/McCoy1701/Archimedes/wiki/Usage-Audio) - Sound effect playback
+- [Textures](https://github.com/McCoy1701/Archimedes/wiki/Usage-Textures) - Texture management
+- [Widgets](https://github.com/McCoy1701/Archimedes/wiki/Usage-Widgets) - UI components

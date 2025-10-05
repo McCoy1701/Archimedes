@@ -141,5 +141,3 @@ Comprehensive usage guides available in the [Wiki](https://github.com/McCoy1701/
 ### Utility Modules
 - [Image](https://github.com/McCoy1701/Archimedes/wiki/Usage-Image) - PNG loading and caching
 - [Audio](https://github.com/McCoy1701/Archimedes/wiki/Usage-Audio) - Sound effect playback
-- [Textures](https://github.com/McCoy1701/Archimedes/wiki/Usage-Textures) - Texture management
-- [Widgets](https://github.com/McCoy1701/Archimedes/wiki/Usage-Widgets) - UI components

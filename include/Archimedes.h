@@ -539,6 +539,30 @@ void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
                         const int y, const int scale, aColor_t color );
 
+/**
+ * @brief Blit a texture scaled to specific dimensions
+ *
+ * Renders the entire texture stretched or shrunk to fit the specified width and height.
+ * This provides independent control over horizontal and vertical scaling without
+ * requiring SDL_Rect construction or scale factor calculations.
+ *
+ * @param texture SDL texture to render (must not be NULL)
+ * @param x Destination X coordinate (top-left corner)
+ * @param y Destination Y coordinate (top-left corner)
+ * @param w Scaled width in pixels
+ * @param h Scaled height in pixels
+ *
+ * @note Renders entire texture (no source rectangle clipping)
+ * @note Width and height are independent - aspect ratio not preserved automatically
+ * @note Texture remains unchanged after rendering
+ * @note NULL texture will be handled silently (no crash)
+ * @note Zero or negative dimensions will result in no rendering
+ * @see a_BlitTextureRect()
+ * @see a_LoadTexture()
+ */
+void a_BlitTextureScaled( SDL_Texture* texture, const int x, const int y,
+                           const int w, const int h );
+
 /*
  * Update the window title text
  *
@@ -803,5 +827,352 @@ typedef enum
 } aLogLevel_t;
 
 extern char* log_level_strings[LOG_LEVEL_COUNT];
+
+/*
+---------------------------------------------------------------
+---                         Layout                          ---
+---------------------------------------------------------------
+*/
+
+/**
+ * @defgroup flexbox FlexBox Layout System
+ * @brief CSS-inspired automatic layout engine for UI positioning
+ *
+ * The FlexBox system provides automatic positioning of UI elements using
+ * CSS flexbox-like rules. Items can be arranged horizontally or vertically
+ * with various alignment and spacing options.
+ *
+ * @{
+ */
+
+/**
+ * @brief Layout direction for FlexBox containers
+ */
+typedef enum {
+    FLEX_DIR_ROW,      /**< Horizontal layout (left to right) */
+    FLEX_DIR_COLUMN    /**< Vertical layout (top to bottom) */
+} FlexDirection_t;
+
+/**
+ * @brief Main-axis justification modes
+ */
+typedef enum {
+    FLEX_JUSTIFY_START,          /**< Align to start (left/top) */
+    FLEX_JUSTIFY_CENTER,         /**< Center items */
+    FLEX_JUSTIFY_END,            /**< Align to end (right/bottom) */
+    FLEX_JUSTIFY_SPACE_BETWEEN,  /**< Equal spacing, edges aligned */
+    FLEX_JUSTIFY_SPACE_AROUND    /**< Equal spacing including edges */
+} FlexJustify_t;
+
+/**
+ * @brief Cross-axis alignment modes
+ */
+typedef enum {
+    FLEX_ALIGN_START,   /**< Cross-axis start */
+    FLEX_ALIGN_CENTER,  /**< Cross-axis center */
+    FLEX_ALIGN_END      /**< Cross-axis end */
+} FlexAlign_t;
+
+/**
+ * @brief Individual item in a FlexBox container
+ */
+typedef struct {
+    int w, h;                /**< Item dimensions */
+    int calc_x, calc_y;      /**< Calculated position (set by a_FlexLayout) */
+    void* user_data;         /**< Custom data pointer (not managed by FlexBox) */
+} FlexItem_t;
+
+/**
+ * @brief FlexBox container for automatic layout
+ */
+typedef struct {
+    int x, y;                    /**< Container position */
+    int w, h;                    /**< Container dimensions */
+    FlexDirection_t direction;   /**< Layout direction */
+    FlexJustify_t justify;       /**< Main-axis alignment */
+    FlexAlign_t align;           /**< Cross-axis alignment */
+    int gap;                     /**< Spacing between items */
+    int padding;                 /**< Internal padding */
+    void* children;              /**< Internal array of FlexItem_t */
+    int dirty;                   /**< Layout needs recalculation */
+} FlexBox_t;
+
+/**
+ * @brief Create a new FlexBox layout container
+ *
+ * Creates a FlexBox container at the specified position and dimensions.
+ * The container will automatically position child items based on flexbox
+ * layout rules (direction, justify, align).
+ *
+ * @param x Top-left X coordinate of the container
+ * @param y Top-left Y coordinate of the container
+ * @param w Width of the container in pixels
+ * @param h Height of the container in pixels
+ * @return Pointer to newly created FlexBox_t, or NULL on allocation failure
+ *
+ * @note Default direction: FLEX_DIR_ROW (horizontal)
+ * @note Default justify: FLEX_JUSTIFY_START (left/top aligned)
+ * @note Default align: FLEX_ALIGN_START (cross-axis start)
+ * @note Must call a_DestroyFlexBox() when done to free memory
+ * @see a_DestroyFlexBox()
+ */
+FlexBox_t* a_CreateFlexBox(int x, int y, int w, int h);
+
+/**
+ * @brief Destroy a FlexBox and free all memory
+ *
+ * Destroys the FlexBox container and frees all internal allocations.
+ * The pointer is set to NULL after destruction.
+ *
+ * @param box Pointer to FlexBox pointer (will be set to NULL)
+ *
+ * @note Safe to call with NULL pointer
+ * @note Does NOT free user_data pointers stored in items
+ * @see a_CreateFlexBox()
+ */
+void a_DestroyFlexBox(FlexBox_t** box);
+
+/**
+ * @brief Set the layout direction (row or column)
+ *
+ * Controls whether items are arranged horizontally (ROW) or vertically (COLUMN).
+ * Marks the layout as dirty, requiring recalculation on next a_FlexLayout() call.
+ *
+ * @param box FlexBox container to configure
+ * @param direction FLEX_DIR_ROW (horizontal) or FLEX_DIR_COLUMN (vertical)
+ *
+ * @note ROW: items flow left-to-right
+ * @note COLUMN: items flow top-to-bottom
+ * @see FlexDirection_t
+ */
+void a_FlexSetDirection(FlexBox_t* box, FlexDirection_t direction);
+
+/**
+ * @brief Set main-axis justification (how items are spaced)
+ *
+ * Controls how items are distributed along the main axis (horizontal for ROW,
+ * vertical for COLUMN).
+ *
+ * @param box FlexBox container to configure
+ * @param justify Justification mode (START/CENTER/END/SPACE_BETWEEN/SPACE_AROUND)
+ *
+ * @note START: items align to left/top
+ * @note CENTER: items centered
+ * @note END: items align to right/bottom
+ * @note SPACE_BETWEEN: equal spacing, edges aligned to container
+ * @note SPACE_AROUND: equal spacing including edges
+ * @see FlexJustify_t
+ */
+void a_FlexSetJustify(FlexBox_t* box, FlexJustify_t justify);
+
+/**
+ * @brief Set cross-axis alignment
+ *
+ * Controls how items are aligned perpendicular to the main axis.
+ * For ROW: controls vertical alignment. For COLUMN: controls horizontal alignment.
+ *
+ * @param box FlexBox container to configure
+ * @param align Alignment mode (START/CENTER/END)
+ *
+ * @note START: align to top (ROW) or left (COLUMN)
+ * @note CENTER: center items on cross-axis
+ * @note END: align to bottom (ROW) or right (COLUMN)
+ * @see FlexAlign_t
+ */
+void a_FlexSetAlign(FlexBox_t* box, FlexAlign_t align);
+
+/**
+ * @brief Set spacing between items
+ *
+ * Sets the gap (in pixels) between adjacent items in the layout.
+ *
+ * @param box FlexBox container to configure
+ * @param gap Spacing between items in pixels (0 for no gap)
+ *
+ * @note Gap is applied between items, not at edges
+ * @note Negative values are allowed but not recommended
+ */
+void a_FlexSetGap(FlexBox_t* box, int gap);
+
+/**
+ * @brief Set internal padding of the container
+ *
+ * Sets uniform padding on all sides of the container's inner area.
+ * Items are positioned within the padded area.
+ *
+ * @param box FlexBox container to configure
+ * @param padding Padding in pixels (applied to all sides)
+ *
+ * @note Reduces available space for items by 2*padding on each axis
+ * @note Padding is included in container bounds visualization
+ */
+void a_FlexSetPadding(FlexBox_t* box, int padding);
+
+/**
+ * @brief Update the container's position and dimensions
+ *
+ * Changes the FlexBox container's absolute position and size.
+ * Marks layout as dirty, requiring recalculation.
+ *
+ * @param box FlexBox container to update
+ * @param x New top-left X coordinate
+ * @param y New top-left Y coordinate
+ * @param w New width in pixels
+ * @param h New height in pixels
+ *
+ * @note Use this to reposition containers dynamically (e.g., from parent FlexBox)
+ * @note Common use: `a_FlexSetBounds(row, 0, parent_y + 10, SCREEN_WIDTH, 50)`
+ */
+void a_FlexSetBounds(FlexBox_t* box, int x, int y, int w, int h);
+
+/**
+ * @brief Add an item to the FlexBox
+ *
+ * Adds a new item with specified dimensions to the container.
+ * Position is calculated automatically by a_FlexLayout().
+ *
+ * @param box FlexBox container
+ * @param w Item width in pixels
+ * @param h Item height in pixels
+ * @param user_data Optional custom data pointer (can be NULL)
+ * @return Index of added item, or -1 on failure
+ *
+ * @note user_data is NOT freed by FlexBox - manage externally
+ * @note Item position (calc_x, calc_y) is set by a_FlexLayout()
+ * @see a_FlexLayout()
+ * @see a_FlexGetItemX()
+ * @see a_FlexGetItemY()
+ */
+int a_FlexAddItem(FlexBox_t* box, int w, int h, void* user_data);
+
+/**
+ * @brief Remove an item from the FlexBox
+ *
+ * Marks an item as removed by setting its dimensions to zero.
+ * Does not actually free memory (simple array implementation limitation).
+ *
+ * @param box FlexBox container
+ * @param index Index of item to remove
+ *
+ * @note Item is marked as 0×0 size, not truly removed
+ * @note For full cleanup, use a_FlexClearItems()
+ */
+void a_FlexRemoveItem(FlexBox_t* box, int index);
+
+/**
+ * @brief Clear all items from the FlexBox
+ *
+ * Removes all items and frees the internal item array.
+ * A new empty array is allocated.
+ *
+ * @param box FlexBox container
+ *
+ * @note Does NOT free user_data pointers - manage externally
+ */
+void a_FlexClearItems(FlexBox_t* box);
+
+/**
+ * @brief Get the number of items in the FlexBox
+ *
+ * @param box FlexBox container
+ * @return Number of items, or 0 if box is NULL
+ */
+int a_FlexGetItemCount(const FlexBox_t* box);
+
+/**
+ * @brief Get a specific item from the FlexBox
+ *
+ * Returns a const pointer to the item's data.
+ * Access calc_x and calc_y for the item's calculated position.
+ *
+ * @param box FlexBox container
+ * @param index Index of item to retrieve
+ * @return Const pointer to FlexItem_t, or NULL if invalid index
+ *
+ * @note Use a_FlexGetItemX() / a_FlexGetItemY() for convenience
+ * @see FlexItem_t
+ */
+const FlexItem_t* a_FlexGetItem(const FlexBox_t* box, int index);
+
+/**
+ * @brief Update an item's dimensions
+ *
+ * Changes the width and height of an existing item.
+ * Marks layout as dirty for recalculation.
+ *
+ * @param box FlexBox container
+ * @param index Index of item to update
+ * @param w New width in pixels
+ * @param h New height in pixels
+ */
+void a_FlexUpdateItem(FlexBox_t* box, int index, int w, int h);
+
+/**
+ * @brief Calculate and apply FlexBox layout
+ *
+ * Recalculates item positions based on container settings.
+ * Updates calc_x and calc_y for all items.
+ *
+ * @param box FlexBox container
+ * @return 0 on success, -1 on error
+ *
+ * @note Only recalculates if layout is dirty
+ * @note Sets dirty flag to 0 after calculation
+ * @note Call this before reading item positions with a_FlexGetItemX/Y()
+ */
+int a_FlexLayout(FlexBox_t* box);
+
+/**
+ * @brief Check if layout needs recalculation
+ *
+ * @param box FlexBox container
+ * @return 1 if layout is dirty (needs recalc), 0 otherwise
+ */
+int a_FlexIsDirty(const FlexBox_t* box);
+
+/**
+ * @brief Get the calculated X position of an item
+ *
+ * Returns the item's final X coordinate after layout calculation.
+ *
+ * @param box FlexBox container
+ * @param index Index of item
+ * @return Calculated X position in pixels, or 0 if invalid
+ *
+ * @note Call a_FlexLayout() first to ensure position is current
+ * @see a_FlexLayout()
+ */
+int a_FlexGetItemX(const FlexBox_t* box, int index);
+
+/**
+ * @brief Get the calculated Y position of an item
+ *
+ * Returns the item's final Y coordinate after layout calculation.
+ *
+ * @param box FlexBox container
+ * @param index Index of item
+ * @return Calculated Y position in pixels, or 0 if invalid
+ *
+ * @note Call a_FlexLayout() first to ensure position is current
+ * @see a_FlexLayout()
+ */
+int a_FlexGetItemY(const FlexBox_t* box, int index);
+
+/**
+ * @brief Render debug visualization of the FlexBox
+ *
+ * Draws container bounds (white), padding area (yellow), and
+ * item rectangles (cyan) for debugging layout issues.
+ *
+ * @param box FlexBox container
+ *
+ * @note For debugging only - renders directly to screen
+ * @note Container: white outline
+ * @note Padding area: yellow outline
+ * @note Items: cyan outlines
+ */
+void a_FlexDebugRender(const FlexBox_t* box);
+
+/** @} */ // end of flexbox group
 
 #endif

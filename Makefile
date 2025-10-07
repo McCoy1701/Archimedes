@@ -47,13 +47,16 @@ $(OBJ_DIR)/aTextures.o: $(SRC_DIR)/aTextures.c
 $(OBJ_DIR)/aWidgets.o: $(SRC_DIR)/aWidgets.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o $(OBJ_DIR)/aTextures.o $(OBJ_DIR)/aWidgets.o
+$(OBJ_DIR)/aLayout.o: $(SRC_DIR)/aLayout.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(BIN_DIR)/libArchimedes.so: $(OBJ_DIR)/aAudio.o $(OBJ_DIR)/aDeltaTime.o $(OBJ_DIR)/aDraw.o $(OBJ_DIR)/aImage.o $(OBJ_DIR)/aInitialize.o $(OBJ_DIR)/aInput.o $(OBJ_DIR)/aText.o $(OBJ_DIR)/aTextures.o $(OBJ_DIR)/aWidgets.o $(OBJ_DIR)/aLayout.o
 	$(CC) -shared $^ -o $@ $(CFLAGS)
 
 .PHONY: native
 native: always $(BIN_DIR)/native
 
-$(OBJ_DIR)/n_main.o: $(TEST_DIR)/test.c
+$(OBJ_DIR)/n_main.o: $(TEM_DIR)/main.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
 $(OBJ_DIR)/n_aAudio.o: $(SRC_DIR)/aAudio.c
@@ -83,7 +86,10 @@ $(OBJ_DIR)/n_aTextures.o: $(SRC_DIR)/aTextures.c
 $(OBJ_DIR)/n_aWidgets.o: $(SRC_DIR)/aWidgets.c
 	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
 
-$(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o
+$(OBJ_DIR)/n_aLayout.o: $(SRC_DIR)/aLayout.c
+	$(CC) -c $< -o $@ -ggdb $(CFLAGS)
+
+$(BIN_DIR)/native: $(OBJ_DIR)/n_main.o $(OBJ_DIR)/n_aAudio.o $(OBJ_DIR)/n_aDeltaTime.o $(OBJ_DIR)/n_aDraw.o $(OBJ_DIR)/n_aImage.o $(OBJ_DIR)/n_aInitialize.o $(OBJ_DIR)/n_aInput.o $(OBJ_DIR)/n_aText.o $(OBJ_DIR)/n_aTextures.o $(OBJ_DIR)/n_aWidgets.o $(OBJ_DIR)/n_aLayout.o
 	$(CC) $^ -ggdb $(CFLAGS) -o $@
 
 .PHONY: EMARCH
@@ -119,7 +125,10 @@ $(OBJ_DIR)/em_aTextures.o: $(SRC_DIR)/aTextures.c
 $(OBJ_DIR)/em_aWidgets.o: $(SRC_DIR)/aWidgets.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
-$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_cJSON.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o $(OBJ_DIR)/em_aTextures.o $(OBJ_DIR)/em_aWidgets.o
+$(OBJ_DIR)/em_aLayout.o: $(SRC_DIR)/aLayout.c
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
+
+$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_cJSON.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o $(OBJ_DIR)/em_aTextures.o $(OBJ_DIR)/em_aWidgets.o $(OBJ_DIR)/em_aLayout.o
 	$(EMAR) $@ $^
 
 

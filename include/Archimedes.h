@@ -679,18 +679,139 @@ void a_DoInput( void );
 ---------------------------------------------------------------
 */
 
+/**
+ * @defgroup text Text Rendering System
+ * @brief TTF font rendering with alignment and wrapping support
+ *
+ * The text system provides bitmap font rendering using SDL_ttf.
+ * Text is rendered using preloaded font atlases for optimal performance.
+ *
+ * @{
+ */
+
+/**
+ * @brief Text alignment modes
+ */
 enum
 {
-  TEXT_ALIGN_LEFT,
-  TEXT_ALIGN_CENTER,
-  TEXT_ALIGN_RIGHT
+  TEXT_ALIGN_LEFT,    /**< Align text to the left of X coordinate */
+  TEXT_ALIGN_CENTER,  /**< Center text horizontally at X coordinate */
+  TEXT_ALIGN_RIGHT    /**< Align text to the right of X coordinate */
 };
 
+/**
+ * @brief Calculate the height of wrapped text
+ *
+ * Computes how tall the rendered text will be when word-wrapped to fit
+ * within the specified maximum width.
+ *
+ * @param text String to measure (UTF-8 supported)
+ * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, etc.)
+ * @param max_width Maximum line width in pixels before wrapping
+ * @return Total height in pixels needed to render the wrapped text
+ *
+ * @note Useful for dynamic UI layouts that adapt to text size
+ * @note Returns 0 if text is NULL or empty
+ * @see a_CalcTextDimensions()
+ */
 int a_GetWrappedTextHeight( char* text, int font_type, int max_width );
+
+/**
+ * @brief Calculate the dimensions of rendered text
+ *
+ * Measures the width and height of text when rendered with the specified font.
+ * Does not account for wrapping (use a_GetWrappedTextHeight for that).
+ *
+ * @param text String to measure (UTF-8 supported)
+ * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, etc.)
+ * @param w Output pointer for width in pixels
+ * @param h Output pointer for height in pixels
+ *
+ * @note Width/height are set to 0 if text is NULL or empty
+ * @note Height is the font's line height, not the actual glyph height
+ * @note Essential for proper text centering in buttons/UI elements
+ *
+ * @code
+ * int text_w, text_h;
+ * a_CalcTextDimensions("Hello", FONT_GAME, &text_w, &text_h);
+ * int centered_y = button_y + (button_h - text_h) / 2;
+ * @endcode
+ */
 void a_CalcTextDimensions( char* text, int font_type, int* w, int* h );
+
+/**
+ * @brief Draw text to the screen
+ *
+ * Renders text at the specified position with color and alignment.
+ * The (x, y) coordinate represents the TOP-LEFT corner of the text bounding box
+ * (after alignment is applied).
+ *
+ * @param text String to render (UTF-8 supported)
+ * @param x X coordinate - meaning depends on alignment:
+ *          - TEXT_ALIGN_LEFT: left edge of text
+ *          - TEXT_ALIGN_CENTER: horizontal center of text
+ *          - TEXT_ALIGN_RIGHT: right edge of text
+ * @param y Y coordinate - TOP edge of text (NOT center!)
+ * @param r Red color component (0-255)
+ * @param g Green color component (0-255)
+ * @param b Blue color component (0-255)
+ * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, FONT_LINUX, etc.)
+ * @param align Alignment mode (TEXT_ALIGN_LEFT/CENTER/RIGHT)
+ * @param max_width Maximum width before wrapping (0 = no wrapping)
+ *
+ * @note Y coordinate is the TOP of the text, not the baseline or center!
+ * @note To vertically center text: y = center_y - (text_height / 2)
+ * @note max_width of 0 disables wrapping
+ * @note Clipping is handled automatically by SDL
+ *
+ * @warning Common mistake: Forgetting that Y is the TOP of the text
+ *
+ * @code
+ * // Draw centered text in a button
+ * int text_w, text_h;
+ * a_CalcTextDimensions("Click Me", FONT_GAME, &text_w, &text_h);
+ * int text_x = button_x + button_w / 2;
+ * int text_y = button_y + (button_h - text_h) / 2;  // Vertically centered!
+ * a_DrawText("Click Me", text_x, text_y, 255, 255, 255, FONT_GAME, TEXT_ALIGN_CENTER, 0);
+ * @endcode
+ *
+ * @see a_CalcTextDimensions()
+ */
 void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width );
+
+/**
+ * @brief Get an SDL_Texture containing rendered text
+ *
+ * Creates a texture with the specified text rendered using the given font.
+ * Texture must be destroyed by caller using SDL_DestroyTexture().
+ *
+ * @param text String to render (UTF-8 supported)
+ * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, etc.)
+ * @return SDL_Texture pointer, or NULL on error
+ *
+ * @note Caller is responsible for calling SDL_DestroyTexture()
+ * @note More efficient to call a_DrawText() for one-time rendering
+ * @note Useful when text needs to be rendered multiple times per frame
+ *
+ * @warning Memory leak if texture is not destroyed!
+ */
 SDL_Texture* a_GetTextTexture( char* text, int font_type );
+
+/**
+ * @brief Initialize the font rendering system
+ *
+ * Loads TTF fonts and creates glyph atlases for text rendering.
+ * Called automatically by a_Init() - do not call manually.
+ *
+ * @note Loads fonts from resources/fonts/ directory
+ * @note Creates texture atlases for fast glyph rendering
+ * @note Program will exit if font loading fails
+ *
+ * @see a_Init()
+ */
 void a_InitFonts( void );
+
+/** @} */ // end of text group
 
 /*
 ---------------------------------------------------------------
@@ -993,6 +1114,26 @@ void a_FlexSetAlign(FlexBox_t* box, FlexAlign_t align);
  * @note Negative values are allowed but not recommended
  */
 void a_FlexSetGap(FlexBox_t* box, int gap);
+
+/**
+ * @brief Configure FlexBox direction, justification, and gap in one call
+ *
+ * Convenience function to set the three most common FlexBox properties.
+ * Equivalent to calling a_FlexSetDirection(), a_FlexSetJustify(), and
+ * a_FlexSetGap() in sequence.
+ *
+ * @param box FlexBox container to configure
+ * @param direction Layout direction (FLEX_DIR_ROW or FLEX_DIR_COLUMN)
+ * @param justify Main-axis justification (START/CENTER/END/SPACE_BETWEEN/SPACE_AROUND)
+ * @param gap Spacing between items in pixels
+ *
+ * @note This is a convenience wrapper - individual set functions still work
+ * @note Reduces FlexBox configuration from 3 calls to 1
+ * @see a_FlexSetDirection()
+ * @see a_FlexSetJustify()
+ * @see a_FlexSetGap()
+ */
+void a_FlexConfigure(FlexBox_t* box, FlexDirection_t direction, FlexJustify_t justify, int gap);
 
 /**
  * @brief Set internal padding of the container

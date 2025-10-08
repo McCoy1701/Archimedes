@@ -303,10 +303,12 @@ void a_DrawRect( const int x, const int y, const int w, const int h, const int r
 
 void a_DrawFilledRect( const int x, const int y, const int w, const int h, const int r, const int g, const int b, const int a )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor( app.renderer, r, g, b, a );
   SDL_Rect rect = { x, y, w, h };
   SDL_RenderFillRect( app.renderer, &rect );
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 

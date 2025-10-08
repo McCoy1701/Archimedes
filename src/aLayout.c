@@ -123,6 +123,14 @@ void a_FlexSetGap(FlexBox_t* box, int gap) {
     box->dirty = 1;
 }
 
+void a_FlexConfigure(FlexBox_t* box, FlexDirection_t direction, FlexJustify_t justify, int gap) {
+    if (!box) return;
+    box->direction = direction;
+    box->justify = justify;
+    box->gap = gap;
+    box->dirty = 1;
+}
+
 void a_FlexSetPadding(FlexBox_t* box, int padding) {
     if (!box) return;
     box->padding = padding;

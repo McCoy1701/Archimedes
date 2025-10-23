@@ -83,10 +83,12 @@ void a_PresentScene( void )
  */
 void a_DrawPoint( const int x, const int y, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawPoint(app.renderer, x, y);
   // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 /**
@@ -106,26 +108,32 @@ void a_DrawPoint( const int x, const int y, const aColor_t color )
  */
 void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
   // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x1, y, x2, y);
   // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x, y1, x, y2);
   // Reset the renderer color to white
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 /**
@@ -156,6 +164,7 @@ void a_DrawCircle( const int posX, const int posY, const int radius, const aColo
   int y = radius;
   int decision = 5 - ( 4 * radius );
 
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   while ( x <= y )
   {
@@ -179,6 +188,7 @@ void a_DrawCircle( const int posX, const int posY, const int radius, const aColo
 
     decision += 8 * x + 4;
   }
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 /**
@@ -207,6 +217,7 @@ void a_DrawFilledCircle( const int posX, const int posY, const int radius, const
   int y = radius;
   int decision = 5 - ( 4 * radius );
 
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   while ( x <= y )
   {
@@ -227,16 +238,19 @@ void a_DrawFilledCircle( const int posX, const int posY, const int radius, const
   }
   // Reset color to white after drawing is complete
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1,
                      const int x2, const int y2, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor(app.renderer, color.r, color.g, color.b, color.a);
   SDL_RenderDrawLine(app.renderer, x0, y0, x1, y1);
   SDL_RenderDrawLine(app.renderer, x1, y1, x2, y2);
   SDL_RenderDrawLine(app.renderer, x2, y2, x0, y0);
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 /**
@@ -294,19 +308,23 @@ void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y
 
 void a_DrawRect( const aRect_t rect, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   SDL_Rect sdl_rect = (SDL_Rect){ rect.x, rect.y, rect.w, rect.h };
   SDL_RenderDrawRect( app.renderer, &sdl_rect );
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 
 void a_DrawFilledRect( const aRect_t rect, const aColor_t color )
 {
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_BLEND );
   SDL_SetRenderDrawColor( app.renderer, color.r, color.g, color.b, color.a );
   SDL_Rect sdl_rect = (SDL_Rect){ rect.x, rect.y, rect.w, rect.h };
   SDL_RenderFillRect( app.renderer, &sdl_rect );
   SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
 

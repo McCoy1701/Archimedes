@@ -182,11 +182,11 @@ typedef struct {
   char filename[MAX_FILENAME_LENGTH];
 } aWidgetFileHeader_t;
 
-typedef struct aAUF_t {
-  struct aAUF_t* next;
-  struct aAUF_t* prev;
+typedef struct _aAUF_Node_t {
+  struct _aAUF_Node_t* next;
+  struct _aAUF_Node_t* prev;
 
-  struct aAUF_t* child;
+  struct _aAUF_Node_t* child;
 
   int type;
 
@@ -194,6 +194,14 @@ typedef struct aAUF_t {
   int value_int;
   double value_double;
   char* string;
+
+} aAUF_Node_t;
+
+typedef struct _aAUF_t
+{
+  aAUF_Node_t* head;
+  aAUF_Node_t* tail;
+  int size;
 
 } aAUF_t;
 
@@ -205,6 +213,7 @@ typedef struct
   uint8_t button;
   uint8_t state;
   uint8_t clicks;
+  uint8_t motion;
   int8_t  wheel;
 } aMouse_t;
 
@@ -807,9 +816,17 @@ int a_ClearWidgetCache( aWidget_t* widget );
 ---------------------------------------------------------------
 */
 
-aAUF_t* a_WidgetParser( const char* filename );
+aAUF_t* a_AUFParser( const char* filename );
 int a_SaveAUF( aWidget_t* widget_head, const char* filename );
 int a_FreeAUF( char** line, const int nl_count );
+
+aAUF_t* a_AUFCreation( void );
+aAUF_Node_t* a_AUFNodeCreation( void );
+int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node );
+int a_AUFAddChild( aAUF_Node_t* root, aAUF_Node_t* node );
+int a_AUFNodeFree( aAUF_Node_t* head );
+int a_AUFFree( aAUF_t* root );
+aAUF_Node_t* a_GetObjectItem( aAUF_Node_t* node, char* object_str );
 
 /*
 ---------------------------------------------------------------

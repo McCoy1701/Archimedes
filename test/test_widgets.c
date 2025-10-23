@@ -25,8 +25,168 @@ void aInitGame( void )
   app.delegate.logic = e_Logic;
   app.delegate.draw  = e_Draw;
   
-  a_AUFParser( "resources/widgets/world.auf" );
+  aAUF_t* root = a_AUFParser( "resources/widgets/world.auf" );
+  
+  aAUF_Node_t* current = root->head;
+  if ( 1 )
+  {
+    while ( current != NULL )
+    {
+      if ( 1 )
+      {
+        printf( "Name: %s %s\n", current->string, current->value_string );
+        printf( "x: %d\n", a_GetObjectItem( current, "x" )->value_int );
+        printf( "y: %d\n", a_GetObjectItem( current, "y" )->value_int );
+        printf( "label: %s\n", a_GetObjectItem( current, "label" )->value_string );
+        printf( "boxed: %d\n", a_GetObjectItem( current, "boxed" )->value_int );
+        printf( "hidden: %d\n", a_GetObjectItem( current, "hidden" )->value_int );
+        printf( "padding: %d\n", a_GetObjectItem( current, "padding" )->value_int );
+        printf( "flex: %d\n", a_GetObjectItem( current, "flex" )->value_int );
+        printf( "spacing: %d\n", a_GetObjectItem( current, "spacing" )->value_int );
+        
+        if ( a_GetObjectItem( current, "fg" ) != NULL )
+        {
+          printf( "fg: " );
+          aAUF_Node_t* fg = a_GetObjectItem( current, "fg" );
+          aAUF_Node_t* temp = fg->child;
+          for ( int i = 0; i < fg->value_int; i++ )
+          {
+            if ( temp != NULL )
+            {
+              printf( "%d,", temp->value_int );
 
+            }
+            temp = temp->next;
+          }
+          printf( "\n" );
+
+        }
+
+        if ( a_GetObjectItem( current, "bg" ) != NULL )
+        {
+          printf( "bg: " );
+          aAUF_Node_t* bg = a_GetObjectItem( current, "bg" );
+          aAUF_Node_t* temp = bg->child;
+          for ( int i = 0; i < bg->value_int; i++ )
+          {
+            if ( temp != NULL )
+            {
+              printf( "%d,", temp->value_int );
+
+            }
+            temp = temp->next;
+          }
+          printf( "\n" );
+
+
+        }
+      }
+
+      aAUF_Node_t* container = a_GetObjectItem( current, "container" );
+
+      while ( container != NULL )
+      {
+        if ( a_GetObjectItem( container, "x" ) != NULL )
+        {
+          printf( "x: %d\n", a_GetObjectItem( container, "x" )->value_int );
+
+        }
+        
+        if ( a_GetObjectItem( container, "y" ) != NULL )
+        {
+          printf( "y: %d\n", a_GetObjectItem( container, "y" )->value_int );
+
+        }
+        
+        if ( a_GetObjectItem( container, "label" ) != NULL )
+        {
+          printf( "label: %s\n", a_GetObjectItem( container, "label" )->value_string );
+
+        }
+        
+        if ( a_GetObjectItem( container, "boxed" ) != NULL )
+        {
+          printf( "boxed: %d\n", a_GetObjectItem( container, "boxed" )->value_int );
+
+        }
+        
+        if ( a_GetObjectItem( container, "hidden" ) != NULL )
+        {
+          printf( "hidden: %d\n", a_GetObjectItem( container, "hidden" )->value_int );
+
+        }
+        
+        if ( a_GetObjectItem( container, "padding" ) != NULL )
+        {
+          printf( "padding: %d\n", a_GetObjectItem( container, "padding" )->value_int );
+
+        }
+        
+        if ( a_GetObjectItem( container, "fg" ) != NULL )
+        {
+          printf( "fg: " );
+          aAUF_Node_t* fg = a_GetObjectItem( container, "fg" );
+          aAUF_Node_t* current = fg->child;
+          for ( int i = 0; i < fg->value_int; i++ )
+          {
+            if ( current != NULL )
+            {
+              printf( "%d,", current->value_int );
+
+            }
+            current = current->next;
+          }
+          printf( "\n" );
+
+        }
+
+        if ( a_GetObjectItem( container, "bg" ) != NULL )
+        {
+          printf( "bg: " );
+          aAUF_Node_t* bg = a_GetObjectItem( container, "bg" );
+          aAUF_Node_t* current = bg->child;
+          for ( int i = 0; i < bg->value_int; i++ )
+          {
+            if ( current != NULL )
+            {
+              printf( "%d,", current->value_int );
+
+            }
+            current = current->next;
+          }
+          printf( "\n" );
+
+
+        }
+        
+        if ( a_GetObjectItem( container, "options" ) != NULL )
+        {
+          printf( "options: " );
+          aAUF_Node_t* options = a_GetObjectItem( container, "options" );
+          aAUF_Node_t* current = options->child;
+          for ( int i = 0; i < options->value_int; i++ )
+          {
+            if ( current != NULL )
+            {
+              printf( "%s, ", current->value_string );
+
+            }
+            current = current->next;
+          }
+          printf( "\n" );
+
+
+        }
+
+        container = container->next;
+      }
+
+      current = current->next;
+    }
+  }
+
+  //a_AUFFree( root );
+  
   /*a_InitWidgets( "resources/widgets/world.json" );
   
   app.active_widget = a_GetWidget( "tab_bar" );

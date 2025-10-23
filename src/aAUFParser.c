@@ -11,10 +11,6 @@
 
 #include "Archimedes.h"
 
-static aAUF_t* NewAUF( void );
-static int AddAUFToRoot( aAUF_t* root, aAUF_t* node );
-static int AddChildAUF( aAUF_t* root, aAUF_t* child );
-
 static char* ReadFile( const char* filename, int* file_size );
 
 static int CountNewLines( const char* file_string, const int file_size );
@@ -22,6 +18,13 @@ static char** ParseLinesInFile( const char* file_string, const int file_size,
                                 const int nl_count );
 
 static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count );
+static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int idx );
+static char* ParseString( char delimiter, char* str, int str_len );
+static char* ParseStringDoubleDelim( char delimiter1, char delimiter2, char* str, int str_len );
+static int handle_square_bracket( aAUF_Node_t* root, char* string, int str_len, 
+                                  char** line, int nl_count, int idx );
+static int handle_parenthesis( aAUF_Node_t* root, char* string, int str_len );
+static int handle_char( aAUF_Node_t* root, char* string, int str_len );
 
 aAUF_t* a_AUFParser( const char* filename )
 {
@@ -29,25 +32,19 @@ aAUF_t* a_AUFParser( const char* filename )
   char* file_string;
   int file_size = 0;
   int newline_count = 0;
-  
+ 
+  aAUF_t* new_root = a_AUFCreation();
+
   file_string = ReadFile( filename, &file_size );
 
   newline_count = CountNewLines( file_string, file_size );
 
   line = ParseLinesInFile( file_string, file_size, newline_count );
 
-  /*for ( int i = 0; i < newline_count; i++ )
-  {
-    if ( line[i] != NULL )
-    {
-      printf( "Line: %s\n", line[i] );
-
-    }
-  }*/
-
-  aAUF_t* new_root = NULL;
-
   ParserLineToRoot( new_root, line, newline_count );
+  
+  free( file_string );
+  a_FreeAUF( line, newline_count );
 
   return new_root;
 }
@@ -60,6 +57,8 @@ int a_SaveAUF( aWidget_t* widget_head, const char* filename )
                                  .num_widgets  = 0 };
 
   STRNCPY( header.filename, filename, MAX_FILENAME_LENGTH );
+
+  printf( "%s\n", widget_head->name );
   
 
   return 0;
@@ -77,22 +76,6 @@ int a_FreeAUF( char** line, const int nl_count )
   return 0;
 }
 
-static aAUF_t* NewAUF( void )
-{
-  aAUF_t* new_list = ( aAUF_t* )malloc( sizeof( aAUF_t ) );
-  if ( new_list == NULL )
-  {
-    printf("Failed to allocate memory for aWidgetList_t\n");
-    return NULL;
-  }
-
-  new_list->next  = NULL;
-  new_list->prev  = NULL;
-  new_list->child = NULL;
-
-  return new_list;
-}
-
 static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count )
 {
   for ( int i = 0; i < nl_count; i++ )
@@ -100,61 +83,358 @@ static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count )
     if ( line[i] != NULL )
     {
       char* string = line[i];
+      size_t str_len  = strlen( string );
+
+      if ( string[0] == '[' && string[1] != '[' )
+      {
+        char* str_start = strstr( string, "WT_" );
+        char* str_end = strstr( string, "." );
+        
+        aAUF_Node_t* new_AUF = a_AUFNodeCreation();
+
+        new_AUF->string = ParseString( '.', str_start, str_len );
+        new_AUF->value_string = ParseString( ']', str_end+1, str_len );
+
+        if ( a_AUFAddNode( root, new_AUF ) < 0 )
+        {
+          printf( "Failed to add %s to root\n", new_AUF->string );
+        }
+
+        int list_offset = ParserWidgetToNode( new_AUF, line, nl_count, i );
+        printf( "offset: %d\n", list_offset );
+      }
+
+    }
+  }
+
+  return 0;
+}
+
+static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int idx )
+{
+  int count = 0;
+  for ( int i = idx; i < nl_count; i++ )
+  {
+    if ( line[i] != NULL )
+    {
+      char* string = line[i];
       int str_len  = strlen( string );
 
+      switch ( string[0] )
+      {
+        case '[':
+          if ( string[1] == '[' )
+          {
+            aAUF_Node_t* container = a_GetObjectItem( node, "container" );
+            if ( container ==  NULL )
+            {
+              container = a_AUFNodeCreation();
+              container->string = "container";
+              a_AUFAddChild( node, container );
+              handle_square_bracket( container, string, str_len, line, nl_count, i );
+            }
+       
+            else 
+            {
+              while ( container->next != NULL )
+              {
+                container = container->next;
+              }
+
+              aAUF_Node_t* new_container = a_AUFNodeCreation();
+              container->next = new_container;
+              new_container->prev = container;
+              new_container->next = NULL;
+              handle_square_bracket( container->next, string, str_len, line, nl_count, i );
+            }
+
+          }
+          continue;
+        
+        case '(':
+          handle_parenthesis( node, string, str_len );
+          continue;
+
+        default:
+          handle_char( node, string, str_len );
+          continue;
+      }
+
+    }
+
+    count = i;
+    return i;
+  }
+
+  return count;
+}
+
+static char* ParseString( char delimiter, char* str, int str_len )
+{
+  char* return_str = (char*)malloc( sizeof(char) * str_len );
+  if ( return_str == NULL )
+  {
+    printf( "Failed to allocate memory for return_str\n" );
+    return NULL;
+  }
+
+  for ( int i = 0; i < str_len; i++ )
+  {
+    if ( str[i] != delimiter )
+    {
+      return_str[i] = str[i];
+
+    }
+
+    else
+    {
+      return_str[i] = '\0';
+      return return_str;
     }
   }
 
-  return 0;
+  return NULL;
 }
 
-static int AddAUFToRoot( aAUF_t* root, aAUF_t* node )
+static int handle_parenthesis( aAUF_Node_t* root, char* string, int str_len )
 {
-  if ( root == NULL || node == NULL )
+  if ( root == NULL || string == NULL || str_len == 0 )
   {
-    printf("Root or Next is NULL: %s:%d\n", __FILE__, __LINE__ );
+    printf( "Handle parenthesis ran into a problem\
+             root/string/str_len is NULL/0: %s, %d\n", __FILE__, __LINE__ );
     return 1;
   }
 
-  aAUF_t* head = root;
+  aAUF_Node_t* x_AUF = a_AUFNodeCreation();
+  aAUF_Node_t* y_AUF = a_AUFNodeCreation();
+  x_AUF->string = ParseString( ',', string+1, str_len );
+  char* str_y_start  = strchr( string, ',' );
+  size_t str_y_len = strlen( str_y_start );
+  y_AUF->string = ParseString( ')', str_y_start+1, str_y_len );
+  
+  char* x_value_start = strchr( string, ':' );
+  size_t str_x_value_len = strlen( x_value_start );
+  char* x_value = ParseString( ',', x_value_start+2, str_x_value_len );
+  char* y_value_start = strchr( x_value_start, ',' );
+  size_t str_y_value_len = strlen( y_value_start );
+  char* y_value = ParseString( ')', y_value_start+1, str_y_value_len );
 
-  aAUF_t* new_AUF = node;
-  if ( new_AUF == NULL )
+  if ( strchr( x_value, '.' ) || strchr( y_value, '.' ) )
   {
-    printf("Failed to create new_AUF: %s:%d\n", __FILE__, __LINE__ );
-    return 1;
+    x_AUF->value_double = atof( x_value );
+    y_AUF->value_double = atof( y_value );
   }
-
-  if ( head == NULL )
-  {
-    head = new_AUF;
-    new_AUF->prev = head;
-  }
-
+  
   else
   {
-    aAUF_t* current = head;
-    while ( current->next != NULL )
-    {
-      current = current->next;
-    }
-
-    current->next = new_AUF;
-    new_AUF->prev = current;
+    x_AUF->value_int = atoi( x_value );
+    y_AUF->value_int = atoi( y_value );
   }
 
-  return 0;
-}
-
-static int AddChildAUF( aAUF_t* root, aAUF_t* child )
-{
-  if ( root == NULL || child == NULL )
+  if ( a_AUFAddChild( root, x_AUF ) < 0 )
   {
-    printf("Root or Child is NULL: %s:%d\n", __FILE__, __LINE__ );
+    printf( "Failed to add %s to root\n", x_AUF->string );
+    free(x_AUF);
+    free(y_AUF);
     return 1;
   }
   
-  root->child = child;
+  if ( a_AUFAddChild( root, y_AUF ) < 0 )
+  {
+    printf( "Failed to add %s to root\n", y_AUF->string );
+    free(x_AUF);
+    free(y_AUF);
+    return 1;
+  }
+  
+  return 0;
+}
+
+static int handle_square_bracket( aAUF_Node_t* root, char* string, int str_len,
+                                  char** line, int nl_count, int idx )
+{
+  if ( root == NULL || string == NULL || str_len == 0 )
+  {
+    printf( "Handle square bracket ran into a problem \
+             root/string/str_len is NULL/0: %s, %d \n", __FILE__, __LINE__ );
+    return 1;
+  }
+
+  char* str_start = strstr( string, "WT_" );
+  char* str_end = strstr( string, "." );
+
+  aAUF_Node_t* new_AUF = a_AUFNodeCreation();
+
+  new_AUF->string = ParseString( '.', str_start, str_len );
+  new_AUF->value_string = ParseString( ']', str_end+1, str_len );
+
+  if ( a_AUFAddChild( root, new_AUF ) < 0 )
+  {
+    printf( "Failed to add %s to root\n", new_AUF->string );
+  }
+  
+  int count = 0;
+  for ( int i = idx; i < nl_count; i++ )
+  {
+    if ( line[i] != NULL )
+    {
+      char* string = line[i];
+      int str_len  = strlen( string );
+
+      switch ( string[0] )
+      {
+        case '[':
+          if ( string[1] == '[' )
+          {
+            continue;
+          }
+          return 0;
+        
+        case '(':
+          handle_parenthesis( root, string, str_len );
+          continue;
+
+        default:
+          handle_char( root, string, str_len );
+          continue;
+      }
+
+    }
+
+    count = i;
+  }
+
+  return count;
+}
+
+static int handle_char( aAUF_Node_t* root, char* string, int str_len )
+{
+  char* str_end = strchr( string, ':' );
+  size_t str_end_len = strlen( str_end );
+  aAUF_Node_t* new_AUF = a_AUFNodeCreation();
+  char* num_value = NULL;
+  int count = 0;
+
+  new_AUF->string = ParseString( ':', string, str_len );
+  switch ( str_end[1] )
+  {
+    case '"':
+      new_AUF->value_string = ParseString( '"', str_end+2, str_end_len-1 );
+  
+      if ( a_AUFAddChild( root, new_AUF ) < 0 )
+      {
+        printf( "Failed to add %s to root\n", new_AUF->string );
+        return 1;
+      }
+
+      break;
+
+    case '[':
+      if ( str_end[2] == '"' )
+      {
+        count = 0;
+        for ( size_t i = 3; i <= str_end_len; i++ )
+        {
+          char* str_value = ParseString( '"', str_end+i, str_end_len );
+          if ( str_value != NULL )
+          {
+            size_t str_len = strlen( str_value );
+            str_value[str_len] = '\0';
+            i += str_len;
+            
+            if ( strchr( str_value, ',') ) continue;
+
+            //printf( "str_value: %s\n", str_value );
+            
+            aAUF_Node_t* new_num = a_AUFNodeCreation();
+            
+            new_num->string = malloc( sizeof( char ) * MAX_LINE_LENGTH );
+            if ( new_num->string == NULL )
+            {
+              printf("Failed to allocate memory for new_num->string: %s, %d\n", __FILE__, __LINE__ );
+              return 1;
+            }
+            
+            sprintf( new_num->string, "%d", count );
+           
+            new_num->value_string = str_value;
+
+            a_AUFAddChild( new_AUF, new_num );
+            count++;
+
+          }
+
+        }
+        new_AUF->value_int = count;
+        a_AUFAddChild( root, new_AUF );
+        //printf( "string: %s %s %d\n", str_end, new_AUF->string, count );
+      }
+  
+      else
+      {
+        count = 0;
+        for ( size_t i = 2; i <= str_end_len; i++ )
+        {
+          char* num_value = ParseStringDoubleDelim( ',', ']', str_end+i, str_end_len );
+          if ( num_value != NULL )
+          {
+            size_t num_len = strlen( num_value );
+            num_value[num_len] = '\0';
+            i += num_len;
+            
+            aAUF_Node_t* new_num = a_AUFNodeCreation();
+            
+            new_num->string = malloc( sizeof( char ) * MAX_LINE_LENGTH );
+            if ( new_num->string == NULL )
+            {
+              printf("Failed to allocate memory for new_num->string: %s, %d\n", __FILE__, __LINE__ );
+              return 1;
+            }
+            
+            sprintf( new_num->string, "%d", count );
+            
+            if ( strchr( num_value, '.' ) )
+            {
+              new_num->value_double = atof( num_value );
+            }
+
+            else
+            {
+              new_num->value_int = atoi( num_value );
+            }
+
+            a_AUFAddChild( new_AUF, new_num );
+            count++;
+
+          }
+
+        }
+        new_AUF->value_int = count;
+        a_AUFAddChild( root, new_AUF );
+      }
+      break;
+
+    default:
+      num_value = strchr( string, ':' );
+
+      if ( strchr( num_value+1, '.' ) )
+      {
+        new_AUF->value_double = atof( num_value+1 );
+      }
+
+      else
+      {
+        new_AUF->value_int = atoi( num_value+1 );
+      }
+      
+      if ( a_AUFAddChild( root, new_AUF ) < 0 )
+      {
+        printf( "Failed to add %s to root\n", new_AUF->string );
+        return 1;
+      }
+
+      break;
+  }
 
   return 0;
 }
@@ -162,8 +442,8 @@ static int AddChildAUF( aAUF_t* root, aAUF_t* child )
 static char* ReadFile( const char* filename, int* file_size )
 {
   long fileSize;
-  char *fileString;
-  FILE *file;
+  char* fileString;
+  FILE* file;
 
   file = fopen( filename, "r" );
   if ( file == NULL )
@@ -278,3 +558,29 @@ static char** ParseLinesInFile( const char* file_string, const int file_size,
   return new_line;
 }
 
+static char* ParseStringDoubleDelim( char delimiter1, char delimiter2, char* str, int str_len )
+{
+  char* return_str = (char*)malloc( sizeof(char) * str_len );
+  if ( return_str == NULL )
+  {
+    printf( "Failed to allocate memory for return_str\n" );
+    return NULL;
+  }
+
+  for ( int i = 0; i < str_len; i++ )
+  {
+    if ( str[i] != delimiter1 && str[i] != delimiter2 )
+    {
+      return_str[i] = str[i];
+
+    }
+
+    else
+    {
+      return_str[i] = '\0';
+      return return_str;
+    }
+  }
+
+  return NULL;
+}

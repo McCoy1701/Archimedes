@@ -225,7 +225,7 @@ static void a_DoMouseDown( SDL_MouseButtonEvent* button )
 
   // Update global mouse state (all checks passed or warnings logged)
   app.mouse.state  = button->state;
-  app.mouse.button = 0; // Current code sets button to 0 for DOWN events
+  app.mouse.button = button->button; // Current code sets button to 0 for DOWN events
   app.mouse.clicks = button->clicks;
   app.mouse.x = button->x;
   app.mouse.y = button->y;
@@ -344,5 +344,7 @@ static void a_DoMouseMotion( SDL_MouseMotionEvent* motion )
   // Update mouse coordinates directly
   app.mouse.x = motion->x;
   app.mouse.y = motion->y;
+
+  app.mouse.motion = 1;
   // printf("Debug: Mouse Motion: Pos (%d, %d)\n", motion->x, motion->y);
 }

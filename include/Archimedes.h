@@ -606,7 +606,7 @@ void a_SetPixel( SDL_Surface *surface, int x, int y, aColor_t c );
 
 int a_InitImage( void );
 SDL_Surface* a_Image( const char *filename );
-int a_CleanUpImageCache( aImageCache_t* head );
+int a_CleanUpImageCache( void );
 int a_Screenshot( SDL_Renderer *renderer, const char *filename );
 
 /*

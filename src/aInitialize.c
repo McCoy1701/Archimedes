@@ -122,7 +122,7 @@ void a_Quit( void )
   
   // Clean up image cache
   if ( app.img_cache ) {
-    a_CleanUpImageCache( app.img_cache );
+    a_CleanUpImageCache();
     free( app.img_cache );
     app.img_cache = NULL;
   }

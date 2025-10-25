@@ -278,10 +278,10 @@ void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1,
  * @thread_safety Not thread-safe, must be called from main render thread
  * @note Implementation is commented out - function currently does nothing
  */
-void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
+/*void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
                            const int x2, const int y2, const aColor_t color )
 {
-/*  int maxX = MAX(x0, MAX(x1, x2));
+  int maxX = MAX(x0, MAX(x1, x2));
   int minX = MIN(x0, MIN(x1, x2));
   int maxY = MAX(y0, MAX(y1, y2));
   int minY = MIN(y0, MIN(y1, y2));
@@ -303,8 +303,8 @@ void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y
         SDL_RenderDrawPoint(app.renderer, x, y);
       }
     }
-  }*/
-}
+  }
+}*/
 
 void a_DrawRect( const aRect_t rect, const aColor_t color )
 {

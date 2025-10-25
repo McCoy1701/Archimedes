@@ -12,13 +12,13 @@ static void initFontPNG( const char* filename, const int font_type,
                          const int glyph_width, const int glyph_height );
 
 static int DrawTextWrapped( const char* text, const int x, const int y,
-                            const aColor_t bg, const aColor_t fg,
-                            const int font_type, const int align, 
-                            const int max_width, const int draw );
+                            const aColor_t fg, const int font_type,
+                            const int align, const int max_width,
+                            const int draw );
 
 static void DrawTextLine( const char* text, const int x, const int y,
-                          const aColor_t bg, const aColor_t fg,
-                          const int font_type, const int align );
+                          const aColor_t fg, const int font_type,
+                          const int align );
 
 static int NextGlyph( const char* string, int* i, char* glyph_buffer );
 
@@ -144,7 +144,7 @@ int a_GetWrappedTextHeight( const char* text, const int font_type, const int max
     return 0;
   }
   
-  return DrawTextWrapped( text, 0, 0, black, white, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
+  return DrawTextWrapped( text, 0, 0, white, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
 }
 
 /**
@@ -220,12 +220,12 @@ void a_DrawText( const char* text, const int x, const int y,
   
   if ( max_width > 0 )
   {
-    DrawTextWrapped( text, x, y, bg, fg, font_type, align, max_width, 1 );
+    DrawTextWrapped( text, x, y, fg, font_type, align, max_width, 1 );
   }
 
   else
   {
-    DrawTextLine( text, x, y, bg, fg, font_type, align );
+    DrawTextLine( text, x, y, fg, font_type, align );
   }
 }
 
@@ -336,9 +336,9 @@ static void initFont( const char* filename, const int font_type, const int font_
 }
 
 static int DrawTextWrapped( const char* text, const int x, const int y,
-                            const aColor_t bg, const aColor_t fg, 
-                            const int font_type, const int align,
-                            const int max_width, const int draw )
+                            const aColor_t fg, const int font_type,
+                            const int align, const int max_width,
+                            const int draw )
 {
   char word[MAX_WORD_LENGTH], line[MAX_LINE_LENGTH], glyph_buffer[MAX_GLYPH_SIZE];
   int i, n, word_width, line_width, len;
@@ -376,7 +376,7 @@ static int DrawTextWrapped( const char* text, const int x, const int y,
       {
         if ( draw )
         {
-          DrawTextLine( line, new_x, new_y, bg, fg, font_type, align );
+          DrawTextLine( line, new_x, new_y, fg, font_type, align );
         }
 
         memset( line, 0, MAX_LINE_LENGTH );
@@ -412,15 +412,14 @@ static int DrawTextWrapped( const char* text, const int x, const int y,
 
   if ( draw )
   {
-    DrawTextLine( line, new_x, new_y, bg, fg, font_type, align );
+    DrawTextLine( line, new_x, new_y, fg, font_type, align );
   }
 
   return new_y + app.glyphs[font_type][' '].h * app.font_scale;
 }
 
 static void DrawTextLine( const char* text, const int x, const int y,
-                          const aColor_t bg, const aColor_t fg,
-                          const int font_type, const int align )
+                          const aColor_t fg, const int font_type, const int align )
 {
   int i, n, w, h, len, c;
   int new_x = x, new_y = y;

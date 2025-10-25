@@ -129,7 +129,9 @@ static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int
             if ( container ==  NULL )
             {
               container = a_AUFNodeCreation();
-              container->string = "container";
+
+              container->string = malloc( sizeof( char ) * MAX_NAME_LENGTH );
+              STRNCPY( container->string, "container0", MAX_NAME_LENGTH );
               a_AUFAddChild( node, container );
               handle_square_bracket( container, string, str_len, line, nl_count, i );
             }
@@ -142,6 +144,8 @@ static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int
               }
 
               aAUF_Node_t* new_container = a_AUFNodeCreation();
+              container->string = malloc( sizeof( char ) * MAX_NAME_LENGTH );
+              STRNCPY( container->string, "container1", MAX_NAME_LENGTH );
               container->next = new_container;
               new_container->prev = container;
               new_container->next = NULL;
@@ -344,8 +348,6 @@ static int handle_char( aAUF_Node_t* root, char* string, int str_len )
             
             if ( strchr( str_value, ',') ) continue;
 
-            //printf( "str_value: %s\n", str_value );
-            
             aAUF_Node_t* new_num = a_AUFNodeCreation();
             
             new_num->string = malloc( sizeof( char ) * MAX_LINE_LENGTH );
@@ -367,7 +369,6 @@ static int handle_char( aAUF_Node_t* root, char* string, int str_len )
         }
         new_AUF->value_int = count;
         a_AUFAddChild( root, new_AUF );
-        //printf( "string: %s %s %d\n", str_end, new_AUF->string, count );
       }
   
       else

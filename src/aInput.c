@@ -200,29 +200,6 @@ static void a_DoMouseDown( SDL_MouseButtonEvent* button )
     return;
   }
 
-  // Validate mouse button ID (SDL defines specific button constants like SDL_BUTTON_LEFT, etc.)
-  if (button->button < SDL_BUTTON_LEFT || button->button > SDL_BUTTON_X2) {
-    printf("Warning: Invalid mouse button ID: %d in a_DoMouseDown. Event will still be processed.\n", button->button);
-  }
-
-  // Validate mouse state (should always be SDL_PRESSED for a MOUSEBUTTONDOWN event)
-  if (button->state != SDL_PRESSED) {
-    printf("Warning: Unexpected mouse button state: %d in a_DoMouseDown. Expected SDL_PRESSED.\n", button->state);
-  }
-
-  // Validate click count (reasonable range check, though SDL handles this)
-  if (button->clicks < 0 || button->clicks > 5) { // Clicks typically 1, 2, 3. 5 is a generous upper bound.
-    printf("Warning: Unusual click count: %d in a_DoMouseDown. Clamping value.\n", button->clicks);
-    if (button->clicks < 0) button->clicks = 0;
-    if (button->clicks > 5) button->clicks = 5;
-  }
-
-  // Validate mouse coordinates (warn about extreme values but allow them, as they might be valid for multi-monitor setups)
-  if (button->x < -5000 || button->x > 5000 || // Arbitrary large range
-      button->y < -5000 || button->y > 5000) {
-    printf("Warning: Extreme mouse coordinates: (%d, %d) in a_DoMouseDown. Processing anyway.\n", button->x, button->y);
-  }
-
   // Update global mouse state (all checks passed or warnings logged)
   app.mouse.state  = button->state;
   app.mouse.button = button->button; // Current code sets button to 0 for DOWN events
@@ -256,29 +233,6 @@ static void a_DoMouseUp( SDL_MouseButtonEvent* button )
   if (button == NULL) {
     printf("Error: NULL mouse button event passed to a_DoMouseUp.\n");
     return;
-  }
-
-  // Validate mouse button ID
-  if (button->button < SDL_BUTTON_LEFT || button->button > SDL_BUTTON_X2) {
-    printf("Warning: Invalid mouse button ID: %d in a_DoMouseUp. Event will still be processed.\n", button->button);
-  }
-
-  // Validate mouse state (should always be SDL_RELEASED for a MOUSEBUTTONUP event)
-  if (button->state != SDL_RELEASED) {
-    printf("Warning: Unexpected mouse button state: %d in a_DoMouseUp. Expected SDL_RELEASED.\n", button->state);
-  }
-
-  // Validate click count (reasonable range check)
-  if (button->clicks < 0 || button->clicks > 5) {
-    printf("Warning: Unusual click count: %d in a_DoMouseUp. Clamping value.\n", button->clicks);
-    if (button->clicks < 0) button->clicks = 0;
-    if (button->clicks > 5) button->clicks = 5;
-  }
-
-  // Validate mouse coordinates
-  if (button->x < -5000 || button->x > 5000 ||
-      button->y < -5000 || button->y > 5000) {
-    printf("Warning: Extreme mouse coordinates: (%d, %d) in a_DoMouseUp. Processing anyway.\n", button->x, button->y);
   }
 
   // Update global mouse state

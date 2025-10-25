@@ -103,20 +103,30 @@ int a_AUFAddChild( aAUF_Node_t* root, aAUF_Node_t* node )
 
 int a_AUFNodeFree( aAUF_Node_t* head )
 {
+  aAUF_Node_t* next = NULL;
   while ( head != NULL )
   {
-    aAUF_Node_t* current = head;
-    head = head->next;
+    next = head->next;
     
-    if ( current->child != NULL )
+    if ( head->child != NULL )
     {
-      a_AUFNodeFree( current->child );
+
+      a_AUFNodeFree( head->child );
+    }
+    
+    if ( head->string != NULL )
+    {
+      free( head->string );
     }
 
-    free( current->string );
-    free( current->value_string );
-    free( current );
+    if ( head->value_string != NULL )
+    {
+      free( head->value_string );
 
+    }
+
+    free( head );
+    head = next;
   }
   
   return 0;

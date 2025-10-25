@@ -55,8 +55,8 @@ static int handle_control_widget;
  */
 void a_DoWidget( void )
 {
-  aWidget_t* temp;
-  int r,g,b = 0;
+  // aWidget_t* temp;
+  //int r,g,b = 0;
 
   slider_delay = MAX( slider_delay - a_GetDeltaTime(), 0 );
 
@@ -693,6 +693,7 @@ static void CreateWidget( cJSON* root )
 static void CreateButtonWidget( aWidget_t* w, cJSON* root )
 {
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  printf( "button: %s\n", root->string );
 }
 
 /**
@@ -846,6 +847,7 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
 
   w->data = control;
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  printf( "Control: %s\n", root->string );
 }
 
 /**

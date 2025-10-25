@@ -4,7 +4,7 @@
 
 static void e_Logic( float );
 static void e_Draw( float );
-static void we_CreationDoLoop( float );
+/*static void we_CreationDoLoop( float );
 static void we_CreationRenderLoop( float );
 
 static void world( void );
@@ -18,15 +18,16 @@ static void we_load( void );
 static void we_save( void );
 static void we_creation( void );
 
-static aWidget_t* w;
+static aWidget_t* w;*/
+aAUF_t* root = NULL;
 
 void aInitGame( void )
 {
   app.delegate.logic = e_Logic;
   app.delegate.draw  = e_Draw;
   
-  aAUF_t* root = a_AUFParser( "resources/widgets/world.auf" );
-  
+  root = a_AUFParser( "resources/widgets/world.auf" );
+
   aAUF_Node_t* current = root->head;
   if ( 1 )
   {
@@ -252,7 +253,7 @@ void aInitGame( void )
 
 }
 
-static void we_creation( void )
+/*static void we_creation( void )
 {
   app.delegate.logic = we_CreationDoLoop;
   app.delegate.draw  = we_CreationRenderLoop;
@@ -330,7 +331,7 @@ static void color( void )
 static void ui( void )
 {
 
-}
+}*/
 
 static void e_Logic( float dt )
 {
@@ -343,6 +344,7 @@ static void e_Logic( float dt )
   }
 
   a_DoWidget();
+  printf( "DT: %f\n", dt );
 }
 
 static void e_Draw( float dt )
@@ -350,6 +352,7 @@ static void e_Draw( float dt )
   //a_DrawFilledRect( 100, 100, 32, 32, 255, 0, 255, 255 );
   //a_DrawFilledRect( 300, 300, 32, 32, 0, 255, 255, 255 );
   //a_DrawText( "Whore", 400, 250, 255, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0 );
+  printf( "DT: %f\n", dt );
 
   a_DrawWidgets();
 }
@@ -373,8 +376,11 @@ int main( void )
   while( app.running ) {
     aMainloop();
   }
-  //a_FreeAUF();
+  
+  a_AUFFree( root );
+  
   a_Quit();
 
   return 0;
 }
+

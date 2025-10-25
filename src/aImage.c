@@ -5,7 +5,7 @@
 
 static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface,
                           const char* filename, const int ID );
-static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
+//static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
 static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename );
 
 int a_InitImage( void )
@@ -93,7 +93,7 @@ static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface, const char* 
   return 0;
 }
 
-static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID )
+/*static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID )
 {
   aImageCacheNode_t* current;
 
@@ -106,7 +106,7 @@ static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID )
   }
 
   return NULL;
-}
+}*/
 
 static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename )
 {
@@ -123,7 +123,7 @@ static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const ch
   return NULL;
 }
 
-int a_CleanUpImageCache( aImageCache_t* img_cache )
+int a_CleanUpImageCache( void )
 {
   if ( app.img_cache == NULL )
       // FAIL: img_cache is NULL

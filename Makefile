@@ -9,6 +9,7 @@ EMAR = emar rcs
 
 # Directories
 SRC_DIR   = src
+OBJ_DIR   = obj
 INC_DIR   = include
 BIN_DIR   = bin
 TEST_DIR  = test
@@ -76,7 +77,7 @@ $(BIN_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED):
 	mkdir -p $@
 
 clean:
-	rm -rf $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(BIN_DIR)
 	@clear
 
 bear:

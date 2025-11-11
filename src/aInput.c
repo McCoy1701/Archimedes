@@ -16,26 +16,6 @@ static void a_DoMouseUp( SDL_MouseButtonEvent* button );
 static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel );
 static void a_DoMouseMotion( SDL_MouseMotionEvent* motion );
 
-/**
- * @brief Processes all pending SDL events and dispatches them to appropriate handlers.
- *
- * This function continuously polls for SDL events (keyboard, mouse, quit, text input)
- * using `SDL_PollEvent` and dispatches them to internal static functions (`a_DoKeyDown`,
- * `a_DoKeyUp`, `a_DoMouseDown`, `a_DoMouseUp`, `a_DoMouseWheel`, `a_DoMouseMotion`).
- * It updates the global `app` state based on these events, managing the game's input.
- * Unknown event types are silently ignored.
- *
- * @note The `app.running` flag is set to `0` if an `SDL_QUIT` event is received.
- * @note For `SDL_TEXTINPUT` events, the input text is copied to `app.input_text`
- * if its length is valid (between 1 and `MAX_INPUT_LENGTH - 1`).
- *
- * @see a_DoKeyDown
- * @see a_DoKeyUp
- * @see a_DoMouseDown
- * @see a_DoMouseUp
- * @see a_DoMouseWheel
- * @see a_DoMouseMotion
- */
 void a_DoInput( void )
 {
   SDL_Event event;
@@ -90,23 +70,6 @@ void a_DoInput( void )
   }
 }
 
-/**
- * @brief Handles SDL keyboard key press events and updates the global keyboard state.
- *
- * This internal function is called by `a_DoInput()` when an `SDL_KEYDOWN` event occurs.
- * It sets the corresponding scancode in the `app.keyboard` array to `1` (pressed)
- * and records the `last_key_pressed`. Key repeat events (when a key is held down)
- * are explicitly ignored to provide clean, single-press detection for game logic.
- *
- * @param event Pointer to the `SDL_KeyboardEvent` structure containing key press details.
- *
- * @note Updates `app.keyboard[event->keysym.scancode] = 1`.
- * @note Records `event->keysym.scancode` in `app.last_key_pressed`.
- * @note Ignores key repeat events (`event->repeat != 0`).
- * @note Only processes scancodes within the valid range (`0` to `MAX_KEYBOARD_KEYS - 1`).
- * @note Includes defensive checks for `NULL` event pointer, scancode bounds, and unusual repeat flag values.
- * @warning Scancodes outside `[0, MAX_KEYBOARD_KEYS-1]` will result in a warning and be ignored.
- */
 static void a_DoKeyDown( SDL_KeyboardEvent *event )
 {
   // Defensive programming: Check for NULL pointer
@@ -134,21 +97,6 @@ static void a_DoKeyDown( SDL_KeyboardEvent *event )
   // printf("Debug: Key Down: Scancode %d (repeat: %d)\n", event->keysym.scancode, event->repeat);
 }
 
-/**
- * @brief Handles SDL keyboard key release events and updates the global keyboard state.
- *
- * @details This internal function is called by `a_DoInput()` when an `SDL_KEYUP` event occurs.
- * It sets the corresponding scancode in the `app.keyboard` array to `0` (released).
- * Like `a_DoKeyDown`, key repeat events are ignored for consistency in input detection.
- *
- * @param event Pointer to the `SDL_KeyboardEvent` structure containing key release details.
- *
- * @note Updates `app.keyboard[event->keysym.scancode] = 0`.
- * @note Ignores key repeat events (`event->repeat != 0`).
- * @note Only processes scancodes within the valid range (`0` to `MAX_KEYBOARD_KEYS - 1`).
- * @note Includes defensive checks for `NULL` event pointer, scancode bounds, and unusual repeat flag values.
- * @warning Scancodes outside `[0, MAX_KEYBOARD_KEYS-1]` will result in a warning and be ignored.
- */
 static void a_DoKeyUp( SDL_KeyboardEvent *event )
 {
   // Defensive programming: Check for NULL pointer
@@ -175,23 +123,6 @@ static void a_DoKeyUp( SDL_KeyboardEvent *event )
   // printf("Debug: Key Up: Scancode %d (repeat: %d)\n", event->keysym.scancode, event->repeat);
 }
 
-/**
- * @brief Handles SDL mouse button press events and updates the global mouse state.
- *
- * @details This internal function is called by `a_DoInput()` when an `SDL_MOUSEBUTTONDOWN` event occurs.
- * It updates the `app.mouse` structure with the button's `SDL_PRESSED` state,
- * the number of clicks (`button->clicks`), and the mouse cursor's `x` and `y` coordinates
- * relative to the window.
- *
- * @param button Pointer to the `SDL_MouseButtonEvent` structure containing button press details.
- *
- * @note Sets `app.mouse.state` to `SDL_PRESSED`.
- * @note Sets `app.mouse.button` to `0` (as per current code logic for DOWN events).
- * @note Updates `app.mouse.clicks` with the event's click count.
- * @note Updates `app.mouse.x` and `app.mouse.y` with the mouse cursor's position.
- * @note Sets `app.mouse.pressed` to `1`.
- * @note Includes defensive checks for `NULL` event pointer, valid button IDs, and reasonable coordinate/click values.
- */
 static void a_DoMouseDown( SDL_MouseButtonEvent* button )
 {
   // Defensive programming: Check for NULL pointer
@@ -233,23 +164,6 @@ static void a_DoMouseDown( SDL_MouseButtonEvent* button )
   // printf("Debug: Mouse Down: Button %d, State %d, Clicks %d, Pos (%d, %d)\n", button->button, button->state, button->clicks, button->x, button->y);
 }
 
-/**
- * @brief Handles SDL mouse button release events and updates the global mouse state.
- *
- * @details This internal function is called by `a_DoInput()` when an `SDL_MOUSEBUTTONUP` event occurs.
- * It updates the `app.mouse` structure with the button's `SDL_RELEASED` state,
- * the specific `button->button` ID, the number of clicks (`button->clicks`),
- * and the mouse cursor's `x` and `y` coordinates relative to the window.
- *
- * @param button Pointer to the `SDL_MouseButtonEvent` structure containing button release details.
- *
- * @note Sets `app.mouse.state` to `SDL_RELEASED`.
- * @note Records the specific `event->button` ID in `app.mouse.button`.
- * @note Updates `app.mouse.clicks` with the event's click count.
- * @note Updates `app.mouse.x` and `app.mouse.y` with the mouse cursor's position.
- * @note Sets `app.mouse.pressed` to `0`.
- * @note Includes defensive checks for `NULL` event pointer, valid button IDs, and reasonable coordinate/click values.
- */
 static void a_DoMouseUp( SDL_MouseButtonEvent* button )
 {
   // Defensive programming: Check for NULL pointer
@@ -291,17 +205,6 @@ static void a_DoMouseUp( SDL_MouseButtonEvent* button )
   // printf("Debug: Mouse Up: Button %d, State %d, Clicks %d, Pos (%d, %d)\n", button->button, button->state, button->clicks, button->x, button->y);
 }
 
-/**
- * @brief Handles SDL mouse wheel events and updates the global wheel state.
- *
- * @param wheel Pointer to the `SDL_MouseWheelEvent` structure containing wheel scroll details.
- *
- * @note Updates `app.mouse.wheel` with the vertical scroll amount (`wheel->y`).
- * @note Horizontal wheel scrolling (`wheel->x`) is detected and logged, but its value is not stored in `app.mouse`.
- * @note The `app.mouse.wheel` value persists until the next wheel event or until manually reset to `0`
- * by the application logic after consumption.
- * @note Includes defensive checks for `NULL` event pointer and reasonable wheel values.
- */
 static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel )
 {
   // Defensive programming: Check for NULL pointer
@@ -325,14 +228,6 @@ static void a_DoMouseWheel( SDL_MouseWheelEvent* wheel )
   // printf("Debug: Mouse Wheel: X=%d, Y=%d\n", wheel->x, wheel->y);
 }
 
-/**
- * @brief Handles SDL mouse motion events and updates the global mouse coordinates.
- *
- * @param motion Pointer to the `SDL_MouseMotionEvent` structure containing motion details.
- *
- * @note Updates `app.mouse.x` and `app.mouse.y` with the absolute mouse coordinates.
- * @note This function is typically called very frequently during mouse movement.
- */
 static void a_DoMouseMotion( SDL_MouseMotionEvent* motion )
 {
   // Defensive programming: Check for NULL pointer (less critical for motion, but good practice)

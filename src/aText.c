@@ -31,21 +31,14 @@ static char *characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS
 static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
 #endif
 
-/**
- * @brief Initializes the font system with TTF fonts.
- *
- * This function loads the required TTF fonts and creates glyph atlases for
- * efficient text rendering. It loads two fonts: EnterCommand for UI and
- * JetBrains for code/Linux style text. The font scale and default font
- * type are also initialized.
- *
- * The function expects font files at:
- * - resources/fonts/EnterCommand.ttf (48pt)
- * - resources/fonts/JetBrains.ttf (32pt)
- *
- * If font loading fails, the program will exit with an error message.
- * Future versions may implement fallback behavior.
- */
+aFontConfig_t a_default_font_config = {
+  .type = FONT_GAME,
+  .color = {255, 255, 255, 255},
+  .align = TEXT_ALIGN_LEFT,
+  .wrap_width = 0,
+  .scale = 1.0f
+};
+
 void a_InitFonts( void )
 {
 #ifdef __EMSCRIPTEN__
@@ -53,29 +46,19 @@ void a_InitFonts( void )
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 24 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 18 );
   initFontPNG( "resources/fonts/CodePage437.png", FONT_CODE_PAGE_437, 9, 16 );
+  initFontPNG( "resources/fonts/CodePage437.png", FONT_GAME, 9, 16 );
 #else
   // Regular fonts for native builds
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 48 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 32 );
   initFontPNG( "resources/fonts/CodePage437.png", FONT_CODE_PAGE_437, 9, 16 );
+  initFontPNG( "resources/fonts/CodePage437.png", FONT_GAME, 9, 16 );
 #endif
 
   app.font_scale = 1;
   app.font_type = FONT_ENTER_COMMAND;
 }
 
-/**
- * @brief Calculates the pixel dimensions of a text string.
- *
- * This function computes the width and height of a text string when rendered
- * with the specified font type. It takes into account the current font scale
- * and handles UTF-8 encoded text properly.
- *
- * @param text The text string to measure (UTF-8 encoded)
- * @param font_type The font type to use (FONT_ENTER_COMMAND, FONT_LINUX, etc.)
- * @param w Pointer to store the calculated width in pixels
- * @param h Pointer to store the calculated height in pixels
- */
 void a_CalcTextDimensions( char* text, int font_type, int* w, int* h )
 {
   int i, n;
@@ -108,18 +91,6 @@ void a_CalcTextDimensions( char* text, int font_type, int* w, int* h )
 
 }
 
-/**
- * @brief Calculates the height of wrapped text within a maximum width.
- *
- * This function computes how tall a text block will be when word-wrapped
- * to fit within the specified maximum width. Useful for determining the
- * space needed for multi-line text in UI elements.
- *
- * @param text The text string to measure (UTF-8 encoded)
- * @param font_type The font type to use for measurement
- * @param max_width Maximum width in pixels before wrapping
- * @return Total height in pixels of the wrapped text
- */
 int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
 {
   // Validate input parameters
@@ -137,17 +108,6 @@ int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
   return DrawTextWrapped( text, 0, 0, 255, 255, 255, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
 }
 
-/**
- * @brief Creates a texture from a text string using TTF rendering.
- *
- * This function renders text using the SDL_ttf library directly, creating
- * a texture that can be used for custom text rendering. The text is
- * rendered with white color using blended (anti-aliased) mode.
- *
- * @param text The text string to render (UTF-8 encoded)
- * @param font_type The font type to use for rendering
- * @return SDL_Texture pointer containing the rendered text, or NULL on failure
- */
 SDL_Texture* a_GetTextTexture( char* text, int font_type )
 {
   SDL_Surface* surface;
@@ -167,49 +127,58 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type )
   return a_ToTexture( surface, 1 );
 }
 
-/**
- * @brief Draws text at the specified position with color and alignment.
- *
- * This function renders text to the screen using the glyph atlas system for
- * efficient drawing. It supports text alignment, color tinting, and optional
- * word wrapping. The text is rendered using pre-cached glyphs from the font
- * texture atlas.
- *
- * @param text The text string to draw (UTF-8 encoded)
- * @param x X coordinate for text position
- * @param y Y coordinate for text position
- * @param r Red color component (0-255)
- * @param g Green color component (0-255)
- * @param b Blue color component (0-255)
- * @param font_type The font type to use (FONT_ENTER_COMMAND, FONT_LINUX, etc.)
- * @param align Text alignment (TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT)
- * @param max_width Maximum width for text wrapping (0 = no wrapping)
- */
+void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config )
+{
+  // Use default config if NULL is passed
+  const aFontConfig_t* cfg = config ? config : &a_default_font_config;
+
+  // Validate input parameters
+  int validation_result = validate_text_parameters( text, cfg->type );
+  if ( validation_result != ARCH_TEXT_SUCCESS ) {
+    // Silently fail for now to maintain API compatibility
+    return;
+  }
+
+  validation_result = validate_color_parameters( cfg->color.r, cfg->color.g, cfg->color.b );
+  if ( validation_result != ARCH_TEXT_SUCCESS ) {
+    // Silently fail for now to maintain API compatibility
+    return;
+  }
+
+  // Temporarily set font scale if different from default
+  double old_scale = app.font_scale;
+  if ( cfg->scale != 1.0f && cfg->scale > 0.0f ) {
+    app.font_scale = cfg->scale;
+  }
+
+  if ( cfg->wrap_width > 0 )
+  {
+    DrawTextWrapped( (char*)text, x, y, cfg->color.r, cfg->color.g, cfg->color.b,
+                     cfg->type, cfg->align, cfg->wrap_width, 1 );
+  }
+  else
+  {
+    DrawTextLine( (char*)text, x, y, cfg->color.r, cfg->color.g, cfg->color.b,
+                  cfg->type, cfg->align );
+  }
+
+  // Restore original scale
+  app.font_scale = old_scale;
+}
+
 void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
                  int align, int max_width )
 {
-  // Validate input parameters
-  int validation_result = validate_text_parameters( text, font_type );
-  if ( validation_result != ARCH_TEXT_SUCCESS ) {
-    // Silently fail for now to maintain API compatibility
-    return;
-  }
-  
-  validation_result = validate_color_parameters( r, g, b );
-  if ( validation_result != ARCH_TEXT_SUCCESS ) {
-    // Silently fail for now to maintain API compatibility
-    return;
-  }
-  
-  if ( max_width > 0 )
-  {
-    DrawTextWrapped( text, x, y, r, g, b, font_type, align, max_width, 1 );
-  }
+  // Create config from parameters and forward to new API
+  aFontConfig_t config = {
+    .type = font_type,
+    .color = {r, g, b, 255},
+    .align = align,
+    .wrap_width = max_width,
+    .scale = 1.0f
+  };
 
-  else
-  {
-    DrawTextLine( text, x, y, r, g, b, font_type, align );
-  }
+  a_DrawTextStyled( text, x, y, &config );
 }
 
 static void initFontPNG( char* filename, int font_type, int glyph_width, int glyph_height )
@@ -424,7 +393,7 @@ static void DrawTextLine( char* text, int x, int y, int r, int g, int b, int fon
   {
     for ( int j = 0; j < len; j++ )
     {
-      c = text[j];
+      c = text[j] - 1;
       glyph = &app.glyphs[font_type][c];
 
       dest.x = x;
@@ -558,16 +527,6 @@ static int NextGlyph( const char* string, int* i, char* glyph_buffer )
   return bit;
 }
 
-// ============================================================================
-// Input Validation Helper Functions
-// ============================================================================
-
-/**
- * @brief Validates text and font parameters
- * @param text The text string to validate
- * @param font_type The font type to validate
- * @return ARCH_TEXT_SUCCESS on success, error code on failure
- */
 static int validate_text_parameters( const char* text, int font_type )
 {
   if ( text == NULL ) {
@@ -581,13 +540,6 @@ static int validate_text_parameters( const char* text, int font_type )
   return ARCH_TEXT_SUCCESS;
 }
 
-/**
- * @brief Validates color parameters
- * @param r Red component (0-255)
- * @param g Green component (0-255)
- * @param b Blue component (0-255)
- * @return ARCH_TEXT_SUCCESS on success, error code on failure
- */
 static int validate_color_parameters( int r, int g, int b )
 {
   if ( r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 ) {
@@ -597,13 +549,6 @@ static int validate_color_parameters( int r, int g, int b )
   return ARCH_TEXT_SUCCESS;
 }
 
-/**
- * @brief Validates UTF-8 sequence at given position
- * @param text The text string to check
- * @param start_pos Starting position in the string
- * @param sequence_length Output parameter for sequence length
- * @return ARCH_TEXT_SUCCESS if valid, error code if invalid
- */
 static int is_valid_utf8_sequence( const char* text, int start_pos, int* sequence_length )
 {
   if ( text == NULL || sequence_length == NULL ) {

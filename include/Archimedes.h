@@ -699,117 +699,96 @@ enum
   TEXT_ALIGN_RIGHT    /**< Align text to the right of X coordinate */
 };
 
+/** @brief Font configuration for styled text rendering */
+typedef struct
+{
+  int type;          // Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
+  aColor_t color;    // Text color
+  int align;         // Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
+  int wrap_width;    // Word wrap width (0 = no wrap)
+  float scale;       // Font scale multiplier (1.0 = default)
+} aFontConfig_t;
+
 /**
- * @brief Calculate the height of wrapped text
+ * @brief Calculate the height of text with word wrapping
  *
- * Computes how tall the rendered text will be when word-wrapped to fit
- * within the specified maximum width.
+ * Measures how tall the text will be when rendered with word wrapping enabled.
+ * Useful for laying out text containers or calculating scroll regions.
  *
- * @param text String to measure (UTF-8 supported)
- * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, etc.)
+ * @param text Text string to measure (must not be NULL)
+ * @param font_type Font type to use (FONT_ENTER_COMMAND, FONT_GAME, etc.)
  * @param max_width Maximum line width in pixels before wrapping
- * @return Total height in pixels needed to render the wrapped text
- *
- * @note Useful for dynamic UI layouts that adapt to text size
- * @note Returns 0 if text is NULL or empty
- * @see a_CalcTextDimensions()
+ * @return Height in pixels, or 0 on error (NULL text, invalid font, invalid width)
  */
 int a_GetWrappedTextHeight( char* text, int font_type, int max_width );
 
 /**
- * @brief Calculate the dimensions of rendered text
+ * @brief Calculate text dimensions without rendering
  *
- * Measures the width and height of text when rendered with the specified font.
- * Does not account for wrapping (use a_GetWrappedTextHeight for that).
+ * Measures the width and height of text as it would be rendered.
+ * Does not wrap - calculates single-line dimensions.
  *
- * @param text String to measure (UTF-8 supported)
- * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, etc.)
- * @param w Output pointer for width in pixels
- * @param h Output pointer for height in pixels
- *
- * @note Width/height are set to 0 if text is NULL or empty
- * @note Height is the font's line height, not the actual glyph height
- * @note Essential for proper text centering in buttons/UI elements
- *
- * @code
- * int text_w, text_h;
- * a_CalcTextDimensions("Hello", FONT_GAME, &text_w, &text_h);
- * int centered_y = button_y + (button_h - text_h) / 2;
- * @endcode
+ * @param text Text string to measure (must not be NULL)
+ * @param font_type Font type to use (FONT_ENTER_COMMAND, FONT_GAME, etc.)
+ * @param w Pointer to store calculated width (set to 0 on error)
+ * @param h Pointer to store calculated height (set to 0 on error)
  */
 void a_CalcTextDimensions( char* text, int font_type, int* w, int* h );
 
 /**
- * @brief Draw text to the screen
+ * @brief Draw text with styled configuration
  *
- * Renders text at the specified position with color and alignment.
- * The (x, y) coordinate represents the TOP-LEFT corner of the text bounding box
- * (after alignment is applied).
+ * Renders text at the specified position using a font configuration structure.
+ * Supports alignment, wrapping, scaling, and color. This is the recommended
+ * text drawing function - prefer it over a_DrawText().
  *
- * @param text String to render (UTF-8 supported)
- * @param x X coordinate - meaning depends on alignment:
- *          - TEXT_ALIGN_LEFT: left edge of text
- *          - TEXT_ALIGN_CENTER: horizontal center of text
- *          - TEXT_ALIGN_RIGHT: right edge of text
- * @param y Y coordinate - TOP edge of text (NOT center!)
+ * @param text Text string to render (must not be NULL)
+ * @param x X coordinate (meaning depends on alignment)
+ * @param y Y coordinate (top of text baseline)
+ * @param config Font configuration (NULL uses a_default_font_config)
+ */
+void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config );
+
+/**
+ * @brief Draw text with individual parameters (legacy API)
+ *
+ * Renders text at the specified position with individual style parameters.
+ * This is the legacy API - prefer a_DrawTextStyled() for new code.
+ *
+ * @param text Text string to render (must not be NULL)
+ * @param x X coordinate (meaning depends on alignment)
+ * @param y Y coordinate (top of text baseline)
  * @param r Red color component (0-255)
  * @param g Green color component (0-255)
  * @param b Blue color component (0-255)
- * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, FONT_LINUX, etc.)
- * @param align Alignment mode (TEXT_ALIGN_LEFT/CENTER/RIGHT)
- * @param max_width Maximum width before wrapping (0 = no wrapping)
- *
- * @note Y coordinate is the TOP of the text, not the baseline or center!
- * @note To vertically center text: y = center_y - (text_height / 2)
- * @note max_width of 0 disables wrapping
- * @note Clipping is handled automatically by SDL
- *
- * @warning Common mistake: Forgetting that Y is the TOP of the text
- *
- * @code
- * // Draw centered text in a button
- * int text_w, text_h;
- * a_CalcTextDimensions("Click Me", FONT_GAME, &text_w, &text_h);
- * int text_x = button_x + button_w / 2;
- * int text_y = button_y + (button_h - text_h) / 2;  // Vertically centered!
- * a_DrawText("Click Me", text_x, text_y, 255, 255, 255, FONT_GAME, TEXT_ALIGN_CENTER, 0);
- * @endcode
- *
- * @see a_CalcTextDimensions()
+ * @param font_type Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
+ * @param align Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
+ * @param max_width Word wrap width (0 = no wrap)
  */
 void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type, int align, int max_width );
 
 /**
- * @brief Get an SDL_Texture containing rendered text
+ * @brief Create an SDL texture from text
  *
- * Creates a texture with the specified text rendered using the given font.
- * Texture must be destroyed by caller using SDL_DestroyTexture().
+ * Renders text to a new SDL texture using the specified font.
+ * The caller is responsible for destroying the texture with SDL_DestroyTexture().
  *
- * @param text String to render (UTF-8 supported)
- * @param font_type Font to use (FONT_GAME, FONT_ENTER_COMMAND, etc.)
- * @return SDL_Texture pointer, or NULL on error
- *
- * @note Caller is responsible for calling SDL_DestroyTexture()
- * @note More efficient to call a_DrawText() for one-time rendering
- * @note Useful when text needs to be rendered multiple times per frame
- *
- * @warning Memory leak if texture is not destroyed!
+ * @param text Text string to render (must not be NULL)
+ * @param font_type Font type to use (FONT_ENTER_COMMAND, FONT_GAME, etc.)
+ * @return New SDL_Texture containing rendered text, or NULL on error
  */
 SDL_Texture* a_GetTextTexture( char* text, int font_type );
 
 /**
  * @brief Initialize the font rendering system
  *
- * Loads TTF fonts and creates glyph atlases for text rendering.
- * Called automatically by a_Init() - do not call manually.
- *
- * @note Loads fonts from resources/fonts/ directory
- * @note Creates texture atlases for fast glyph rendering
- * @note Program will exit if font loading fails
- *
- * @see a_Init()
+ * Loads all fonts and creates font atlas textures.
+ * Called automatically by a_Init() - do not call directly.
  */
 void a_InitFonts( void );
+
+/** @brief Default font config (white, left-aligned, FONT_GAME, no wrap, scale 1.0) */
+extern aFontConfig_t a_default_font_config;
 
 /** @} */ // end of text group
 

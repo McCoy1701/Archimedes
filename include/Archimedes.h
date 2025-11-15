@@ -740,6 +740,7 @@ void a_InitTextures( void );
 
 enum
 {
+  WT_UNKNOWN,
   WT_BUTTON,
   WT_SELECT,
   WT_SLIDER,
@@ -818,15 +819,17 @@ int a_ClearWidgetCache( aWidget_t* widget );
 
 aAUF_t* a_AUFParser( const char* filename );
 int a_SaveAUF( aWidget_t* widget_head, const char* filename );
-int a_FreeAUF( char** line, const int nl_count );
+int a_FreeLine( char** line, const int nl_count );
 
 aAUF_t* a_AUFCreation( void );
 aAUF_Node_t* a_AUFNodeCreation( void );
 int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node );
-int a_AUFAddChild( aAUF_Node_t* root, aAUF_Node_t* node );
+int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node );
+int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node );
 int a_AUFNodeFree( aAUF_Node_t* head );
 int a_AUFFree( aAUF_t* root );
-aAUF_Node_t* a_GetObjectItem( aAUF_Node_t* node, char* object_str );
+aAUF_Node_t* a_AUFGetObjectItem( aAUF_Node_t* node, char* object_str );
+void a_PrintAUFTree( aAUF_Node_t* node, int depth );
 
 /*
 ---------------------------------------------------------------
@@ -876,4 +879,20 @@ typedef enum
 
 extern char* log_level_strings[LOG_LEVEL_COUNT];
 
+/*
+---------------------------------------------------------------
+---                         Utils                           ---
+---------------------------------------------------------------
+*/
+
+char* a_STR_NDUP( const char* str, size_t len );
+char* a_ParseString( char delimiter, char* str, int str_len );
+char* a_ReadFile( const char* filename, int* file_size );
+char* a_ParseString( char delimiter, char* str, int str_len );
+char* a_ParseStringDoubleDelim( char delimiter1, char delimiter2, char* str,
+                                int str_len );
+int a_CountNewLines( const char* file_string, const int file_size );
+char** a_ParseLinesInFile( const char* file_string, const int file_size,
+                           const int nl_count );
 #endif
+

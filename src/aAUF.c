@@ -72,7 +72,36 @@ int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node )
   return 0;
 }
 
-int a_AUFAddChild( aAUF_Node_t* root, aAUF_Node_t* node )
+int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node )
+{
+  if ( root == NULL || node == NULL )
+  {
+    printf( "Head, Child, or node is NULL: %s, %d\n", __FILE__, __LINE__ );
+    return 1;
+  }
+  
+  if ( root == NULL )
+  {
+    root = node;
+    node->prev = NULL;
+    node->next = NULL;
+    return 0;
+  }
+
+  aAUF_Node_t* current = root;
+  while ( current->next != NULL )
+  {
+    current = current->next;
+  }
+
+  current->next = node;
+  node->prev = current;
+  node->next = NULL;
+
+  return 0;
+}
+
+int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node )
 {
   if ( root == NULL || node == NULL )
   {
@@ -149,7 +178,7 @@ int a_AUFFree( aAUF_t* root )
   return 0;
 }
 
-aAUF_Node_t* a_GetObjectItem( aAUF_Node_t* node, char* object_str )
+aAUF_Node_t* a_AUFGetObjectItem( aAUF_Node_t* node, char* object_str )
 {
   if ( node == NULL )
   {

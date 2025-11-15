@@ -2,13 +2,6 @@
 #include <stdlib.h>
 #include "Archimedes.h"
 
-#ifndef __EMSCRIPTEN__
-#include <cjson/cJSON.h>
-#endif
-#ifdef __EMSCRIPTEN__
-#include "cJSON.h"
-#endif
-
 static aWidget_t widget_head;
 static aWidget_t* widget_tail;
 
@@ -16,15 +9,15 @@ static aWidget_t* widget_tail;
 static void LoadWidgets( const char* filename );
 static int GetWidgetType( const char* type );
 static void ChangeWidgetValue( const int value );
-static void CreateWidget( cJSON* root );
+static void CreateWidget( aAUF_Node_t* root );
 static char* ReadFile( const char* filename );
 
-static void CreateButtonWidget( aWidget_t* w, cJSON* root );
-static void CreateSelectWidget( aWidget_t* w, cJSON* root );
-static void CreateSliderWidget( aWidget_t* w, cJSON* root );
-static void CreateInputWidget( aWidget_t* w, cJSON* root );
-static void CreateControlWidget( aWidget_t* w, cJSON* root );
-static void CreateContainerWidget( aWidget_t* w, cJSON* root );
+static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root );
+static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root );
+static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root );
+static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root );
+static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root );
+static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root );
 static void DrawButtonWidget( aWidget_t* w );
 static void DrawSelectWidget( aWidget_t* w );
 static void DrawSliderWidget( aWidget_t* w );
@@ -377,21 +370,17 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name )
  */
 static void LoadWidgets( const char* filename )
 {
-  cJSON* root, *node;
-  char* text;
+  aAUF_t* root;
+  aAUF_Node_t* node;
 
-  text = ReadFile( filename );
+  root = a_AUFParser( filename );
 
-  root = cJSON_Parse( text );
-
-  for ( node = root->child; node != NULL; node = node->next )
+  for ( node = root->head; node != NULL; node = node->next )
   {
     CreateWidget( node );
   }
 
-  cJSON_Delete( root );
-
-  free( text );
+  a_AUFFree( root );
 }
 
 /**
@@ -595,17 +584,17 @@ static void ChangeWidgetValue( const int value )
  *
  * @param root A cJSON object containing the configuration for the widget to be created.
  */
-static void CreateWidget( cJSON* root )
+static void CreateWidget( aAUF_Node_t* root )
 {
   aWidget_t* w;
-  cJSON* object, *node;
+  aAUF_Node_t* object, *node;
   int type, i;
   uint8_t fg[4] = {0};
   uint8_t bg[4] = {0};
 
-  type = GetWidgetType( cJSON_GetObjectItem( root, "type" )->valuestring );
+  type = root->type;
 
-  if ( type != -1)
+  if ( type != 0 )
   {
     w = malloc( sizeof( aWidget_t ) );
     memset( w, 0, sizeof( aWidget_t ) );
@@ -614,34 +603,33 @@ static void CreateWidget( cJSON* root )
     w->prev = widget_tail;
     widget_tail = w;
 
-    STRCPY( w->name, cJSON_GetObjectItem( root, "name" )->valuestring );
-    STRCPY( w->label, cJSON_GetObjectItem( root, "label" )->valuestring );
-    w->type = GetWidgetType( 
-      cJSON_GetObjectItem( root, "type" )->valuestring );
+    STRCPY( w->name, root->value_string );
+    STRCPY( w->label, a_AUFGetObjectItem( root, "label" )->value_string );
+    w->type = root->type;
 
-    w->rect.x = cJSON_GetObjectItem( root, "x" )->valueint;
-    w->rect.y = cJSON_GetObjectItem( root, "y" )->valueint;
-    w->boxed = cJSON_GetObjectItem( root, "boxed" )->valueint;
-    w->hidden = cJSON_GetObjectItem( root, "hidden" )->valueint;
-    w->padding = cJSON_GetObjectItem( root, "padding" )->valueint;
+    w->rect.x = a_AUFGetObjectItem( root, "x" )->value_int;
+    w->rect.y = a_AUFGetObjectItem( root, "y" )->value_int;
+    w->boxed = a_AUFGetObjectItem( root, "boxed" )->value_int;
+    w->hidden = a_AUFGetObjectItem( root, "hidden" )->value_int;
+    w->padding = a_AUFGetObjectItem( root, "padding" )->value_int;
     w->action = NULL;
 
-    object = cJSON_GetObjectItem( root, "fg");
+    object = a_AUFGetObjectItem( root, "fg");
     i = 0;
     for ( node = object->child; node != NULL; node = node->next )
     {
-      fg[i++] = node->valueint;
+      fg[i++] = node->value_int;
     }
     w->fg.r = fg[0];
     w->fg.g = fg[1];
     w->fg.b = fg[2];
     w->fg.a = fg[3];
 
-    object = cJSON_GetObjectItem( root, "bg");
+    object = a_AUFGetObjectItem( root, "bg");
     i = 0;
     for ( node = object->child; node != NULL; node = node->next )
     {
-      bg[i++] = node->valueint;
+      bg[i++] = node->value_int;
     }
     w->bg.r = bg[0];
     w->bg.g = bg[1];
@@ -690,10 +678,9 @@ static void CreateWidget( cJSON* root )
  * @param w A pointer to the `aWidget_t` structure for the button.
  * @param root A cJSON object containing the configuration for the button.
  */
-static void CreateButtonWidget( aWidget_t* w, cJSON* root )
+static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root )
 {
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
-  printf( "button: %s\n", root->string );
 }
 
 /**
@@ -707,9 +694,9 @@ static void CreateButtonWidget( aWidget_t* w, cJSON* root )
  * @param w A pointer to the `aWidget_t` structure for the select widget.
  * @param root A cJSON object containing the configuration for the select widget.
  */
-static void CreateSelectWidget( aWidget_t* w, cJSON* root )
+static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root )
 {
-  cJSON* options, *node;
+  aAUF_Node_t* options, *node;
   int i, len, temp_w, temp_h, width, height;
   char* temp_string;
   aSelectWidget_t* s;
@@ -718,9 +705,9 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
   memset( s, 0, sizeof( aSelectWidget_t ) );
   w->data = s;
 
-  options = cJSON_GetObjectItem( root, "options" );
+  options = a_AUFGetObjectItem( root, "options" );
 
-  s->num_options = cJSON_GetArraySize( options );
+  s->num_options = options->value_int;
   s->value = 0;
   
   temp_w = temp_h = width = height = 0;
@@ -733,14 +720,14 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
 
     for( node = options->child; node != NULL; node = node->next )
     {
-      len = strlen( node->valuestring ) + 1;
+      len = strlen( node->value_string ) + 1;
 
       s->options[i] = malloc( len );
       temp_string = malloc( len + 4 );
 
-      snprintf(temp_string, ( len + 4 ), "< %s >", node->valuestring );
+      snprintf(temp_string, ( len + 4 ), "< %s >", node->value_string );
 
-      STRNCPY( s->options[i], node->valuestring, len );
+      STRNCPY( s->options[i], node->value_string, len );
       a_CalcTextDimensions( temp_string, app.font_type, &width, &height );
       
       if ( width > temp_w )
@@ -777,15 +764,15 @@ static void CreateSelectWidget( aWidget_t* w, cJSON* root )
  * @param w A pointer to the `aWidget_t` structure for the slider widget.
  * @param root A cJSON object containing the configuration for the slider widget.
  */
-static void CreateSliderWidget( aWidget_t* w, cJSON* root )
+static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root )
 {
   aSliderWidget_t* s;
   s = malloc( sizeof( aSliderWidget_t ) );
   memset( s, 0, sizeof( aSliderWidget_t ) );
   w->data = s;
 
-  s->step = cJSON_GetObjectItem( root, "step" )->valueint;
-  s->wait_on_change = cJSON_GetObjectItem( root, "wait_on_change" )->valueint;
+  s->step = a_AUFGetObjectItem( root, "step" )->value_int;
+  s->wait_on_change = a_AUFGetObjectItem( root, "wait_on_change" )->value_int;
   s->value = 0;
 
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
@@ -807,7 +794,7 @@ static void CreateSliderWidget( aWidget_t* w, cJSON* root )
  * @param w A pointer to the `aWidget_t` structure for the input widget.
  * @param root A cJSON object containing the configuration for the input widget.
  */
-static void CreateInputWidget( aWidget_t* w, cJSON* root )
+static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root )
 {
   aInputWidget_t* input;
 
@@ -816,10 +803,10 @@ static void CreateInputWidget( aWidget_t* w, cJSON* root )
 
   w->data = input;
 
-  input->max_length = cJSON_GetObjectItem( root, "max_length" )->valueint;
+  input->max_length = a_AUFGetObjectItem( root, "max_length" )->value_int;
   input->text = malloc(  input->max_length + 1 );
 
-  STRNCPY( input->text, "Player", MAX_INPUT_LENGTH );
+  STRNCPY( input->text, "...", MAX_INPUT_LENGTH );
 
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
   input->rect.x = w->rect.x + w->rect.w + 50;
@@ -838,7 +825,7 @@ static void CreateInputWidget( aWidget_t* w, cJSON* root )
  * @param w A pointer to the `aWidget_t` structure for the control widget.
  * @param root A cJSON object containing the configuration for the control widget.
  */
-static void CreateControlWidget( aWidget_t* w, cJSON* root )
+static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root )
 {
   aControlWidget_t* control;
 
@@ -847,7 +834,6 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
 
   w->data = control;
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
-  printf( "Control: %s\n", root->string );
 }
 
 /**
@@ -863,9 +849,9 @@ static void CreateControlWidget( aWidget_t* w, cJSON* root )
  * @param w A pointer to the `aWidget_t` structure for the container widget.
  * @param root A cJSON object containing the configuration for the container widget.
  */
-static void CreateContainerWidget( aWidget_t* w, cJSON* root )
+static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
 {
-  cJSON* object, *node;
+  aAUF_Node_t* object, *node;
   int i;
   int temp_x, temp_y;
   aContainerWidget_t* container;
@@ -885,13 +871,13 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
   memset( container, 0, sizeof( aContainerWidget_t ) );
   
   w->data = container;
-  w->flex = cJSON_GetObjectItem( root, "flex" )->valueint;
-  container->spacing = cJSON_GetObjectItem( root, "spacing" )->valueint;
+  w->flex = a_AUFGetObjectItem( root, "flex" )->value_int;
+  container->spacing = a_AUFGetObjectItem( root, "spacing" )->value_int;
   w->rect.w = w->rect.h = 0;
   w->action = NULL;
 
-  object = cJSON_GetObjectItem( root, "components" );
-  container->num_components = cJSON_GetArraySize( object );
+  object = a_AUFGetObjectItem( root, "container" );
+  container->num_components = object->value_int;
 
   container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) *
                                                container->num_components );
@@ -912,36 +898,35 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
   for ( node = object->child; node != NULL; node = node->next )
   {
     aWidget_t* current = &container->components[i];
-    STRCPY( current->name, cJSON_GetObjectItem( node, "name" )->valuestring );
+    STRCPY( current->name, node->value_string );
     STRCPY( current->label,
-           cJSON_GetObjectItem( node, "label" )->valuestring );
+           a_AUFGetObjectItem( node, "label" )->value_string );
 
-    current->type = GetWidgetType( 
-      cJSON_GetObjectItem( node, "type" )->valuestring );
+    current->type = node->type;
 
-    current->boxed = cJSON_GetObjectItem( node, "boxed" )->valueint;
-    current->hidden = cJSON_GetObjectItem( node, "hidden" )->valueint;
-    current->padding = cJSON_GetObjectItem( node, "padding" )->valueint;
+    current->boxed = a_AUFGetObjectItem( node, "boxed" )->value_int;
+    current->hidden = a_AUFGetObjectItem( node, "hidden" )->value_int;
+    current->padding = a_AUFGetObjectItem( node, "padding" )->value_int;
     current->action = NULL;
 
-    cJSON* object_1, *node_1;
+    aAUF_Node_t* object_1, *node_1;
     int j;
-    object_1 = cJSON_GetObjectItem( node, "fg");
+    object_1 = a_AUFGetObjectItem( node, "fg");
     j = 0;
     for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
     {
-      fg[j++] = node_1->valueint;
+      fg[j++] = node_1->value_int;
     }
     current->fg.r = fg[0];
     current->fg.g = fg[1];
     current->fg.b = fg[2];
     current->fg.a = fg[3];
 
-    object_1 = cJSON_GetObjectItem( node, "bg");
+    object_1 = a_AUFGetObjectItem( node, "bg");
     j = 0;
     for ( node_1 = object_1->child; node_1 != NULL; node_1 = node_1->next )
     {
-      bg[j++] = node_1->valueint;
+      bg[j++] = node_1->value_int;
     }
     current->bg.r = bg[0];
     current->bg.g = bg[1];
@@ -961,8 +946,8 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
   
     else
     {
-      current->rect.x = cJSON_GetObjectItem( node, "x" )->valueint;
-      current->rect.y = cJSON_GetObjectItem( node, "y" )->valueint;
+      current->rect.x = a_AUFGetObjectItem( node, "x" )->value_int;
+      current->rect.y = a_AUFGetObjectItem( node, "y" )->value_int;
     }
 
     int widget_effective_w = current->rect.w;
@@ -1049,32 +1034,6 @@ static void CreateContainerWidget( aWidget_t* w, cJSON* root )
 
   w->rect.w = max_component_x_plus_w - w->rect.x;
   w->rect.h = max_component_y_plus_h - w->rect.y;
-}
-
-static char* ReadFile( const char* filename )
-{
-  char *buffer;
-  long length;
-  FILE* file;
-
-  file = fopen( filename, "rb" );
-  if ( file == NULL )
-  {
-    printf( "Failed to read %s\n", filename );
-    return NULL;
-  }
-
-  fseek( file, 0, SEEK_END );
-  length = ftell( file );
-  fseek( file, 0, SEEK_SET );
-
-  buffer = malloc( length );
-  memset( buffer, 0, length );
-  fread( buffer, 1, length, file );
-
-  fclose( file );
-
-  return buffer;
 }
 
 /**

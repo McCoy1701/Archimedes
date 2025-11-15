@@ -24,7 +24,7 @@ OBJ_DIR_EM     = obj/em
 
 #Flags
 CINC = -I$(INC_DIR)/
-LDLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lcjson -lm
+LDLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm
 EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 C_FLAGS = -Wall -Wextra $(CINC)
@@ -47,6 +47,7 @@ ARCHIMEDES_SRCS = \
     aInput.c \
     aText.c \
     aTextures.c \
+		aUtils.c \
     aWidgets.c
 
 SHARED_OBJS = $(patsubst %.c, $(OBJ_DIR_SHARED)/%.o, $(ARCHIMEDES_SRCS))

@@ -101,9 +101,35 @@ enum
 
 typedef struct
 {
+  float x, y;
+  float w, h;
+} aRectf_t;
+
+typedef struct
+{
   int x, y;
   int w, h;
-} aRect_t;
+} aRecti_t;
+
+typedef struct
+{
+  float x, y;
+} aPoint2f_t;
+
+typedef struct
+{
+  int x, y;
+} aPoint2i_t;
+
+typedef struct
+{
+  float x, y, z;
+} aPoint3f_t;
+
+typedef struct
+{
+  int x, y, z;
+} aPoint3i_t;
 
 typedef struct
 {
@@ -123,7 +149,7 @@ typedef struct _widget_t
 {
   int type;
   char name[MAX_FILENAME_LENGTH];
-  aRect_t rect;
+  aRectf_t rect;
   char label[MAX_FILENAME_LENGTH];
   int boxed;
   int hidden;
@@ -139,7 +165,7 @@ typedef struct _widget_t
 
 typedef struct
 {
-  aRect_t rect;
+  aRectf_t rect;
   int spacing;
   int num_components;
   aWidget_t* components;
@@ -149,14 +175,14 @@ typedef struct
 {
   int num_options;
   char** options;
-  aRect_t rect;
+  aRectf_t rect;
   int value;
   char* text_name[MAX_NAME_LENGTH];
 } aSelectWidget_t;
 
 typedef struct
 {
-  aRect_t rect;
+  aRectf_t rect;
   int value;
   int step;
   int wait_on_change;
@@ -164,7 +190,7 @@ typedef struct
 
 typedef struct
 {
-  aRect_t rect;
+  aRectf_t rect;
   int max_length;
   char* text;
 } aInputWidget_t;
@@ -268,6 +294,7 @@ typedef struct
   int running;
   char input_text[MAX_INPUT_LENGTH];
   int last_key_pressed;
+  aRectf_t g_viewport;
 } aApp_t;
 
 typedef struct
@@ -514,7 +541,7 @@ void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y
  * @note Temporarily changes render color, restores to white afterward
  * @see a_DrawFilledRect()
  */
-void a_DrawRect( const aRect_t rect, const aColor_t color );
+void a_DrawRect( const aRectf_t rect, const aColor_t color );
 /**
  * @brief Draw a filled rectangle
  * 
@@ -536,7 +563,7 @@ void a_DrawRect( const aRect_t rect, const aColor_t color );
  * @note Temporarily changes render color, restores to white afterward
  * @see a_DrawRect()
  */
-void a_DrawFilledRect( const aRect_t rect, const aColor_t color );
+void a_DrawFilledRect( const aRectf_t rect, const aColor_t color );
 
 /**
  * @brief Blit a surface to the screen at specified position
@@ -894,5 +921,19 @@ char* a_ParseStringDoubleDelim( char delimiter1, char delimiter2, char* str,
 int a_CountNewLines( const char* file_string, const int file_size );
 char** a_ParseLinesInFile( const char* file_string, const int file_size,
                            const int nl_count );
+
+/*
+---------------------------------------------------------------
+---                      Viewport                           ---
+---------------------------------------------------------------
+*/
+
+
+aPoint2f_t a_CalculateScaleOfViewport( void );
+uint8_t a_IsRectVisibleInViewport( aRectf_t rect );
+
+void a_DrawPointToViewport( aPoint3f_t p, aColor_t color );
+void a_DrawRectToViewport( aRectf_t rect, aColor_t color );
+
 #endif
 

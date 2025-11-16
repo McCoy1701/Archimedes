@@ -898,7 +898,6 @@ extern char* log_level_strings[LOG_LEVEL_COUNT];
 char* a_STR_NDUP( const char* str, size_t len );
 char* a_ParseString( char delimiter, char* str, int str_len );
 char* a_ReadFile( const char* filename, int* file_size );
-char* a_ParseString( char delimiter, char* str, int str_len );
 char* a_ParseStringDoubleDelim( char delimiter1, char delimiter2, char* str,
                                 int str_len );
 int a_CountNewLines( const char* file_string, const int file_size );

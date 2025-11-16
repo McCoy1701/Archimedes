@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "Archimedes.h"
 
 aPoint2f_t a_CalculateScaleOfViewport( void )
@@ -16,6 +13,19 @@ uint8_t a_IsRectVisibleInViewPort( aRectf_t rect )
        rect.x - rect.w > app.g_viewport.x + app.g_viewport.w || 
        rect.y + rect.h < app.g_viewport.y - app.g_viewport.h ||
        rect.y - rect.h > app.g_viewport.y + app.g_viewport.h )
+  {
+    return 0;
+  }
+
+  return 1;
+}
+
+uint8_t a_IsPointVisibleInViewPort( aPoint2f_t point )
+{
+  if ( point.x < app.g_viewport.x - app.g_viewport.w ||
+       point.x > app.g_viewport.x + app.g_viewport.w || 
+       point.y < app.g_viewport.y - app.g_viewport.h ||
+       point.y > app.g_viewport.y + app.g_viewport.h )
   {
     return 0;
   }

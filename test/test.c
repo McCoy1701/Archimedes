@@ -53,7 +53,7 @@ static void aRenderLoop( float dt )
 
   //a_Blit(surf, x, y);
   a_DrawText("Hello, World!", x, y, black, white, FONT_CODE_PAGE_437, TEXT_ALIGN_CENTER, 0 );
-  aRect_t rect = (aRect_t){ .x = 250, .y = 250, .w = 64, .h = 64 };
+  aRectf_t rect = (aRectf_t){ .x = 250, .y = 250, .w = 64, .h = 64 };
 
   a_DrawFilledRect( rect, blue );
 }

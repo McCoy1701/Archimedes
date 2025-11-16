@@ -307,7 +307,7 @@ static void we_CreationDoLoop( float dt )
 static void we_CreationRenderLoop( float dt )
 {
   aColor_t color_something = { .r = 255, .g = 0, .b = 255, .a = 255 };
-  aRect_t rect_something = { .x = 240, .y = 240, .w = 400, .h = 265 };
+  aRectf_t rect_something = { .x = 240, .y = 240, .w = 400, .h = 265 };
   a_DrawFilledRect( rect_something, color_something );
   
   a_DrawWidgets();
@@ -371,7 +371,7 @@ static void e_Logic( float dt )
 static void e_Draw( float dt )
 {
   aColor_t color_something = { .r = 255, .g = 0, .b = 255, .a = 255 };
-  aRect_t rect_something = { .x = 100, .y = 100, .w = 32, .h = 32 };
+  aRectf_t rect_something = { .x = 100, .y = 100, .w = 32, .h = 32 };
   a_DrawFilledRect( rect_something, color_something );
   //a_DrawFilledRect( 300, 300, 32, 32, 0, 255, 255, 255 );
   //a_DrawText( "Whore", 400, 250, 255, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0 );

@@ -1,3 +1,15 @@
+/* 
+ * @file src/aImage.c
+ 
+ * This file manages the loading, caching, and retrieval of all SDL_Surface
+ * image assets to prevent redundant disk access. It ensures images are loaded
+ * only once and handles memory cleanup upon shutdown. It also provides utility
+ * functions, such as a viewport screenshot capture
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -219,3 +231,4 @@ int a_Screenshot( SDL_Renderer *renderer, const char *filename )
   SDL_FreeSurface( aSurface );
   return 1;
 }
+

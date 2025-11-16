@@ -1,3 +1,12 @@
+/* 
+ * @file src/aText.c
+ *
+ * This file defines the functions used to display text to the game window.
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ */
+
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,21 +50,6 @@ static char *characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS
 static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
 #endif
 
-/**
- * @brief Initializes the font system with TTF fonts.
- *
- * This function loads the required TTF fonts and creates glyph atlases for
- * efficient text rendering. It loads two fonts: EnterCommand for UI and
- * JetBrains for code/Linux style text. The font scale and default font
- * type are also initialized.
- *
- * The function expects font files at:
- * - resources/fonts/EnterCommand.ttf (48pt)
- * - resources/fonts/JetBrains.ttf (32pt)
- *
- * If font loading fails, the program will exit with an error message.
- * Future versions may implement fallback behavior.
- */
 void a_InitFonts( void )
 {
 #ifdef __EMSCRIPTEN__
@@ -74,19 +68,7 @@ void a_InitFonts( void )
   app.font_type = FONT_ENTER_COMMAND;
 }
 
-/**
- * @brief Calculates the pixel dimensions of a text string.
- *
- * This function computes the width and height of a text string when rendered
- * with the specified font type. It takes into account the current font scale
- * and handles UTF-8 encoded text properly.
- *
- * @param text The text string to measure (UTF-8 encoded)
- * @param font_type The font type to use (FONT_ENTER_COMMAND, FONT_LINUX, etc.)
- * @param w Pointer to store the calculated width in pixels
- * @param h Pointer to store the calculated height in pixels
- */
-void a_CalcTextDimensions( const char* text, const int font_type, int* w, int* h )
+void a_CalcTextDimensions( const char* text, const int font_type, float* w, float* h )
 {
   int i, n;
   SDL_Rect* g;
@@ -147,17 +129,6 @@ int a_GetWrappedTextHeight( const char* text, const int font_type, const int max
   return DrawTextWrapped( text, 0, 0, white, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
 }
 
-/**
- * @brief Creates a texture from a text string using TTF rendering.
- *
- * This function renders text using the SDL_ttf library directly, creating
- * a texture that can be used for custom text rendering. The text is
- * rendered with white color using blended (anti-aliased) mode.
- *
- * @param text The text string to render (UTF-8 encoded)
- * @param font_type The font type to use for rendering
- * @return SDL_Texture pointer containing the rendered text, or NULL on failure
- */
 SDL_Texture* a_GetTextTexture( const char* text, const int font_type )
 {
   SDL_Surface* surface;
@@ -177,24 +148,6 @@ SDL_Texture* a_GetTextTexture( const char* text, const int font_type )
   return a_ToTexture( surface, 1 );
 }
 
-/**
- * @brief Draws text at the specified position with color and alignment.
- *
- * This function renders text to the screen using the glyph atlas system for
- * efficient drawing. It supports text alignment, color tinting, and optional
- * word wrapping. The text is rendered using pre-cached glyphs from the font
- * texture atlas.
- *
- * @param text The text string to draw (UTF-8 encoded)
- * @param x X coordinate for text position
- * @param y Y coordinate for text position
- * @param r Red color component (0-255)
- * @param g Green color component (0-255)
- * @param b Blue color component (0-255)
- * @param font_type The font type to use (FONT_ENTER_COMMAND, FONT_LINUX, etc.)
- * @param align Text alignment (TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT)
- * @param max_width Maximum width for text wrapping (0 = no wrapping)
- */
 void a_DrawText( const char* text, const int x, const int y,
                  const aColor_t bg, const aColor_t fg,
                  const int font_type, const int align, const int max_width )
@@ -421,7 +374,8 @@ static int DrawTextWrapped( const char* text, const int x, const int y,
 static void DrawTextLine( const char* text, const int x, const int y,
                           const aColor_t fg, const int font_type, const int align )
 {
-  int i, n, w, h, len, c;
+  int i, n, len, c;
+  float w, h;
   int new_x = x, new_y = y;
   SDL_Rect* glyph, dest;
 

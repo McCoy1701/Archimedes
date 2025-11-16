@@ -1,10 +1,20 @@
+/*
+ *   Archimedes is a lightweight, cross-platform C game engine
+ * built on SDL2 that provides essential 2D graphics, audio,
+ * input handling, and UI widget functionality.
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ ************************************************************************
+ */
+
+#ifndef __ARCHIMEDES_H__
+#define __ARCHIMEDES_H__
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
-
-#ifndef __ARCHIMEDES_H__
-#define __ARCHIMEDES_H__
 
 /*
 ---------------------------------------------------------------
@@ -329,22 +339,11 @@ void a_PlaySoundEffect( aAudioClip_t *clip );
 
 float a_GetDeltaTime( void );
 
-/**
- * @defgroup drawing Drawing System
- * @brief 2D drawing and rendering functions for the Archimedes engine
- * 
- * The drawing system provides comprehensive 2D graphics capabilities including:
- * - Scene management and render cycles
- * - Primitive drawing (points, lines, shapes)
- * - Filled and outlined shapes
- * - Surface and texture blitting
- * - Color management with predefined constants
- * 
- * All drawing functions use SDL2 as the underlying graphics backend and follow
- * a consistent pattern of temporarily setting render colors and restoring them.
- * 
- * @{
- */
+/*
+---------------------------------------------------------------
+---                        Draw                             ---
+---------------------------------------------------------------
+*/
 
 /**
  * @brief Prepare the scene for rendering
@@ -354,8 +353,6 @@ float a_GetDeltaTime( void );
  * 
  * @note Sets the render draw color to white (255,255,255,255) for subsequent operations
  * @note Must be paired with a_PresentScene() to display the rendered frame
- * @see a_PresentScene()
- * @see app.background
  */
 void a_PrepareScene( void );
 
@@ -368,25 +365,21 @@ void a_PrepareScene( void );
  * 
  * @note Uses double-buffered rendering: swaps front and back buffers
  * @note Call this after all drawing operations in a frame
- * @see a_PrepareScene()
  */
 void a_PresentScene( void );
+
 /**
  * @brief Draw a single point at specified coordinates
  * 
  * Renders a single pixel at the given screen coordinates using the specified color.
- * The point is clipped automatically if coordinates fall outside screen bounds.
  * 
  * @param x Horizontal position in pixels
  * @param y Vertical position in pixels
  * @param color RGBA color structure for the point
  * 
- * @note Point is drawn as a single pixel
- * @note Coordinates outside screen bounds are clipped by SDL
- * @note Temporarily changes render color, restores to white afterward
- * @see aColor_t
  */
 void a_DrawPoint( const int x, const int y, const aColor_t color );
+
 /**
  * @brief Draw a line between two points
  * 
@@ -399,18 +392,13 @@ void a_DrawPoint( const int x, const int y, const aColor_t color );
  * @param y2 Ending Y coordinate
  * @param color RGBA color structure for the line
  * 
- * @note Handles lines at any angle including vertical and horizontal
- * @note Uses Bresenham's line algorithm internally via SDL
- * @note Temporarily changes render color, restores to white afterward
- * @see a_DrawHorizontalLine()
- * @see a_DrawVerticalLine()
  */
 void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const aColor_t color );
+
 /**
  * @brief Draw a horizontal line
  * 
  * Renders a horizontal line between two X coordinates at a fixed Y position.
- * This is optimized for drawing horizontal lines and handles coordinate ordering automatically.
  * 
  * @param x1 Starting X coordinate
  * @param x2 Ending X coordinate
@@ -419,29 +407,23 @@ void a_DrawLine( const int x1, const int y1, const int x2, const int y2, const a
  * 
  * @note Optimized for horizontal lines
  * @note Order of x1 and x2 doesn't matter (automatically handles swapping)
- * @note Temporarily changes render color, restores to white afterward
- * @see a_DrawLine()
- * @see a_DrawVerticalLine()
  */
 void a_DrawHorizontalLine( const int x1, const int x2, const int y, const aColor_t color );
+
 /**
  * @brief Draw a vertical line
  * 
  * Renders a vertical line between two Y coordinates at a fixed X position.
- * This is optimized for drawing vertical lines and handles coordinate ordering automatically.
  * 
  * @param y1 Starting Y coordinate
  * @param y2 Ending Y coordinate
  * @param x X coordinate (same for both endpoints)
  * @param color RGBA color structure for the line
  * 
- * @note Optimized for vertical lines
  * @note Order of y1 and y2 doesn't matter (automatically handles swapping)
- * @note Temporarily changes render color, restores to white afterward
- * @see a_DrawLine()
- * @see a_DrawHorizontalLine()
  */
 void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t color );
+
 /**
  * @brief Draw a circle outline
  * 
@@ -452,14 +434,9 @@ void a_DrawVerticalLine( const int y1, const int y2, const int x, const aColor_t
  * @param posY Center Y coordinate
  * @param radius Circle radius in pixels
  * @param color RGBA color structure for the circle outline
- * 
- * @note Draws only the perimeter, not filled
- * @note Uses Bresenham's circle algorithm for efficiency
- * @note Radius of 0 draws a single point at center
- * @note Negative radius is treated as 0
- * @see a_DrawFilledCircle()
  */
 void a_DrawCircle( const int posX, const int posY, const int radius, const aColor_t color );
+
 /**
  * @brief Draw a filled circle
  * 
@@ -471,18 +448,13 @@ void a_DrawCircle( const int posX, const int posY, const int radius, const aColo
  * @param radius Circle radius in pixels
  * @param color RGBA color structure for the filled circle
  * 
- * @note Fills the entire circle area with color
- * @note Uses optimized scan-line filling algorithm
- * @note Radius of 0 draws a single point at center
- * @note Negative radius is treated as 0
- * @see a_DrawCircle()
  */
 void a_DrawFilledCircle( const int posX, const int posY, const int radius, const aColor_t color );
+
 /**
  * @brief Draw a triangle outline
  * 
  * Renders the outline of a triangle by drawing three lines connecting the specified vertices.
- * The triangle can be specified with vertices in any order (clockwise or counter-clockwise).
  * 
  * @param x0 First vertex X coordinate
  * @param y0 First vertex Y coordinate
@@ -492,13 +464,11 @@ void a_DrawFilledCircle( const int posX, const int posY, const int radius, const
  * @param y2 Third vertex Y coordinate
  * @param color RGBA color structure for the triangle outline
  * 
- * @note Draws three lines connecting the vertices
  * @note Vertices can be specified in any order (clockwise or counter-clockwise)
- * @note Degenerate triangles (collinear points) draw as lines
- * @see a_DrawFilledTriangle()
  */
 void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, const int x2,
                      const int y2, const aColor_t color );
+
 /**
  * @brief Draw a filled triangle
  * 
@@ -513,55 +483,30 @@ void a_DrawTriangle( const int x0, const int y0, const int x1, const int y1, con
  * @param y2 Third vertex Y coordinate
  * @param color RGBA color structure for the filled triangle
  * 
- * @note Fills the entire triangle area with color
- * @note Currently implementation is disabled (commented out)
- * @note Would use barycentric coordinate filling when implemented
- * @note Degenerate triangles are handled gracefully
- * @see a_DrawTriangle()
+ * @note Currently implementation is disabled
  */
 void a_DrawFilledTriangle( const int x0, const int y0, const int x1, const int y1,
                            const int x2, const int y2, const aColor_t color );
+
 /**
  * @brief Draw a rectangle outline
  * 
  * Renders the outline of a rectangle at the specified position and dimensions.
- * Uses individual RGBA color components instead of a color structure.
  * 
- * @param x Top-left X coordinate
- * @param y Top-left Y coordinate
- * @param w Width in pixels
- * @param h Height in pixels
- * @param r Red color component (0-255)
- * @param g Green color component (0-255)
- * @param b Blue color component (0-255)
- * @param a Alpha transparency (0-255, 255=opaque)
+ * @param rect the rectangle to be drawn
+ * @param color (RGBA)
  * 
- * @note Draws only the border, not filled
- * @note Zero or negative dimensions are handled gracefully
- * @note Temporarily changes render color, restores to white afterward
- * @see a_DrawFilledRect()
  */
 void a_DrawRect( const aRectf_t rect, const aColor_t color );
+
 /**
  * @brief Draw a filled rectangle
  * 
  * Renders a completely filled rectangle at the specified position and dimensions.
- * Uses individual RGBA color components and supports alpha blending.
  * 
- * @param x Top-left X coordinate
- * @param y Top-left Y coordinate
- * @param w Width in pixels
- * @param h Height in pixels
- * @param r Red color component (0-255)
- * @param g Green color component (0-255)
- * @param b Blue color component (0-255)
- * @param a Alpha transparency (0-255, 255=opaque)
+ * @param rect the rectangle to be drawn
+ * @param color (RGBA)
  * 
- * @note Fills the entire rectangle area with color
- * @note Zero or negative dimensions are handled gracefully
- * @note Supports alpha blending when alpha < 255
- * @note Temporarily changes render color, restores to white afterward
- * @see a_DrawRect()
  */
 void a_DrawFilledRect( const aRectf_t rect, const aColor_t color );
 
@@ -575,13 +520,7 @@ void a_DrawFilledRect( const aRectf_t rect, const aColor_t color );
  * @param x Destination X coordinate
  * @param y Destination Y coordinate
  * 
- * @note Converts surface to texture and renders it
- * @note Surface dimensions determine blit size
- * @note Creates and destroys texture each call (not optimized for repeated use)
  * @note NULL surface is handled gracefully without crashing
- * @note Surface remains unchanged after blitting
- * @see a_BlitSurfRect()
- * @see a_BlitTextureRect()
  */
 void a_Blit( SDL_Surface* surf, const int x, const int y );
 
@@ -597,29 +536,21 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
  * @param y Destination Y coordinate
  * @param scale Scaling factor for the destination size
  * 
- * @note Blits only the specified rectangular region from source
- * @note Destination size is source rectangle dimensions multiplied by scale
- * @note Frees the source surface after creating texture
  * @note NULL surface is handled gracefully without crashing
- * @note Source rectangle is clipped to surface bounds
- * @see a_Blit()
- * @see a_BlitTextureRect()
  */
 void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
                      const int scale );
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
                         const int y, const int scale, const aColor_t color );
 
-/*
- * Update the window title text
+/**
+ * @brief Update the window title text
  *
- * `title` - New title string for the window
- *
- * -- Changes the text displayed in the window's title bar
- * -- String is copied internally, original can be freed after call
- * -- Empty string results in blank title
- * -- NULL title is handled gracefully (implementation dependent)
- * -- Works on all supported platforms (Windows, Linux, macOS)
+ * Changes the text displayed in the window's title bar
+ * 
+ * @param title Source of new Title
+ * 
+ * @note String is copied internally, original can be freed after call
  */
 void a_UpdateTitle( const char *title );
 
@@ -671,6 +602,7 @@ extern aApp_t app;
  * @return 0 on success, negative value on failure (-1: SDL init, -2: IMG init, -3: TTF init, -4: window creation)
  */
 int a_Init( const int width, const int height, const char *title );
+
 /**
  * @brief Cleans up all Archimedes resources and shuts down SDL.
  *
@@ -686,10 +618,6 @@ int a_Init( const int width, const int height, const char *title );
  * - Cleaning up the image cache and freeing memory
  * - Shutting down TTF, IMG, and SDL subsystems
  * - Resetting the app running state
- *
- * This function is safe to call multiple times and will handle NULL pointers gracefully.
- * After calling this function, a_Init() must be called again before using any other
- * Archimedes functions.
  */
 void a_Quit( void );
 
@@ -709,16 +637,6 @@ void a_Quit( void );
  * It updates the global `app` state based on these events, managing the game's input.
  * Unknown event types are silently ignored.
  *
- * @note The `app.running` flag is set to `0` if an `SDL_QUIT` event is received.
- * @note For `SDL_TEXTINPUT` events, the input text is copied to `app.input_text`
- * if its length is valid (between 1 and `MAX_INPUT_LENGTH - 1`).
- *
- * @see a_DoKeyDown
- * @see a_DoKeyUp
- * @see a_DoMouseDown
- * @see a_DoMouseUp
- * @see a_DoMouseWheel
- * @see a_DoMouseMotion
  */
 void a_DoInput( void );
 
@@ -735,18 +653,84 @@ enum
   TEXT_ALIGN_RIGHT
 };
 
+/**
+ * @brief Calculates the height of wrapped text within a maximum width.
+ *
+ * This function computes how tall a text block will be when word-wrapped
+ * to fit within the specified maximum width. Useful for determining the
+ * space needed for multi-line text in UI elements.
+ *
+ * @param text The text string to measure (UTF-8 encoded)
+ * @param font_type The font type to use for measurement
+ * @param max_width Maximum width in pixels before wrapping
+ * @return Total height in pixels of the wrapped text
+ */
 int a_GetWrappedTextHeight( const char* text, const int font_type,
                             const int max_width );
 
+/**
+ * @brief Calculates the pixel dimensions of a text string.
+ *
+ * This function computes the width and height of a text string when rendered
+ * with the specified font type. It takes into account the current font scale
+ * and handles UTF-8 encoded text properly.
+ *
+ * @param text The text string to measure (UTF-8 encoded)
+ * @param font_type The font type to use (FONT_ENTER_COMMAND, FONT_LINUX, etc.)
+ * @param w Pointer to store the calculated width in pixels
+ * @param h Pointer to store the calculated height in pixels
+ */
 void a_CalcTextDimensions( const char* text, const int font_type,
-                           int* w, int* h );
+                           float* w, float* h );
 
+/**
+ * @brief Draws text at the specified position with color and alignment.
+ *
+ * This function renders text to the screen using the glyph atlas system for
+ * efficient drawing. It supports text alignment, color tinting, and optional
+ * word wrapping. The text is rendered using pre-cached glyphs from the font
+ * texture atlas.
+ *
+ * @param text The text string to draw (UTF-8 encoded)
+ * @param x X coordinate for text position
+ * @param y Y coordinate for text position
+ * @param bg background color
+ * @param fg foreground color
+ * @param font_type The font type to use (FONT_ENTER_COMMAND, FONT_LINUX, etc.)
+ * @param align Text alignment (TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT)
+ * @param max_width Maximum width for text wrapping (0 = no wrapping)
+ */
 void a_DrawText( const char* text, const int x, const int y, 
                  const aColor_t bg, const aColor_t fg,
                  const int font_type, const int align, const int max_width );
 
+/**
+ * @brief Creates a texture from a text string using TTF rendering.
+ *
+ * This function renders text using the SDL_ttf library directly, creating
+ * a texture that can be used for custom text rendering. The text is
+ * rendered with white color using blended (anti-aliased) mode.
+ *
+ * @param text The text string to render (UTF-8 encoded)
+ * @param font_type The font type to use for rendering
+ * @return SDL_Texture pointer containing the rendered text, or NULL on failure
+ */
 SDL_Texture* a_GetTextTexture( const char* text, const int font_type );
 
+/**
+ * @brief Initializes the font system with TTF fonts.
+ *
+ * This function loads the required TTF fonts and creates glyph atlases for
+ * efficient text rendering. 
+ *
+ * The function expects font files at:
+ * - resources/fonts/EnterCommand.ttf (48pt)
+ * - resources/fonts/JetBrains.ttf (32pt)
+ * - resources/fonts/CodePage437.png (32pt)
+ * - resources/fonts/font.png (32pt)
+ *
+ * If font loading fails, the program will exit with an error message.
+ */
 void a_InitFonts( void );
 
 /*
@@ -830,13 +814,12 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name );
  *
  * This function sets up the initial state of the widget system.
  * It clears the widget head, sets the tail, loads widgets from the specified
- * filename, and initializes various global widget-related variables such as
- * `slider_delay`, `cursor_blink`, `handle_input_widget`, and `handle_control_widget`.
+ * filename.
  *
  * @param filename The path to the file containing widget configuration data.
  */
 void a_InitWidgets( const char* filename );
-int a_ClearWidgetCache( aWidget_t* widget );
+int a_FreeWidgetCache( void );
 
 /*
 ---------------------------------------------------------------

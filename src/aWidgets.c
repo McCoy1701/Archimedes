@@ -2,22 +2,18 @@
 #include <stdlib.h>
 #include "Archimedes.h"
 
-static aWidget_t widget_head;
-static aWidget_t* widget_tail;
-
 // Function prototypes with static linkage (internal to this compilation unit)
 static void LoadWidgets( const char* filename );
-static int GetWidgetType( const char* type );
 static void ChangeWidgetValue( const int value );
-static void CreateWidget( aAUF_Node_t* root );
-static char* ReadFile( const char* filename );
 
+static void CreateWidget( aAUF_Node_t* root );
 static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root );
 static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root );
 static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root );
 static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root );
 static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root );
 static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root );
+
 static void DrawButtonWidget( aWidget_t* w );
 static void DrawSelectWidget( aWidget_t* w );
 static void DrawSliderWidget( aWidget_t* w );
@@ -28,24 +24,14 @@ static void DrawContainerWidget( aWidget_t* w );
 static void DoInputWidget( void );
 static void DoControlWidget( void );
 
+static aWidget_t widget_head;
+static aWidget_t* widget_tail;
+
 static double slider_delay;
 static double cursor_blink;
 static int handle_input_widget;
 static int handle_control_widget;
 
-/**
- * @brief Handles the logic and interactions for all active widgets.
- *
- * This function is the main update loop for the widget system. It processes mouse clicks,
- * keyboard inputs (left, right, space, return), and manages the active widget state.
- * It also handles transitions to specific input or control modes if an appropriate
- * widget is activated.
- *
- * It checks for mouse clicks to activate widgets based on their coordinates.
- * For container widgets, it iterates through their components to find the clicked one.
- * Keyboard inputs are handled for navigating widgets (though up/down are commented out)
- * and triggering actions or entering specific widget interaction modes (input/control).
- */
 void a_DoWidget( void )
 {
   // aWidget_t* temp;
@@ -231,13 +217,6 @@ void a_DoWidget( void )
   }
 }
 
-/**
- * @brief Draws all visible widgets.
- *
- * This function iterates through the linked list of widgets, starting from `widget_head.next`,
- * and calls the appropriate drawing function for each widget based on its type.
- * Hidden widgets are skipped as they are not drawn.
- */
 void a_DrawWidgets( void )
 {
   aWidget_t* w;
@@ -275,16 +254,6 @@ void a_DrawWidgets( void )
   }
 }
 
-/**
- * @brief Initializes the widget system from a configuration file.
- *
- * This function sets up the initial state of the widget system.
- * It clears the widget head, sets the tail, loads widgets from the specified
- * filename, and initializes various global widget-related variables such as
- * `slider_delay`, `cursor_blink`, `handle_input_widget`, and `handle_control_widget`.
- *
- * @param filename The path to the file containing widget configuration data.
- */
 void a_InitWidgets( const char* filename )
 {
   memset( &widget_head, 0, sizeof( aWidget_t ) );
@@ -298,17 +267,6 @@ void a_InitWidgets( const char* filename )
   handle_control_widget = 0;
 }
 
-/**
- * @brief Retrieves a widget by its name.
- *
- * This function searches through the linked list of widgets (starting from `widget_head.next`)
- * to find a widget with a matching name. If a widget with the given name is found,
- * a pointer to that widget is returned. If no widget is found, an SDL warning
- * message is logged, and `NULL` is returned.
- *
- * @param name The string name of the widget to retrieve.
- * @return A pointer to the `aWidget_t` if found, otherwise `NULL`.
- */
 aWidget_t* a_GetWidget( const char* name )
 {
   aWidget_t* w;
@@ -327,16 +285,6 @@ aWidget_t* a_GetWidget( const char* name )
   return NULL;
 }
 
-/**
- * @brief Retrieves a container widget by its name and casts it to `aContainerWidget_t`.
- *
- * This function first calls `a_GetWidget` to locate a widget by the given name.
- * If the widget is found, it attempts to cast its `data` member to an `aContainerWidget_t*`.
- * Error messages are printed to stdout if the widget is not found or if the cast results in NULL.
- *
- * @param name The string name of the container widget to retrieve.
- * @return A pointer to the `aContainerWidget_t` if successful, otherwise `NULL`.
- */
 aContainerWidget_t* a_GetContainerFromWidget( const char* name )
 {
   aWidget_t* widget = NULL;
@@ -359,15 +307,6 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name )
   return container;
 }
 
-/**
- * @brief Loads widget configurations from a JSON file.
- *
- * This function reads a JSON file, parses its content, and then iterates through
- * the JSON objects to create individual widgets using `CreateWidget`. After
- * processing, it cleans up allocated cJSON objects and the file buffer.
- *
- * @param filename The path to the JSON configuration file.
- */
 static void LoadWidgets( const char* filename )
 {
   aAUF_t* root;
@@ -381,55 +320,6 @@ static void LoadWidgets( const char* filename )
   }
 
   a_AUFFree( root );
-}
-
-/**
- * @brief Converts a widget type string to its corresponding integer enum value.
- *
- * This function takes a string representing a widget type (e.g., "WT_BUTTON")
- * and returns the predefined integer constant for that type. If an unknown
- * widget type string is provided, a warning message is logged via SDL, and -1
- * is returned.
- *
- * @param type A string representing the widget type.
- * @return The integer enum value of the widget type, or -1 if unknown.
- */
-static int GetWidgetType( const char* type )
-{
-  if ( strcmp( type, "WT_BUTTON" ) == 0 )
-  {
-    return WT_BUTTON;
-  }
-
-  if ( strcmp( type, "WT_SELECT" ) == 0 )
-  {
-    return WT_SELECT;
-  }
-
-  if ( strcmp( type, "WT_SLIDER" ) == 0 )
-  {
-    return WT_SLIDER;
-  }
-
-  if ( strcmp( type, "WT_INPUT" ) == 0 )
-  {
-    return WT_INPUT;
-  }
-
-  if ( strcmp( type, "WT_CONTROL" ) == 0 )
-  {
-    return WT_CONTROL;
-  }
-  
-  if ( strcmp( type, "WT_CONTAINER" ) == 0 )
-  {
-    return WT_CONTAINER;
-  }
-
-  SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN,
-                  "unknown widget type: '%s'", type );
-
-  return -1;
 }
 
 /**
@@ -576,13 +466,13 @@ static void ChangeWidgetValue( const int value )
 /**
  * @brief Creates a new widget and adds it to the global widget list.
  *
- * This function parses a JSON object (`cJSON* root`) representing a widget's
+ * This function parses a AUF object (`aAUF_Node_t* root`) representing a widget's
  * configuration. It allocates memory for a new `aWidget_t`, populates its
  * common properties (name, label, type, position, colors, etc.), and links
  * it into a global linked list of widgets. It then calls a specialized
  * creation function based on the widget's `type` to handle type-specific data.
  *
- * @param root A cJSON object containing the configuration for the widget to be created.
+ * @param root A aAUF_Node_t object containing the configuration for the widget to be created.
  */
 static void CreateWidget( aAUF_Node_t* root )
 {
@@ -676,7 +566,7 @@ static void CreateWidget( aAUF_Node_t* root )
  * uses `a_CalcTextDimensions` for this purpose.
  *
  * @param w A pointer to the `aWidget_t` structure for the button.
- * @param root A cJSON object containing the configuration for the button.
+ * @param root A aAUF_Node_t object containing the configuration for the button.
  */
 static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root )
 {
@@ -684,20 +574,20 @@ static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root )
 }
 
 /**
- * @brief Creates type-specific data for a Select widget.
+ * @brief Creates type-specific data for a Slider widget.
  *
- * This function allocates and initializes an `aSelectWidget_t` structure,
- * linking it to the `data` member of the base widget. It parses the "options"
- * array from the JSON root to populate the select widget's options and
- * determines the necessary width and height for displaying the longest option.
+ * This function allocates and initializes an `aSliderWidget_t` structure,
+ * linking it to the `data` member of the base widget. It retrieves the
+ * slider's `step` and `wait_on_change` properties from the aAUF_Node_t root and
+ * calculates the slider's position and dimensions relative to its label.
  *
- * @param w A pointer to the `aWidget_t` structure for the select widget.
- * @param root A cJSON object containing the configuration for the select widget.
+ * @param w A pointer to the `aWidget_t` structure for the slider widget.
  */
 static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root )
 {
   aAUF_Node_t* options, *node;
-  int i, len, temp_w, temp_h, width, height;
+  int i, len, temp_w, temp_h;
+  float width, height;
   char* temp_string;
   aSelectWidget_t* s;
 
@@ -753,16 +643,17 @@ static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root )
   s->rect.h = temp_h;
 }
 
+
 /**
  * @brief Creates type-specific data for a Slider widget.
  *
  * This function allocates and initializes an `aSliderWidget_t` structure,
  * linking it to the `data` member of the base widget. It retrieves the
- * slider's `step` and `wait_on_change` properties from the JSON root and
+ * slider's `step` and `wait_on_change` properties from the aAUF_Node_t root and
  * calculates the slider's position and dimensions relative to its label.
  *
  * @param w A pointer to the `aWidget_t` structure for the slider widget.
- * @param root A cJSON object containing the configuration for the slider widget.
+ * @param root A aAUF_Node_t object containing the configuration for the slider widget.
  */
 static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root )
 {
@@ -787,12 +678,12 @@ static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root )
  *
  * This function allocates and initializes an `aInputWidget_t` structure,
  * linking it to the `data` member of the base widget. It retrieves the
- * `max_length` for the input text from the JSON root and allocates a buffer
+ * `max_length` for the input text from the aAUF_Node_t root and allocates a buffer
  * for the text. It also initializes a default text and calculates the
  * input field's dimensions.
  *
  * @param w A pointer to the `aWidget_t` structure for the input widget.
- * @param root A cJSON object containing the configuration for the input widget.
+ * @param root A aAUF_Node_t object containing the configuration for the input widget.
  */
 static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root )
 {
@@ -823,7 +714,7 @@ static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root )
  * the dimensions of the base widget based on its label text.
  *
  * @param w A pointer to the `aWidget_t` structure for the control widget.
- * @param root A cJSON object containing the configuration for the control widget.
+ * @param root A aAUF_Node_t object containing the configuration for the control widget.
  */
 static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root )
 {
@@ -841,13 +732,13 @@ static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root )
  *
  * This function allocates and initializes an `aContainerWidget_t` structure,
  * linking it to the `data` member of the base widget. It parses the "components"
- * array from the JSON root, recursively creating and positioning child widgets
+ * array from the aAUF_Node_t root, recursively creating and positioning child widgets
  * within the container. It supports different flexing modes (horizontal/vertical)
  * for component arrangement and calculates the overall dimensions of the container
  * based on its components.
  *
  * @param w A pointer to the `aWidget_t` structure for the container widget.
- * @param root A cJSON object containing the configuration for the container widget.
+ * @param root A aAUF_Node_t object containing the configuration for the container widget.
  */
 static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
 {
@@ -1036,17 +927,6 @@ static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
   w->rect.h = max_component_y_plus_h - w->rect.y;
 }
 
-/**
- * @brief Draws a Container widget and all its visible components on the screen.
- *
- * This function handles the rendering of a container widget. It first draws
- * a background box for the container itself if it's `boxed`. Then, it iterates
- * through all the components (child widgets) within the container and recursively
- * calls their respective drawing functions, ensuring that only visible components
- * are drawn.
- *
- * @param w A pointer to the `aWidget_t` structure representing the container widget to draw.
- */
 static void DrawButtonWidget( aWidget_t* w )
 {
   aColor_t c;
@@ -1068,10 +948,10 @@ static void DrawButtonWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      aRect_t rect = (aRect_t){ .x = ( w->rect.x - w->padding ),
-                                .y = ( w->rect.y - w->padding ),
-                                .w = ( w->rect.w + ( 2 * w->padding ) ),
-                                .h = ( w->rect.h + ( 2 * w->padding ) ) };
+      aRectf_t rect = (aRectf_t){ .x = ( w->rect.x - w->padding ),
+                                  .y = ( w->rect.y - w->padding ),
+                                  .w = ( w->rect.w + ( 2 * w->padding ) ),
+                                  .h = ( w->rect.h + ( 2 * w->padding ) ) };
       
       a_DrawFilledRect( rect, w->bg );
     }
@@ -1105,10 +985,10 @@ static void DrawSelectWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      aRect_t rect = (aRect_t){ .x = ( w->rect.x - w->padding ),
-                                .y = ( w->rect.y - w->padding ),
-                                .w = ( w->rect.w + ( 2 * w->padding ) ),
-                                .h = ( w->rect.h + ( 2 * w->padding ) ) };
+      aRectf_t rect = (aRectf_t){ .x = ( w->rect.x - w->padding ),
+                                  .y = ( w->rect.y - w->padding ),
+                                  .w = ( w->rect.w + ( 2 * w->padding ) ),
+                                  .h = ( w->rect.h + ( 2 * w->padding ) ) };
       
       a_DrawFilledRect( rect, w->bg );
     }
@@ -1146,10 +1026,10 @@ static void DrawSliderWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      aRect_t rect = (aRect_t){ .x = ( w->rect.x - w->padding ),
-                                .y = ( w->rect.y - w->padding ),
-                                .w = ( w->rect.w + ( 2 * w->padding ) ),
-                                .h = ( w->rect.h + ( 2 * w->padding ) ) };
+      aRectf_t rect = (aRectf_t){ .x = ( w->rect.x - w->padding ),
+                                  .y = ( w->rect.y - w->padding ),
+                                  .w = ( w->rect.w + ( 2 * w->padding ) ),
+                                  .h = ( w->rect.h + ( 2 * w->padding ) ) };
       
       a_DrawFilledRect( rect, w->bg );
     }
@@ -1159,16 +1039,16 @@ static void DrawSliderWidget( aWidget_t* w )
     a_DrawText( w->label, w->rect.x, w->rect.y, black, c,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
 
-    aRect_t slider_bg_rect = (aRect_t){ .x = slider->rect.x,
-                                        .y = slider->rect.y,
-                                        .w = slider->rect.w,
-                                        .h = slider->rect.h };
+    aRectf_t slider_bg_rect = (aRectf_t){ .x = slider->rect.x,
+                                          .y = slider->rect.y,
+                                          .w = slider->rect.w,
+                                          .h = slider->rect.h };
 
     a_DrawRect( slider_bg_rect, white );
-    aRect_t slider_rect = (aRect_t){ .x = ( slider->rect.x + 2 ),
-                                     .y = ( slider->rect.y + 2 ),
-                                     .w = ( ( slider->rect.w - 4 ) * width ),
-                                     .h = ( slider->rect.h - 4 ) };
+    aRectf_t slider_rect = (aRectf_t){ .x = ( slider->rect.x + 2 ),
+                                       .y = ( slider->rect.y + 2 ),
+                                       .w = ( ( slider->rect.w - 4 ) * width ),
+                                       .h = ( slider->rect.h - 4 ) };
     a_DrawFilledRect( slider_rect, c );
   }
 
@@ -1178,7 +1058,7 @@ static void DrawInputWidget( aWidget_t* w )
 {
   aColor_t c;
   aInputWidget_t* input;
-  int width, height;
+  float width, height;
 
   input = ( aInputWidget_t* )w->data;
 
@@ -1199,10 +1079,10 @@ static void DrawInputWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      aRect_t rect = (aRect_t){ .x = ( w->rect.x - w->padding ),
-                                .y = ( w->rect.y - w->padding ),
-                                .w = ( w->rect.w + ( 2 * w->padding ) ),
-                                .h = ( w->rect.h + ( 2 * w->padding ) ) };
+      aRectf_t rect = (aRectf_t){ .x = ( w->rect.x - w->padding ),
+                                  .y = ( w->rect.y - w->padding ),
+                                  .w = ( w->rect.w + ( 2 * w->padding ) ),
+                                  .h = ( w->rect.h + ( 2 * w->padding ) ) };
       
       a_DrawFilledRect( rect, w->bg );
     }
@@ -1217,7 +1097,7 @@ static void DrawInputWidget( aWidget_t* w )
          ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
     {
       a_CalcTextDimensions( input->text, app.font_type, &width, &height );
-      aRect_t cursor_rect = ( aRect_t ){ .x = ( input->rect.x + width + 4 ),
+      aRectf_t cursor_rect = ( aRectf_t ){ .x = ( input->rect.x + width + 4 ),
                                          .y = ( input->rect.y + 14 ),
                                          .w = 32,
                                          .h = 32 };
@@ -1251,10 +1131,10 @@ static void DrawControlWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      aRect_t rect = (aRect_t){ .x = ( w->rect.x - w->padding ),
-                                .y = ( w->rect.y - w->padding ),
-                                .w = ( w->rect.w + ( 2 * w->padding ) ),
-                                .h = ( w->rect.h + ( 2 * w->padding ) ) };
+      aRectf_t rect = (aRectf_t){ .x = ( w->rect.x - w->padding ),
+                                  .y = ( w->rect.y - w->padding ),
+                                  .w = ( w->rect.w + ( 2 * w->padding ) ),
+                                  .h = ( w->rect.h + ( 2 * w->padding ) ) };
       
       a_DrawFilledRect( rect, w->bg );
     }
@@ -1277,6 +1157,17 @@ static void DrawControlWidget( aWidget_t* w )
   }
 }
 
+/**
+ * @brief Draws a Container widget and all its visible components on the screen.
+ *
+ * This function handles the rendering of a container widget. It first draws
+ * a background box for the container itself if it's `boxed`. Then, it iterates
+ * through all the components (child widgets) within the container and recursively
+ * calls their respective drawing functions, ensuring that only visible components
+ * are drawn.
+ *
+ * @param w A pointer to the `aWidget_t` structure representing the container widget to draw.
+ */
 static void DrawContainerWidget( aWidget_t* w )
 {
   aContainerWidget_t* container;
@@ -1287,10 +1178,10 @@ static void DrawContainerWidget( aWidget_t* w )
   {
     if ( w->boxed == 1 )
     {
-      aRect_t rect = (aRect_t){ .x = ( w->rect.x - w->padding ),
-                                .y = ( w->rect.y - w->padding ),
-                                .w = ( w->rect.w + ( 2 * w->padding ) ),
-                                .h = ( w->rect.h + ( 2 * w->padding ) ) };
+      aRectf_t rect = (aRectf_t){ .x = ( w->rect.x - w->padding ),
+                                  .y = ( w->rect.y - w->padding ),
+                                  .w = ( w->rect.w + ( 2 * w->padding ) ),
+                                  .h = ( w->rect.h + ( 2 * w->padding ) ) };
       
       a_DrawFilledRect( rect, w->bg );
     }
@@ -1306,11 +1197,12 @@ static void DrawContainerWidget( aWidget_t* w )
       {
         if ( current.boxed == 1 )
         {
-          aRect_t current_rect = (aRect_t){ 
+          aRectf_t current_rect = (aRectf_t){ 
             .x = ( current.rect.x - current.padding ),
             .y = ( current.rect.y - current.padding ),
             .w = ( current.rect.w + ( 2 * current.padding ) ),
-            .h = ( current.rect.h + ( 2 * current.padding ) ) };
+            .h = ( current.rect.h + ( 2 * current.padding ) )
+          };
 
           a_DrawFilledRect( current_rect, current.bg );
         }
@@ -1342,5 +1234,43 @@ static void DrawContainerWidget( aWidget_t* w )
       }
     }
   }
+}
+
+int a_FreeWidgetCache( void )
+{
+  if ( widget_head.next == NULL )
+  {
+    printf( "No Widgets loaded in cache\n" );
+    return 1;
+  }
+
+  else
+  {
+    aWidget_t* current = &widget_head;
+    aWidget_t* next = NULL;
+
+    while ( current != NULL )
+    {
+      next = current->next;
+      if ( current->action != NULL )
+      {
+        current->action = NULL;
+      }
+      
+      if ( current->data != NULL )
+      {
+        free( current->data );
+        current->data = NULL;
+      }
+
+      free( current );
+      current = next;
+    }
+    
+    memset( &widget_head, 0, sizeof(aWidget_t) );
+    widget_tail = &widget_head;
+  }
+
+  return 0;
 }
 

@@ -1,3 +1,19 @@
+/* 
+ * @file src/aInitialize.c
+ *
+ * This file contains the Initialization for the Archimedes graphics engine
+ * as well as the necessary functions to clean it up.
+ *
+ * The set of subsystems Initialized is:
+ * - Audio
+ * - Image
+ * - Textures
+ * - Fonts
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ */
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -5,29 +21,6 @@
 
 aApp_t app;
 
-/**
- * @brief Initializes the Archimedes framework and SDL subsystems.
- *
- * This function sets up the complete Archimedes environment including SDL video,
- * audio, and timer subsystems, creates a window and renderer, initializes all
- * app state variables, and sets up the audio, image, texture, and font systems.
- * The random number generator is also seeded with the current time.
- *
- * The initialization sequence includes:
- * - SDL video, audio, and timer subsystem initialization
- * - PNG image format support initialization
- * - TTF font support initialization
- * - Window and renderer creation
- * - Mouse and timing state initialization
- * - Image cache setup
- * - Audio, image, texture, and font system initialization
- * - Random number generator seeding
- *
- * @param width Window width in pixels (must be > 0)
- * @param height Window height in pixels (must be > 0)
- * @param title Window title string (cannot be NULL)
- * @return 0 on success, negative value on failure
- */
 int a_Init( const int width, const int height, const char *title )
 {
   // Initialize SDL subsystems
@@ -86,22 +79,6 @@ int a_Init( const int width, const int height, const char *title )
   return 0;
 }
 
-/**
- * @brief Cleans up all Archimedes resources and shuts down SDL.
- *
- * This function performs complete cleanup of the Archimedes framework by
- * calling the optional onExit delegate callback, destroying the renderer
- * and window, cleaning up the image cache, and shutting down SDL subsystems.
- * Should be called before program termination to ensure proper resource cleanup.
- *
- * The cleanup sequence includes:
- * - Calling the optional onExit delegate callback if set
- * - Destroying the SDL renderer
- * - Destroying the SDL window
- * - Cleaning up the image cache
- * - Freeing image cache memory
- * - Shutting down SDL subsystems
- */
 void a_Quit( void )
 {
   // Call optional exit delegate

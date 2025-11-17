@@ -50,6 +50,14 @@ static char *characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS
 static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
 #endif
 
+aFontConfig_t a_default_font_config = {
+  .type = FONT_GAME,
+  .color = {255, 255, 255, 255},
+  .align = TEXT_ALIGN_LEFT,
+  .wrap_width = 0,
+  .scale = 1.0f
+};
+
 void a_InitFonts( void )
 {
 #ifdef __EMSCRIPTEN__
@@ -57,18 +65,20 @@ void a_InitFonts( void )
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 24 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 18 );
   initFontPNG( "resources/fonts/CodePage437.png", FONT_CODE_PAGE_437, 9, 16 );
+  initFontPNG( "resources/fonts/CodePage437.png", FONT_GAME, 9, 16 );
 #else
   // Regular fonts for native builds
   initFont( "resources/fonts/EnterCommand.ttf", FONT_ENTER_COMMAND, 48 );
   initFont( "resources/fonts/JetBrains.ttf", FONT_LINUX, 32 );
   initFontPNG( "resources/fonts/CodePage437.png", FONT_CODE_PAGE_437, 9, 16 );
+  initFontPNG( "resources/fonts/CodePage437.png", FONT_GAME, 9, 16 );
 #endif
 
   app.font_scale = 1;
   app.font_type = FONT_ENTER_COMMAND;
 }
 
-void a_CalcTextDimensions( const char* text, const int font_type, float* w, float* h )
+void a_CalcTextDimensions( char* text, int font_type, float* w, float* h )
 {
   int i, n;
   SDL_Rect* g;
@@ -112,7 +122,7 @@ void a_CalcTextDimensions( const char* text, const int font_type, float* w, floa
  * @param max_width Maximum width in pixels before wrapping
  * @return Total height in pixels of the wrapped text
  */
-int a_GetWrappedTextHeight( const char* text, const int font_type, const int max_width )
+int a_GetWrappedTextHeight( char* text, int font_type, int max_width )
 {
   // Validate input parameters
   int validation_result = validate_text_parameters( text, font_type );
@@ -129,7 +139,7 @@ int a_GetWrappedTextHeight( const char* text, const int font_type, const int max
   return DrawTextWrapped( text, 0, 0, white, font_type, TEXT_ALIGN_LEFT, max_width, 0 );
 }
 
-SDL_Texture* a_GetTextTexture( const char* text, const int font_type )
+SDL_Texture* a_GetTextTexture( char* text, int font_type )
 {
   SDL_Surface* surface;
   
@@ -148,38 +158,57 @@ SDL_Texture* a_GetTextTexture( const char* text, const int font_type )
   return a_ToTexture( surface, 1 );
 }
 
-void a_DrawText( const char* text, const int x, const int y,
-                 const aColor_t bg, const aColor_t fg,
-                 const int font_type, const int align, const int max_width )
+void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config )
 {
+  // Use default config if NULL is passed
+  const aFontConfig_t* cfg = config ? config : &a_default_font_config;
+
   // Validate input parameters
-  int validation_result = validate_text_parameters( text, font_type );
+  int validation_result = validate_text_parameters( text, cfg->type );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
-  }
-  
-  validation_result = validate_color_parameters( bg.r, bg.g, bg.b );
-  if ( validation_result != ARCH_TEXT_SUCCESS ) {
-    // Silently fail for now to maintain API compatibility
-    return;
-  }
-  
-  validation_result = validate_color_parameters( fg.r, fg.g, fg.b );
-  if ( validation_result != ARCH_TEXT_SUCCESS ) {
-    // Silently fail for now to maintain API compatibility
-    return;
-  }
-  
-  if ( max_width > 0 )
-  {
-    DrawTextWrapped( text, x, y, fg, font_type, align, max_width, 1 );
   }
 
+  validation_result = validate_color_parameters( cfg->color.r, cfg->color.g, cfg->color.b );
+  if ( validation_result != ARCH_TEXT_SUCCESS ) {
+    // Silently fail for now to maintain API compatibility
+    return;
+  }
+
+  // Temporarily set font scale if different from default
+  double old_scale = app.font_scale;
+  if ( cfg->scale != 1.0f && cfg->scale > 0.0f ) {
+    app.font_scale = cfg->scale;
+  }
+
+  if ( cfg->wrap_width > 0 )
+  {
+    DrawTextWrapped( (char*)text, x, y, cfg->color, cfg->type,
+                     cfg->align, cfg->wrap_width, 1 );
+  }
   else
   {
-    DrawTextLine( text, x, y, fg, font_type, align );
+    DrawTextLine( (char*)text, x, y, cfg->color, cfg->type, cfg->align );
   }
+
+  // Restore original scale
+  app.font_scale = old_scale;
+}
+
+void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
+                 int align, int max_width )
+{
+  // Create config from parameters and forward to new API
+  aFontConfig_t config = {
+    .type = font_type,
+    .color = {r, g, b, 255},
+    .align = align,
+    .wrap_width = max_width,
+    .scale = 1.0f
+  };
+
+  a_DrawTextStyled( text, x, y, &config );
 }
 
 static void initFontPNG( const char* filename, const int font_type,
@@ -402,7 +431,7 @@ static void DrawTextLine( const char* text, const int x, const int y,
   {
     for ( int j = 0; j < len; j++ )
     {
-      c = text[j];
+      c = text[j] - 1;
       glyph = &app.glyphs[font_type][c];
 
       dest.x = new_x;
@@ -546,7 +575,7 @@ static int NextGlyph( const char* string, int* i, char* glyph_buffer )
  * @param font_type The font type to validate
  * @return ARCH_TEXT_SUCCESS on success, error code on failure
  */
-static int validate_text_parameters( const char* text, const int font_type )
+static int validate_text_parameters( const char* text, int font_type )
 {
   if ( text == NULL ) {
     return ARCH_TEXT_ERROR_NULL_POINTER;
@@ -559,13 +588,6 @@ static int validate_text_parameters( const char* text, const int font_type )
   return ARCH_TEXT_SUCCESS;
 }
 
-/**
- * @brief Validates color parameters
- * @param r Red component (0-255)
- * @param g Green component (0-255)
- * @param b Blue component (0-255)
- * @return ARCH_TEXT_SUCCESS on success, error code on failure
- */
 static int validate_color_parameters( int r, int g, int b )
 {
   if ( r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 ) {
@@ -582,7 +604,7 @@ static int validate_color_parameters( int r, int g, int b )
  * @param sequence_length Output parameter for sequence length
  * @return ARCH_TEXT_SUCCESS if valid, error code if invalid
  */
-static int is_valid_utf8_sequence( const char* text, const int start_pos, int* sequence_length )
+static int is_valid_utf8_sequence( const char* text, int start_pos, int* sequence_length )
 {
   if ( text == NULL || sequence_length == NULL ) {
     return ARCH_TEXT_ERROR_NULL_POINTER;

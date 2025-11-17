@@ -262,6 +262,40 @@ void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
 
 }
 
+/**
+ * @brief Renders a texture scaled to specific dimensions
+ *
+ * Implementation details:
+ * 1. Validates texture pointer (returns silently if NULL)
+ * 2. Constructs destination rectangle with specified x, y, w, h
+ * 3. Renders entire texture (src=NULL) to scaled destination
+ * 4. No color modulation applied (texture rendered as-is)
+ *
+ * This is the simplest texture rendering function for cases where you
+ * know the exact pixel dimensions you want but don't need source rectangle
+ * clipping or color modulation.
+ *
+ * @implementation Direct SDL_RenderCopy with NULL source rect
+ * @complexity O(1) for setup, O(w*h) for GPU rasterization
+ * @thread_safety Not thread-safe, must be called from main render thread
+ */
+void a_BlitTextureScaled( SDL_Texture* texture, const int x, const int y,
+                           const int w, const int h )
+{
+  if ( !texture )
+  {
+    return;
+  }
+
+  SDL_Rect dest;
+  dest.x = x;
+  dest.y = y;
+  dest.w = w;
+  dest.h = h;
+
+  SDL_RenderCopy( app.renderer, texture, NULL, &dest );
+}
+
 void a_UpdateTitle( const char *title )
 {
   SDL_SetWindowTitle( app.window, title );

@@ -45,6 +45,7 @@ ARCHIMEDES_SRCS = \
     aImage.c \
     aInitialize.c \
     aInput.c \
+		aLayout.c\
     aText.c \
     aTextures.c \
     aTimer.c \
@@ -120,6 +121,10 @@ $(OBJ_DIR_NATIVE)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_NATIVE)
 $(OBJ_DIR_NATIVE)/test_widgets.o: $(TEST_DIR)/test_widgets.c | $(OBJ_DIR_NATIVE)
 	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
 
+$(OBJ_DIR_NATIVE)/n_main.o: $(TEM_DIR)/main.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+
 # ====================================================================
 # COMPILATION RULES (Emscripten - ECC)
 # ====================================================================
@@ -157,7 +162,10 @@ $(OBJ_DIR)/em_aTextures.o: $(SRC_DIR)/aTextures.c
 $(OBJ_DIR)/em_aWidgets.o: $(SRC_DIR)/aWidgets.c
 	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
 
-$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_cJSON.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o $(OBJ_DIR)/em_aTextures.o $(OBJ_DIR)/em_aWidgets.o
+$(OBJ_DIR)/em_aLayout.o: $(SRC_DIR)/aLayout.c
+	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
+
+$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_cJSON.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o $(OBJ_DIR)/em_aTextures.o $(OBJ_DIR)/em_aWidgets.o $(OBJ_DIR)/em_aLayout.o
 	$(EMAR) $@ $^
 
 

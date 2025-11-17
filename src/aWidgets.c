@@ -966,7 +966,7 @@ static void DrawButtonWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    a_DrawText( w->label, w->rect.x, w->rect.y, black, c,
+    a_DrawText( w->label, w->rect.x, w->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
   }
 }
@@ -1003,11 +1003,11 @@ static void DrawSelectWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    a_DrawText( w->label, w->rect.x, w->rect.y, black, c,
+    a_DrawText( w->label, w->rect.x, w->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
     sprintf( text, "< %s >", s->options[s->value] );
 
-    a_DrawText( text, s->rect.x + 100, s->rect.y, black, c,
+    a_DrawText( text, s->rect.x + 100, s->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
   }
 }
@@ -1046,7 +1046,7 @@ static void DrawSliderWidget( aWidget_t* w )
 
     width = ( 1.0 * slider->value ) / 100;
 
-    a_DrawText( w->label, w->rect.x, w->rect.y, black, c,
+    a_DrawText( w->label, w->rect.x, w->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
 
     aRectf_t slider_bg_rect = (aRectf_t){ .x = slider->rect.x,
@@ -1097,10 +1097,10 @@ static void DrawInputWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    a_DrawText( w->label, w->rect.x, w->rect.y, black, c,
+    a_DrawText( w->label, w->rect.x, w->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
 
-    a_DrawText( input->text, input->rect.x, input->rect.y, black, c,
+    a_DrawText( input->text, input->rect.x, input->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
 
     if ( handle_input_widget && app.active_widget == w &&
@@ -1149,19 +1149,19 @@ static void DrawControlWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    a_DrawText( w->label, w->rect.x, w->rect.y, black, c,
+    a_DrawText( w->label, w->rect.x, w->rect.y, c, black,
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
 
     if ( handle_control_widget && app.active_widget == w )
     {
-      a_DrawText( "...", control->x, control->y, black, c,
+      a_DrawText( "...", control->x, control->y, c, black,
                   app.font_type, TEXT_ALIGN_LEFT, 0 );
     }
 
     else
     {
       sprintf( text, "%s", SDL_GetScancodeName( control->value ) );
-      a_DrawText( text, control->x, control->y, black, c,
+      a_DrawText( text, control->x, control->y, c, black,
                   app.font_type, TEXT_ALIGN_LEFT, 0 );
     }
   }

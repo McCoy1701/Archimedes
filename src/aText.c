@@ -52,7 +52,8 @@ static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.E
 
 aFontConfig_t a_default_font_config = {
   .type = FONT_GAME,
-  .color = {255, 255, 255, 255},
+  .fg = {255, 255, 255, 255},
+  .bg = {0, 0, 0, 255},
   .align = TEXT_ALIGN_LEFT,
   .wrap_width = 0,
   .scale = 1.0f
@@ -78,7 +79,7 @@ void a_InitFonts( void )
   app.font_type = FONT_ENTER_COMMAND;
 }
 
-void a_CalcTextDimensions( char* text, int font_type, float* w, float* h )
+void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )
 {
   int i, n;
   SDL_Rect* g;
@@ -170,7 +171,7 @@ void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* conf
     return;
   }
 
-  validation_result = validate_color_parameters( cfg->color.r, cfg->color.g, cfg->color.b );
+  validation_result = validate_color_parameters( cfg->fg.r, cfg->fg.g, cfg->fg.b );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
@@ -184,25 +185,26 @@ void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* conf
 
   if ( cfg->wrap_width > 0 )
   {
-    DrawTextWrapped( (char*)text, x, y, cfg->color, cfg->type,
+    DrawTextWrapped( (char*)text, x, y, cfg->fg, cfg->type,
                      cfg->align, cfg->wrap_width, 1 );
   }
   else
   {
-    DrawTextLine( (char*)text, x, y, cfg->color, cfg->type, cfg->align );
+    DrawTextLine( (char*)text, x, y, cfg->fg, cfg->type, cfg->align );
   }
 
   // Restore original scale
   app.font_scale = old_scale;
 }
 
-void a_DrawText( char* text, int x, int y, int r, int g, int b, int font_type,
+void a_DrawText( char* text, int x, int y, aColor_t fg, aColor_t bg, int font_type,
                  int align, int max_width )
 {
   // Create config from parameters and forward to new API
   aFontConfig_t config = {
     .type = font_type,
-    .color = {r, g, b, 255},
+    .fg = fg,
+    .bg = bg,
     .align = align,
     .wrap_width = max_width,
     .scale = 1.0f

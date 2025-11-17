@@ -687,7 +687,8 @@ enum
 typedef struct
 {
   int type;          // Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
-  aColor_t color;    // Text color
+  aColor_t fg;    // Text color
+  aColor_t bg;    // Text color
   int align;         // Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
   int wrap_width;    // Word wrap width (0 = no wrap)
   float scale;       // Font scale multiplier (1.0 = default)
@@ -717,7 +718,7 @@ int a_GetWrappedTextHeight( char* text, int font_type, int max_width );
  * @param w Pointer to store calculated width (set to 0 on error)
  * @param h Pointer to store calculated height (set to 0 on error)
  */
-void a_CalcTextDimensions( char* text, int font_type, float* w, float* h );
+void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h );
 
 /**
  * @brief Draw text with styled configuration

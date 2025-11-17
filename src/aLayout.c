@@ -3,7 +3,7 @@
  * CSS-inspired automatic layout engine for UI positioning
  */
 
-#include "../include/Archimedes.h"
+#include "Archimedes.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -358,13 +358,18 @@ void a_FlexDebugRender(const FlexBox_t* box) {
     if (!box) return;
 
     // Draw container bounds (white)
-    a_DrawRect(box->x, box->y, box->w, box->h, 255, 255, 255, 255);
+    aRectf_t container_bounds_rect = { .x = (float)box->x, .y = (float)box->y,
+                                       .w = (float)box->w, .h = (float)box->h };
+    a_DrawRect( container_bounds_rect, white );
 
     // Draw padding area (yellow)
     if (box->padding > 0) {
-        a_DrawRect(box->x + box->padding, box->y + box->padding,
-                   box->w - (2 * box->padding), box->h - (2 * box->padding),
-                   255, 255, 0, 128);
+        aRectf_t container_padding_rect = { .x = (float)box->x + box->padding,
+                                            .y = (float)box->y + box->padding,
+                                            .w = ( (float)box->w - ( 2 * box->padding ) ),
+                                            .h = ( (float)box->h - ( 2 * box->padding ) ) };
+        aColor_t padding_rect_color = { .r = 255, .g = 255, .b = 0, .a = 128 };
+        a_DrawRect( container_padding_rect, padding_rect_color );
     }
 
     // Draw each item (cyan)
@@ -372,7 +377,10 @@ void a_FlexDebugRender(const FlexBox_t* box) {
     for (int i = 0; i < count; i++) {
         const FlexItem_t* item = a_FlexGetItem(box, i);
         if (item) {
-            a_DrawRect(item->calc_x, item->calc_y, item->w, item->h, 0, 255, 255, 255);
+            aRectf_t item_rect = { .x = (float)item->calc_x, .y = (float)item->calc_y,
+                                               .w = (float)item->w, .h = (float)item->h };
+            aColor_t item_color = { .r = 0, .g = 255, .b = 0, .a = 255 };
+            a_DrawRect( item_rect, item_color );
         }
     }
 }

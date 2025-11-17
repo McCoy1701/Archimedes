@@ -370,24 +370,38 @@ static void e_Logic( float dt )
 
 static void e_Draw( float dt )
 {
-  aColor_t color_something = { .r = 255, .g = 0, .b = 255, .a = 255 };
+  aColor_t color_something = { .r = 0, .g = 0, .b = 255, .a = 255 };
   aRectf_t rect_something = { .x = 100, .y = 100, .w = 32, .h = 32 };
   a_DrawFilledRect( rect_something, color_something );
-  //a_DrawFilledRect( 300, 300, 32, 32, 0, 255, 255, 255 );
-  //a_DrawText( "Whore", 400, 250, 255, 255, 255, FONT_LINUX, TEXT_ALIGN_CENTER, 0 );
-  //printf( "DT: %f\n", dt );
+  
+  char fps_text[MAX_NAME_LENGTH];
+  snprintf(fps_text, MAX_NAME_LENGTH, "%f", app.time.avg_FPS );
+
+  a_DrawText( fps_text, 600, 100, black, white, FONT_CODE_PAGE_437, TEXT_ALIGN_CENTER, 0 );
 
   a_DrawWidgets();
 }
 
 void aMainloop( void )
 {
+  float dt = a_GetDeltaTime();
+  a_GetFPS();
   a_PrepareScene();
-
-  app.delegate.logic( a_GetDeltaTime() );
-  app.delegate.draw( a_GetDeltaTime() );
+  
+  app.delegate.logic( dt );
+  app.delegate.draw( dt );
   
   a_PresentScene();
+  app.time.frames++;
+  
+  if ( app.options.frame_cap )
+  {
+    int frame_tick = SDL_GetTicks();
+    if ( frame_tick < LOGIC_RATE )
+    {
+      SDL_Delay( LOGIC_RATE - frame_tick );
+    }
+  }
 }
 
 int main( void )

@@ -1,3 +1,12 @@
+/* 
+ * src/aUtils.c
+ *
+ * This file defines the utility functions used in Archimedes.
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

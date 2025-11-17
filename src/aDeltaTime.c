@@ -5,8 +5,19 @@
 
 float a_GetDeltaTime( void )
 {
-  app.time.lastTime = app.time.currentTime;
-  app.time.currentTime = SDL_GetTicks();
-  Uint32 elapsedTime = app.time.currentTime - app.time.lastTime;
-  return(float)elapsedTime / 1000.0f;
+  app.time.last_time = app.time.current_time;
+  app.time.current_time = SDL_GetTicks();
+  Uint32 elapsed_time = app.time.current_time - app.time.last_time;
+  return(float)elapsed_time / 1000.0f;
 }
+
+void a_GetFPS( void )
+{
+  app.time.avg_FPS = app.time.frames / ( a_GetTicks( app.time.FPS_timer ) / 1000.0f );
+
+  if ( app.time.avg_FPS > 200000 )
+  {
+    app.time.avg_FPS = 0;
+  }
+}
+

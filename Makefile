@@ -47,7 +47,9 @@ ARCHIMEDES_SRCS = \
     aInput.c \
     aText.c \
     aTextures.c \
+    aTimer.c \
 		aUtils.c \
+		aViewport.c \
     aWidgets.c
 
 SHARED_OBJS = $(patsubst %.c, $(OBJ_DIR_SHARED)/%.o, $(ARCHIMEDES_SRCS))

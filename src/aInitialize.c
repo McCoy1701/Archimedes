@@ -51,18 +51,24 @@ int a_Init( const int width, const int height, const char *title )
   SDL_SetWindowTitle( app.window, title );
 
   // Initialize mouse state
-  app.mouse = (aMouse_t){ .x = 0, .y = 0, .state = 0, .pressed = 0, .button = 0, .wheel = 0, .clicks = 0 };
+  app.mouse = (aMouse_t){
+    .x = 0,
+    .y = 0,
+    .state = 0,
+    .pressed = 0,
+    .button = 0,
+    .wheel = 0,
+    .clicks = 0 };
 
   // Initialize timing system
-  app.time.lastTime    = 0;
-  app.time.currentTime = 0;
-  app.time.frameStart = 0;
-  app.time.frameTime  = 0;
-  app.time.lastFrameCounterClear = 0;
-  app.time.frames = 0;
+  app.time.frames  = 0;
+  app.time.FPS_timer = a_CreateTimer();
+  a_StartTimer( app.time.FPS_timer );
+  app.time.avg_FPS = 0.0f;
 
   // Initialize image cache
   app.img_cache = NULL;
+  app.options.frame_cap = 1;
 
   // Set app to running state
   app.running = 1;

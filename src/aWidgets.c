@@ -1,3 +1,13 @@
+/* 
+ * src/aViewport.c
+ *
+ * This file defines the functions used to create, draw,
+ * and handle widget inputs.
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "Archimedes.h"
@@ -1094,7 +1104,7 @@ static void DrawInputWidget( aWidget_t* w )
                 app.font_type, TEXT_ALIGN_LEFT, 0 );
 
     if ( handle_input_widget && app.active_widget == w &&
-         ( (int)cursor_blink % (int)FPS < ( FPS / 2 ) ) )
+         ( (int)cursor_blink % (int)FPS_CAP < ( FPS_CAP / 2 ) ) )
     {
       a_CalcTextDimensions( input->text, app.font_type, &width, &height );
       aRectf_t cursor_rect = ( aRectf_t ){ .x = ( input->rect.x + width + 4 ),

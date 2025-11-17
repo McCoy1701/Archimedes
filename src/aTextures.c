@@ -1,3 +1,12 @@
+/* 
+ * @file src/aTexture.c
+ *
+ * This file defines the functions used to display textures to the game window.
+ *
+ * Copyright (c) 2025 Jacob Kellum <jkellum819@gmail.com>
+ *                    Mathew Storm <smattymat@gmail.com>
+ */
+
 #include <stdlib.h>
 #include "Archimedes.h"
 

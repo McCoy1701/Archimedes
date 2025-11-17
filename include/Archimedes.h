@@ -22,8 +22,8 @@
 ---------------------------------------------------------------
 */
 
-#define FPS 60.0
-#define LOGIC_RATE ( FPS / 1000 )
+#define FPS_CAP 60.0
+#define LOGIC_RATE ( FPS_CAP / 1000 )
 
 #define MAX_KEYBOARD_KEYS 350
 #define LOG_LEVEL_COUNT   6
@@ -143,11 +143,19 @@ typedef struct
 
 typedef struct
 {
-  Uint8 r;
-  Uint8 g;
-  Uint8 b;
-  Uint8 a;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t a;
 } aColor_t;
+
+typedef struct
+{
+  uint32_t start_ticks;
+  uint32_t paused_ticks;
+  uint8_t paused;
+  uint8_t started;
+} aTimer_t;
 
 typedef struct
 {
@@ -243,6 +251,11 @@ typedef struct _aAUF_t
 
 typedef struct
 {
+  uint8_t frame_cap;
+} aOptions_t;
+
+typedef struct
+{
   int x;
   int y;
   uint8_t pressed;
@@ -268,19 +281,18 @@ typedef struct
 
 typedef struct
 {
-  unsigned int currentTime; //Delta time
-  unsigned int lastTime;
+  uint32_t current_time; //Delta time
+  uint32_t last_time;
 
-  unsigned int frameStart; //Frame time to calculate fps
-  unsigned int frameTime; //Length of each frame
-  unsigned int lastFrameCounterClear; //This keeps count of how long it has been since the last time frames was set to 0
-  int frames; //actual count of how many frames happen over one second
+  int frames;
+  aTimer_t* FPS_timer;
+  float avg_FPS;
 } aDeltaTime_t;
 
 typedef struct
 {
-  void (*logic)( float elapsedTime );
-  void (*draw)( float elapsedTime );
+  void (*logic)( float delta_time );
+  void (*draw)( float delta_time );
   void (*onExit)( void );
 } aDelegate_t;
 
@@ -290,6 +302,7 @@ typedef struct
   SDL_Renderer* renderer;
   SDL_AudioDeviceID deviceID;
   aDelegate_t delegate;
+  aOptions_t options;
   aDeltaTime_t time;
   aColor_t background;
   aImageCache_t* img_cache;
@@ -338,6 +351,7 @@ void a_PlaySoundEffect( aAudioClip_t *clip );
 */
 
 float a_GetDeltaTime( void );
+void a_GetFPS( void );
 
 /*
 ---------------------------------------------------------------
@@ -916,6 +930,251 @@ uint8_t a_IsRectVisibleInViewport( aRectf_t rect );
 
 void a_DrawPointToViewport( aPoint3f_t p, aColor_t color );
 void a_DrawRectToViewport( aRectf_t rect, aColor_t color );
+
+/*
+---------------------------------------------------------------
+---                         Defines                         ---
+---------------------------------------------------------------
+*/
+
+aTimer_t* a_CreateTimer( void );
+void a_FreeTimer( aTimer_t* timer );
+void a_StartTimer( aTimer_t* timer );
+void a_StopTimer( aTimer_t* timer );
+void a_PauseTimer( aTimer_t* timer );
+void a_UnpauseTimer( aTimer_t* timer );
+uint32_t a_GetTicks( aTimer_t* timer );
+uint8_t a_IsStarted( aTimer_t* timer );
+uint8_t a_IsPaused( aTimer_t* timer );
+
+/*
+---------------------------------------------------------------
+---                     Input Enums                         ---
+---------------------------------------------------------------
+*/
+
+enum
+{
+  //From USB HID Usage Tables
+  //Keyboard/Keypad Page (0x07) and SDL2
+  A_UNKOWN = 0,
+  A_A = SDL_SCANCODE_A,
+  A_B = 5,
+  A_C = 6,
+  A_D = 7,
+  A_E = 8,
+  A_F = 9,
+  A_G = 10,
+  A_H = 11,
+  A_I = 12,
+  A_J = 13,
+  A_K = 14,
+  A_L = 15,
+  A_M = 16,
+  A_N = 17,
+  A_O = 18,
+  A_P = 19,
+  A_Q = 20,
+  A_R = 21,
+  A_S = 22,
+  A_T = 23,
+  A_U = 24,
+  A_V = 25,
+  A_W = 26,
+  A_Y = 27,
+  A_X = 28,
+  A_Z = 29,
+  A_1 = 30,
+  A_2 = 31,
+  A_3 = 32,
+  A_4 = 33,
+  A_5 = 34,
+  A_6 = 35,
+  A_7 = 36,
+  A_8 = 37,
+  A_9 = 38,
+  A_0 = 39,
+  A_RETURN = 40,
+  A_ESCAPE = 41,
+  A_DELETE = 42,
+  A_TAB = 43,
+  A_SPACEBAR = 44,
+  A_MINUS = 45,
+  A_EQUALS = 46,
+  A_LEFTBRACKET = 47,
+  A_RIGHTBRACKET = 48,
+  A_BACKSLASH = 49,
+  A_NONUSHASH = 50,
+  A_SEMICOLON = 51,
+  A_APOSTROPHE = 52,
+  A_GRAVE = 53,
+  A_COMMA = 54,
+  A_PERIOD = 55,
+  A_FORWARDSLASH = 56,
+  A_CAPSLOCK = 57,
+  A_F1 = 58,
+  A_F2 = 59,
+  A_F3 = 60,
+  A_F4 = 61,
+  A_F5 = 62,
+  A_F6 = 63,
+  A_F7 = 64,
+  A_F8 = 65,
+  A_F9 = 66,
+  A_F10 = 67,
+  A_F11 = 68,
+  A_F12 = 69,
+  A_PRINTSCREEN = 70,
+  A_SCROLLLOCK = 71,
+  A_PAUSE = 72,
+  A_INSERT = 73,
+  A_HOME = 74,
+  A_PAGEUP = 75,
+  A_DELETEFORWARD = 76,
+  A_END = 77,
+  A_PAGEDOWN = 78,
+  A_RIGHT = 79,
+  A_LEFT = 80,
+  A_DOWN = 81,
+  A_UP = 82,
+  A_KP_NUMLOCK = 83,
+  A_KP_DIVIDE = 84,
+  A_KP_MULTIPLY = 85,
+  A_KP_MINUS = 86,
+  A_KP_PLUS = 87,
+  A_KP_ENTER = 88,
+  A_KP_1 = 89,
+  A_KP_2 = 90,
+  A_KP_3 = 91,
+  A_KP_4 = 92,
+  A_KP_5 = 93,
+  A_KP_6 = 94,
+  A_KP_7 = 95,
+  A_KP_8 = 96,
+  A_KP_9 = 97,
+  A_KP_0 = 98,
+  A_KP_PERIOD = 99,
+  A_NONUSBACKSLASH = 100,
+  A_APPLICATION = 101,
+  A_POWER = 102,
+  A_KP_EQUALS = 103,
+  A_F13 = 104,
+  A_F14 = 105,
+  A_F15 = 106,
+  A_F16 = 107,
+  A_F17 = 108,
+  A_F18 = 109,
+  A_F19 = 110,
+  A_F20 = 111,
+  A_F21 = 112,
+  A_F22 = 113,
+  A_F23 = 114,
+  A_F24 = 115,
+  A_EXECUTE = 116,
+  A_HELP = 117,
+  A_MENU = 118,
+  A_SELECT = 119,
+  A_STOP = 120,
+  A_AGAIN = 121,
+  A_UNDO = 122,
+  A_CUT = 123,
+  A_COPY = 124,
+  A_PASTE = 125,
+  A_FIND = 126,
+  A_MUTE = 127,
+  A_VOLUMEUP = 128,
+  A_VOLUMEDOWN = 129,
+  A_LOCKINGCAPSLOCK = 130,
+  A_LOCKINGNUMLOCK = 131,
+  A_LOCKINGSCROLLLOCK = 132,
+  A_KP_COMMA = 133,
+  A_KP_EQUALSSIGN = 134,
+  A_INTERNATIONAL1 = 135,
+  A_INTERNATIONAL2 = 136,
+  A_INTERNATIONAL3 = 137,
+  A_INTERNATIONAL4 = 138,
+  A_INTERNATIONAL5 = 139,
+  A_INTERNATIONAL6 = 140,
+  A_INTERNATIONAL7 = 141,
+  A_INTERNATIONAL8 = 142,
+  A_INTERNATIONAL9 = 143,
+  A_LANG1 = 144,
+  A_LANG2 = 145,
+  A_LANG3 = 146,
+  A_LANG4 = 147,
+  A_LANG5 = 148,
+  A_LANG6 = 149,
+  A_LANG7 = 150,
+  A_LANG8 = 151,
+  A_LANG9 = 152,
+  A_ALTERASE = 153,
+  A_SYSREQ = 154,
+  A_CANCEL = 155,
+  A_CLEAR = 156,
+  A_PRIOR = 157,
+  A_RETURN2 = 158,
+  A_SEPARATOR = 159,
+  A_OUT = 160,
+  A_OPER = 161,
+  A_CLEARAGAIN = 162,
+  A_CRSEL = 163,
+  A_EXSEL = 164,
+  A_KP_00 = 176,
+  A_KP_000 = 177,
+  A_THOUSANDSSPEARATOR = 178,
+  A_DECIMALSPEARATOR = 179,
+  A_CURRENCYUNIT = 180,
+  A_CURRENCYSUBUNIT = 181,
+  A_KP_LEFTPAREN = 182,
+  A_KP_RIGHTPAREN = 183,
+  A_KP_LEFTBRACE = 184,
+  A_KP_RIGHTBRACE = 185,
+  A_KP_TAB = 186,
+  A_KP_BACKSPACE = 187,
+  A_KP_A = 188,
+  A_KP_B = 189,
+  A_KP_C = 190,
+  A_KP_D = 191,
+  A_KP_E = 192,
+  A_KP_F = 193,
+  A_KP_XOR = 194,
+  A_KP_POWER = 195,
+  A_KP_PRECENT = 196,
+  A_KP_LESSTHAN = 197,
+  A_KP_GREATERTHAN = 198,
+  A_KP_AMPERSAND = 199,
+  A_KP_DBLAPERSAND = 200,
+  A_KP_VERTBAR = 201,
+  A_KP_DBLVERTBAR = 202,
+  A_KP_COLON = 203,
+  A_KP_HASH = 204,
+  A_KP_SPACE = 205,
+  A_KP_AT = 206,
+  A_KP_EXCLAM = 207,
+  A_KP_MEMSTORE = 208,
+  A_KP_MEMRECALL = 209,
+  A_KP_MEMCLEAR = 210,
+  A_KP_MEMADD = 211,
+  A_KP_MEMSUB = 212,
+  A_KP_MEMMULTIPLY = 213,
+  A_KP_MEMDIVIDE = 214,
+  A_KP_PLUSMINUS = 215,
+  A_KP_CLEAR = 216,
+  A_KP_CLEARENTRY = 217,
+  A_KP_BINARY = 218,
+  A_KP_OCTAL = 219,
+  A_KP_DECIMAL = 220,
+  A_KP_HEXADECIMAL = 221,
+  A_LCTRL = 224,
+  A_LSHIFT = 225,
+  A_LALT = 226,
+  A_LGUI = 227,
+  A_RCTRL = 228,
+  A_RSHIFT = 229,
+  A_RALT = 230,
+  A_RGUI = 231,
+  A_KEYS = 512
+};
 
 #endif
 

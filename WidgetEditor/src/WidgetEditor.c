@@ -31,12 +31,24 @@ static void we_RenderLoop( float dt )
 
 void aMainloop( void )
 {
+  float dt = a_GetDeltaTime();
+  a_GetFPS();
   a_PrepareScene();
-
-  app.delegate.logic( a_GetDeltaTime() );
-  app.delegate.draw( a_GetDeltaTime() );
+  
+  app.delegate.logic( dt );
+  app.delegate.draw( dt );
   
   a_PresentScene();
+  app.time.frames++;
+  
+  if ( app.options.frame_cap )
+  {
+    int frame_tick = SDL_GetTicks();
+    if ( frame_tick < LOGIC_RATE )
+    {
+      SDL_Delay( LOGIC_RATE - frame_tick );
+    }
+  }
 }
 
 int main( void )
@@ -59,3 +71,4 @@ int main( void )
 
   return 0;
 }
+

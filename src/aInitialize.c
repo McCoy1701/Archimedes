@@ -62,8 +62,9 @@ int a_Init( const int width, const int height, const char *title )
 
   // Initialize timing system
   app.time.frames  = 0;
-  app.time.FPS_timer = a_CreateTimer();
-  a_StartTimer( app.time.FPS_timer );
+  app.time.FPS_timer = a_TimerCreate();
+  app.time.FPS_cap_timer = a_TimerCreate();
+  a_TimerStart( app.time.FPS_timer );
   app.time.avg_FPS = 0.0f;
 
   // Initialize image cache
@@ -115,6 +116,8 @@ void a_Quit( void )
   IMG_Quit();
   SDL_Quit();
   
+  a_TimerFree( app.time.FPS_timer );
+
   // Reset app state
   app.running = 0;
 }

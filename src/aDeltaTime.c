@@ -13,7 +13,7 @@ float a_GetDeltaTime( void )
 
 void a_GetFPS( void )
 {
-  app.time.avg_FPS = app.time.frames / ( a_GetTicks( app.time.FPS_timer ) / 1000.0f );
+  app.time.avg_FPS = app.time.frames / ( a_TimerGetTicks( app.time.FPS_timer ) / 1000.0f );
 
   if ( app.time.avg_FPS > 200000 )
   {

@@ -22,8 +22,8 @@
 ---------------------------------------------------------------
 */
 
-#define FPS_CAP 60.0
-#define LOGIC_RATE ( FPS_CAP / 1000 )
+#define FPS_CAP 120
+#define LOGIC_RATE ( 1000 / FPS_CAP )
 
 #define MAX_KEYBOARD_KEYS 350
 #define LOG_LEVEL_COUNT   6
@@ -286,6 +286,7 @@ typedef struct
 
   int frames;
   aTimer_t* FPS_timer;
+  aTimer_t* FPS_cap_timer;
   float avg_FPS;
 } aDeltaTime_t;
 
@@ -939,7 +940,6 @@ extern char* log_level_strings[LOG_LEVEL_COUNT];
 
 /*
 ---------------------------------------------------------------
-<<<<<<< HEAD
 ---                         Utils                           ---
 ---------------------------------------------------------------
 */
@@ -960,11 +960,12 @@ char** a_ParseLinesInFile( const char* file_string, const int file_size,
 */
 
 
-aPoint2f_t a_CalculateScaleOfViewport( void );
-uint8_t a_IsRectVisibleInViewport( aRectf_t rect );
+aPoint2f_t a_ViewportCalculateScale( void );
+uint8_t a_ViewportIsRectVisible( aRectf_t rect );
+uint8_t a_ViewportIsPointVisible( aPoint2f_t point );
 
-void a_DrawPointToViewport( aPoint3f_t p, aColor_t color );
-void a_DrawRectToViewport( aRectf_t rect, aColor_t color );
+void a_ViewportDrawPoint( aPoint3f_t p, aColor_t color );
+void a_ViewportDrawRect( aRectf_t rect, aColor_t color );
 
 /*
 ---------------------------------------------------------------
@@ -972,15 +973,15 @@ void a_DrawRectToViewport( aRectf_t rect, aColor_t color );
 ---------------------------------------------------------------
 */
 
-aTimer_t* a_CreateTimer( void );
-void a_FreeTimer( aTimer_t* timer );
-void a_StartTimer( aTimer_t* timer );
-void a_StopTimer( aTimer_t* timer );
-void a_PauseTimer( aTimer_t* timer );
-void a_UnpauseTimer( aTimer_t* timer );
-uint32_t a_GetTicks( aTimer_t* timer );
-uint8_t a_IsStarted( aTimer_t* timer );
-uint8_t a_IsPaused( aTimer_t* timer );
+aTimer_t* a_TimerCreate( void );
+void a_TimerFree( aTimer_t* timer );
+void a_TimerStart( aTimer_t* timer );
+void a_TimerStop( aTimer_t* timer );
+void a_TimerPause( aTimer_t* timer );
+void a_TimerUnpause( aTimer_t* timer );
+uint32_t a_TimerGetTicks( aTimer_t* timer );
+uint8_t a_TimerStarted( aTimer_t* timer );
+uint8_t a_TimerPaused( aTimer_t* timer );
 
 /*
 ---------------------------------------------------------------

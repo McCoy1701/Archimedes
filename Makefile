@@ -16,20 +16,26 @@ TEST_DIR  = test
 TEM_DIR   = template
 JSON_DIR  = json
 INDEX_DIR = index
+EDITOR_DIR = WidgetEditor/src
+EDITOR_INC_DIR = WidgetEditor/include
 
 # Object Directories (Separated for different build types)
 OBJ_DIR_NATIVE = obj/native
+OBJ_DIR_EDITOR = obj/editor
 OBJ_DIR_SHARED = obj/shared
 OBJ_DIR_EM     = obj/em
 
 #Flags
 CINC = -I$(INC_DIR)/
+EDINC = -I$(EDITOR_INC_DIR)/
 LDLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm
 EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 C_FLAGS = -Wall -Wextra $(CINC)
+ED_FLAGS = -Wall -Wextra $(EDINC)
 NATIVE_C_FLAGS = $(C_FLAGS) -ggdb
 SHARED_C_FLAGS = $(C_FLAGS) -fPIC -pedantic
+EDITOR_C_FLAGS = $(ED_FLAGS) -ggdb -lArchimedes
 
 
 # ====================================================================
@@ -45,28 +51,38 @@ ARCHIMEDES_SRCS = \
     aImage.c \
     aInitialize.c \
     aInput.c \
-		aLayout.c\
+	  aLayout.c\
     aText.c \
     aTextures.c \
     aTimer.c \
-		aUtils.c \
-		aViewport.c \
+	  aUtils.c \
+	  aViewport.c \
     aWidgets.c
+
+WIDGET_EIDTOR_SRCS = WidgetEditor.c
 
 SHARED_OBJS = $(patsubst %.c, $(OBJ_DIR_SHARED)/%.o, $(ARCHIMEDES_SRCS))
 NATIVE_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(ARCHIMEDES_SRCS))
+EIDTOR_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_EDITOR)/%.o, $(WIDGET_EIDTOR_SRCS))
 
-MAIN_OBJ = $(OBJ_DIR_NATIVE)/test_widgets.o
+MAIN_OBJ = $(OBJ_DIR_NATIVE)/n_main.o
+TEST_WID_OBJ = $(OBJ_DIR_NATIVE)/test_widgets.o
+EDITOR_OBJ = $(OBJ_DIR_EDITOR)/WidgetEditor.o
 
 NATIVE_EXE_OBJS = $(NATIVE_LIB_OBJS) $(MAIN_OBJ)
+TEST_EXE_OBJS = $(NATIVE_LIB_OBJS) $(TEST_WID_OBJ)
+EDITOR_EXE_OBJS = $(EDITOR_LIB_OBJS) $(EDITOR_OBJ)
 
 # ====================================================================
 # PHONY TARGETS
 # ====================================================================
 
-.PHONY: all shared EM EMARCH test clean install uninstall ainstall auninstall updateHeader bear bearclean
+.PHONY: all shared editor EM EMARCH test clean install uninstall ainstall auninstall updateHeader bear bearclean
 all: $(BIN_DIR)/native
 shared: $(BIN_DIR)/libArchimedes.so
+test:$(BIN_DIR)/test
+editor:$(BIN_DIR)/editor
+Mat:$(BIN_DIR)/mat
 
 # Emscripten Targets
 EM: $(INDEX_DIR)/index.html
@@ -77,7 +93,7 @@ EMARCH: $(BIN_DIR)/libArchimedes.a
 # ====================================================================
 
 # Ensure the directories exist before attempting to write files to them
-$(BIN_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED):
+$(BIN_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(OBJ_DIR_EDITOR):
 	mkdir -p $@
 
 clean:
@@ -117,6 +133,9 @@ $(OBJ_DIR_SHARED)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_SHARED)
 
 $(OBJ_DIR_NATIVE)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_NATIVE)
 	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+$(OBJ_DIR_EDITOR)/%.o: $(EDITOR_DIR)/%.c | $(OBJ_DIR_EDITOR)
+	$(CC) -c $< -o $@ $(EDITOR_C_FLAGS)
 
 $(OBJ_DIR_NATIVE)/test_widgets.o: $(TEST_DIR)/test_widgets.c | $(OBJ_DIR_NATIVE)
 	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
@@ -191,3 +210,11 @@ $(BIN_DIR)/libArchimedes.so: $(SHARED_OBJS) | $(BIN_DIR)
 $(BIN_DIR)/native: $(NATIVE_EXE_OBJS) | $(BIN_DIR)
 	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
 
+$(BIN_DIR)/test: $(TEST_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
+
+$(BIN_DIR)/editor: $(EDITOR_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(EDITOR_C_FLAGS) $(LDLIBS)
+
+$(BIN_DIR)/mat: $(NATIVE_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)

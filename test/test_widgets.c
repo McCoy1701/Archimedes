@@ -27,9 +27,10 @@ void aInitGame( void )
   app.delegate.draw  = e_Draw;
   
   a_InitWidgets( "resources/widgets/world.auf" );
-  
-  app.active_widget = a_GetWidget( "tab_bar" );
 
+  app.active_widget = a_GetWidget( "tab_bar" );
+  app.options.frame_cap = 1;
+  
   aContainerWidget_t* container = ( aContainerWidget_t* )app.active_widget->data;
   for ( int i = 0; i < container->num_components; i++ )
   {
@@ -87,8 +88,6 @@ void aInitGame( void )
       current->action = we_load;
     }
   }
-  
-
 }
 
 static void we_creation( void )
@@ -150,7 +149,7 @@ static void we_load( void )
 
 static void world( void )
 {
-
+  printf("world\n");
 }
 
 static void item( void )
@@ -165,11 +164,14 @@ static void entity( void )
 
 static void color( void )
 {
+  app.delegate.logic = we_CreationDoLoop;
+  app.delegate.draw  = we_CreationRenderLoop;
 
 }
 
 static void ui( void )
 {
+  printf("Hello, World!\n");
 
 }
 
@@ -204,6 +206,7 @@ static void e_Draw( float dt )
 void aMainloop( void )
 {
   float dt = a_GetDeltaTime();
+  a_TimerStart( app.time.FPS_cap_timer );
   a_GetFPS();
   a_PrepareScene();
   
@@ -215,7 +218,7 @@ void aMainloop( void )
   
   if ( app.options.frame_cap )
   {
-    int frame_tick = SDL_GetTicks();
+    int frame_tick = a_TimerGetTicks( app.time.FPS_cap_timer );
     if ( frame_tick < LOGIC_RATE )
     {
       SDL_Delay( LOGIC_RATE - frame_tick );

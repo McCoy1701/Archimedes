@@ -62,8 +62,9 @@ int a_Init( const int width, const int height, const char *title )
 
   // Initialize timing system
   app.time.frames  = 0;
-  app.time.FPS_timer = a_CreateTimer();
-  a_StartTimer( app.time.FPS_timer );
+  app.time.FPS_timer = a_TimerCreate();
+  app.time.FPS_cap_timer = a_TimerCreate();
+  a_TimerStart( app.time.FPS_timer );
   app.time.avg_FPS = 0.0f;
 
   // Initialize image cache
@@ -109,12 +110,20 @@ void a_Quit( void )
     free( app.img_cache );
     app.img_cache = NULL;
   }
+
+  /*if ( app.active_widget ) {
+    a_FreeWidgetCache();
+    app.active_widget = NULL;
+  }*/
   
   // Shutdown SDL subsystems
   TTF_Quit();
   IMG_Quit();
   SDL_Quit();
   
+  a_TimerFree( app.time.FPS_timer );
+  a_TimerFree( app.time.FPS_cap_timer );
+
   // Reset app state
   app.running = 0;
 }

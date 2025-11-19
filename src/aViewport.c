@@ -10,14 +10,14 @@
 
 #include "Archimedes.h"
 
-aPoint2f_t a_CalculateScaleOfViewport( void )
+aPoint2f_t a_ViewportCalculateScale( void )
 {
   aPoint2f_t scale = { .x = (float)SCREEN_WIDTH  / ( app.g_viewport.w * 2.0f ),
                     .y = (float)SCREEN_HEIGHT / ( app.g_viewport.h * 2.0f ) };
   return scale;
 }
 
-uint8_t a_IsRectVisibleInViewPort( aRectf_t rect )
+uint8_t a_ViewportIsRectVisible( aRectf_t rect )
 {
   if ( rect.x + rect.w < app.g_viewport.x - app.g_viewport.w ||
        rect.x - rect.w > app.g_viewport.x + app.g_viewport.w || 
@@ -30,7 +30,7 @@ uint8_t a_IsRectVisibleInViewPort( aRectf_t rect )
   return 1;
 }
 
-uint8_t a_IsPointVisibleInViewPort( aPoint2f_t point )
+uint8_t a_ViewportIsPointVisible( aPoint2f_t point )
 {
   if ( point.x < app.g_viewport.x - app.g_viewport.w ||
        point.x > app.g_viewport.x + app.g_viewport.w || 
@@ -43,9 +43,9 @@ uint8_t a_IsPointVisibleInViewPort( aPoint2f_t point )
   return 1;
 }
 
-void a_DrawPointToViewport( aPoint3f_t p, aColor_t color )
+void a_ViewportDrawPoint( aPoint3f_t p, aColor_t color )
 {
-  aPoint2f_t current_scale = a_CalculateScaleOfViewport();
+  aPoint2f_t current_scale = a_ViewportCalculateScale();
 
   float viewport_x1 = app.g_viewport.x - app.g_viewport.w;
   float viewport_y1 = app.g_viewport.y - app.g_viewport.h;
@@ -61,9 +61,9 @@ void a_DrawPointToViewport( aPoint3f_t p, aColor_t color )
   SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
-void a_DrawRectToViewport( aRectf_t rect, aColor_t color )
+void a_ViewportDrawRect( aRectf_t rect, aColor_t color )
 {
-  aPoint2f_t current_scale = a_CalculateScaleOfViewport();
+  aPoint2f_t current_scale = a_ViewportCalculateScale();
 
   float viewport_x1 = app.g_viewport.x - app.g_viewport.w;
   float viewport_y1 = app.g_viewport.y - app.g_viewport.h;

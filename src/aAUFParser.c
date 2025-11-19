@@ -36,7 +36,6 @@ aAUF_t* a_AUFParser( const char* filename )
   newline_count = a_CountNewLines( file_string, file_size );
 
   line = a_ParseLinesInFile( file_string, file_size, newline_count );
-
   ParserLineToRoot( new_root, line, newline_count );
   
   free( file_string );
@@ -382,17 +381,8 @@ static void handle_widget_definition( aAUF_Node_t* node, const char* string )
 
 }
 
-int a_SaveAUF( aWidget_t* widget_head, const char* filename )
+int a_AUFSaveWidgets( const char* filename )
 {
-  aWidgetFileHeader_t header = { .magic_number = MAGIC_NUMBER,
-                                 .filename     = "",
-                                 .version      = 0,
-                                 .num_widgets  = 0 };
-
-  STRNCPY( header.filename, filename, MAX_FILENAME_LENGTH );
-
-  printf( "%s\n", widget_head->name );
-  
 
   return 0;
 }

@@ -10,7 +10,7 @@
 #include "Archimedes.h"
 #include <SDL2/SDL_timer.h>
 
-aTimer_t* a_CreateTimer( void )
+aTimer_t* a_TimerCreate( void )
 {
   aTimer_t* new_timer = malloc( sizeof( aTimer_t* ) );
   if ( new_timer == NULL )
@@ -28,7 +28,7 @@ aTimer_t* a_CreateTimer( void )
   return new_timer;
 }
 
-void a_FreeTimer( aTimer_t* timer )
+void a_TimerFree( aTimer_t* timer )
 {
   if ( timer == NULL )
   {
@@ -39,7 +39,7 @@ void a_FreeTimer( aTimer_t* timer )
   free( timer );
 }
 
-void a_StartTimer( aTimer_t* timer )
+void a_TimerStart( aTimer_t* timer )
 {
   timer->started      = 1;
   timer->paused       = 0;
@@ -47,7 +47,7 @@ void a_StartTimer( aTimer_t* timer )
   timer->paused_ticks = 0;
 }
 
-void a_StopTimer( aTimer_t* timer )
+void a_TimerStop( aTimer_t* timer )
 {
   timer->started      = 0;
   timer->paused       = 0;
@@ -56,7 +56,7 @@ void a_StopTimer( aTimer_t* timer )
 
 }
 
-void a_PauseTimer( aTimer_t* timer )
+void a_TimerPause( aTimer_t* timer )
 {
   if ( timer->started && !timer->paused )
   {
@@ -68,7 +68,7 @@ void a_PauseTimer( aTimer_t* timer )
   }
 }
 
-void a_UnpauseTimer( aTimer_t* timer )
+void a_TimerUnpause( aTimer_t* timer )
 {
   if ( !timer->started && timer->paused )
   {
@@ -81,7 +81,7 @@ void a_UnpauseTimer( aTimer_t* timer )
 
 }
 
-uint32_t a_GetTicks( aTimer_t* timer )
+uint32_t a_TimerGetTicks( aTimer_t* timer )
 {
   uint32_t time = 0;
 
@@ -100,12 +100,12 @@ uint32_t a_GetTicks( aTimer_t* timer )
   return time;
 }
 
-uint8_t a_IsStarted( aTimer_t* timer )
+uint8_t a_TimerStarted( aTimer_t* timer )
 {
   return timer->started;
 }
 
-uint8_t a_IsPaused( aTimer_t* timer )
+uint8_t a_TimerPaused( aTimer_t* timer )
 {
   return timer->paused && timer->started;
 }

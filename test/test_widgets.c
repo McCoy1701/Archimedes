@@ -236,8 +236,6 @@ int main( void )
     aMainloop();
   }
   
-  //a_AUFFree( root );
-  
   a_Quit();
 
   return 0;

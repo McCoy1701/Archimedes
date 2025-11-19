@@ -317,6 +317,11 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name )
   return container;
 }
 
+aWidget_t a_WidgetGetHeadWidget( void )
+{
+  return widget_head;
+}
+
 static void LoadWidgets( const char* filename )
 {
   aAUF_t* root;
@@ -1259,12 +1264,42 @@ int a_FreeWidgetCache( void )
     aWidget_t* current = &widget_head;
     aWidget_t* next = NULL;
 
+    aSelectWidget_t* temp_select = NULL;
+    aInputWidget_t* temp_input = NULL;
+    aContainerWidget_t* temp_container = NULL;
+    
     while ( current != NULL )
     {
       next = current->next;
       if ( current->action != NULL )
       {
         current->action = NULL;
+      }
+
+      switch ( current->type )
+      {
+        case WT_SELECT:
+          temp_select = (aSelectWidget_t*)current->data;
+          
+          for ( int i = 0; i < temp_select->num_options; i++ )
+          {
+            free( temp_select->options[i] );
+          }
+
+          free( temp_select->options );
+          break;
+        
+        case WT_INPUT:
+          temp_input = (aInputWidget_t*)current->data;
+          free( temp_input->text );
+          break;
+        
+        case WT_CONTAINER:
+          temp_container = (aContainerWidget_t*)current->data;
+          break;
+        
+        default:
+          break;
       }
       
       if ( current->data != NULL )

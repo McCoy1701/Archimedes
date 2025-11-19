@@ -26,191 +26,11 @@ void aInitGame( void )
   app.delegate.logic = e_Logic;
   app.delegate.draw  = e_Draw;
   
-  root = a_AUFParser( "resources/widgets/world.auf" );
-
-  aAUF_Node_t* current = root->head;
-  //a_PrintAUFTree( current, 1 );
-  
-  /*if ( 1 )
-  {
-    while ( current != NULL )
-    {
-      if ( 1 )
-      {
-        printf( "Name: %s %s\n", current->string, current->value_string );
-        printf( "x: %d\n", a_AUFGetObjectItem( current, "x" )->value_int );
-        printf( "y: %d\n", a_AUFGetObjectItem( current, "y" )->value_int );
-        printf( "label: %s\n", a_AUFGetObjectItem( current, "label" )->value_string );
-        printf( "boxed: %d\n", a_AUFGetObjectItem( current, "boxed" )->value_int );
-        printf( "hidden: %d\n", a_AUFGetObjectItem( current, "hidden" )->value_int );
-        printf( "padding: %d\n", a_AUFGetObjectItem( current, "padding" )->value_int );
-        printf( "flex: %d\n", a_AUFGetObjectItem( current, "flex" )->value_int );
-        printf( "spacing: %d\n", a_AUFGetObjectItem( current, "spacing" )->value_int );
-        printf( "current type: %d\n", current->type );
-        
-        if ( a_AUFGetObjectItem( current, "fg" ) != NULL )
-        {
-          printf( "fg: " );
-          aAUF_Node_t* fg = a_AUFGetObjectItem( current, "fg" );
-          aAUF_Node_t* temp = fg->child;
-          for ( int i = 0; i < fg->value_int; i++ )
-          {
-            if ( temp != NULL )
-            {
-              printf( "%d,", temp->value_int );
-
-            }
-            temp = temp->next;
-          }
-          printf( "\n" );
-
-        }
-
-        if ( a_AUFGetObjectItem( current, "bg" ) != NULL )
-        {
-          printf( "bg: " );
-          aAUF_Node_t* bg = a_AUFGetObjectItem( current, "bg" );
-          aAUF_Node_t* temp = bg->child;
-          for ( int i = 0; i < bg->value_int; i++ )
-          {
-            if ( temp != NULL )
-            {
-              printf( "%d,", temp->value_int );
-
-            }
-            temp = temp->next;
-          }
-          printf( "\n" );
-
-
-        }
-      }
-      
-      aAUF_Node_t* container = a_AUFGetObjectItem( current, "container" );
-      printf( "name count: %s %d\n", container->string, container->value_int );
-      aAUF_Node_t* current_container = container->child;
-
-      if ( 1 )
-      {
-        while ( current_container != NULL )
-        {
-
-          if ( current_container->string != NULL )
-          {
-            printf( "Type, Name: %s %s\n", current_container->string, current_container->value_string );
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "x" ) != NULL )
-          {
-            printf( "x: %d\n", a_AUFGetObjectItem( current_container, "x" )->value_int );
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "y" ) != NULL )
-          {
-            printf( "y: %d\n", a_AUFGetObjectItem( current_container, "y" )->value_int );
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "label" ) != NULL )
-          {
-            printf( "label: %s\n", a_AUFGetObjectItem( current_container, "label" )->value_string );
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "boxed" ) != NULL )
-          {
-            printf( "boxed: %d\n", a_AUFGetObjectItem( current_container, "boxed" )->value_int );
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "hidden" ) != NULL )
-          {
-            printf( "hidden: %d\n", a_AUFGetObjectItem( current_container, "hidden" )->value_int );
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "padding" ) != NULL )
-          {
-            printf( "padding: %d\n", a_AUFGetObjectItem( current_container, "padding" )->value_int );
-
-          }
-          
-          printf( "container type: %d\n", current_container->type );
-
-          if ( a_AUFGetObjectItem( current_container, "fg" ) != NULL )
-          {
-            printf( "fg: " );
-            aAUF_Node_t* fg = a_AUFGetObjectItem( current_container, "fg" );
-            aAUF_Node_t* current = fg->child;
-            for ( int i = 0; i < fg->value_int; i++ )
-            {
-              if ( current != NULL )
-              {
-                printf( "%d,", current->value_int );
-
-              }
-              current = current->next;
-            }
-            printf( "\n" );
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "bg" ) != NULL )
-          {
-            printf( "bg: " );
-            aAUF_Node_t* bg = a_AUFGetObjectItem( current_container, "bg" );
-            aAUF_Node_t* current = bg->child;
-            for ( int i = 0; i < bg->value_int; i++ )
-            {
-              if ( current != NULL )
-              {
-                printf( "%d,", current->value_int );
-
-              }
-              current = current->next;
-            }
-            printf( "\n" );
-
-
-          }
-
-          if ( a_AUFGetObjectItem( current_container, "options" ) != NULL )
-          {
-            printf( "options: " );
-            aAUF_Node_t* options = a_AUFGetObjectItem( current_container, "options" );
-            aAUF_Node_t* current = options->child;
-            
-            printf("options count: %d\n", options->value_int );
-
-            for ( int i = 0; i < options->value_int; i++ )
-            {
-              if ( current != NULL )
-              {
-                printf( "%s, ", current->value_string );
-
-              }
-              current = current->next;
-            }
-            printf( "\n" );
-
-
-          }
-
-          current_container = current_container->next;
-        }
-      }
-
-      current = current->next;
-    }
-  }*/
-
-  //a_AUFFree( root );
-  
   a_InitWidgets( "resources/widgets/world.auf" );
-  
-  app.active_widget = a_GetWidget( "tab_bar" );
 
+  app.active_widget = a_GetWidget( "tab_bar" );
+  app.options.frame_cap = 1;
+  
   aContainerWidget_t* container = ( aContainerWidget_t* )app.active_widget->data;
   for ( int i = 0; i < container->num_components; i++ )
   {
@@ -268,8 +88,6 @@ void aInitGame( void )
       current->action = we_load;
     }
   }
-  
-
 }
 
 static void we_creation( void )
@@ -331,7 +149,7 @@ static void we_load( void )
 
 static void world( void )
 {
-
+  printf("world\n");
 }
 
 static void item( void )
@@ -346,11 +164,14 @@ static void entity( void )
 
 static void color( void )
 {
+  app.delegate.logic = we_CreationDoLoop;
+  app.delegate.draw  = we_CreationRenderLoop;
 
 }
 
 static void ui( void )
 {
+  printf("Hello, World!\n");
 
 }
 
@@ -385,6 +206,7 @@ static void e_Draw( float dt )
 void aMainloop( void )
 {
   float dt = a_GetDeltaTime();
+  a_TimerStart( app.time.FPS_cap_timer );
   a_GetFPS();
   a_PrepareScene();
   
@@ -396,7 +218,7 @@ void aMainloop( void )
   
   if ( app.options.frame_cap )
   {
-    int frame_tick = SDL_GetTicks();
+    int frame_tick = a_TimerGetTicks( app.time.FPS_cap_timer );
     if ( frame_tick < LOGIC_RATE )
     {
       SDL_Delay( LOGIC_RATE - frame_tick );
@@ -414,7 +236,7 @@ int main( void )
     aMainloop();
   }
   
-  a_AUFFree( root );
+  //a_AUFFree( root );
   
   a_Quit();
 

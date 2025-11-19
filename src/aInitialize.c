@@ -110,6 +110,11 @@ void a_Quit( void )
     free( app.img_cache );
     app.img_cache = NULL;
   }
+
+  /*if ( app.active_widget ) {
+    a_FreeWidgetCache();
+    app.active_widget = NULL;
+  }*/
   
   // Shutdown SDL subsystems
   TTF_Quit();
@@ -117,6 +122,7 @@ void a_Quit( void )
   SDL_Quit();
   
   a_TimerFree( app.time.FPS_timer );
+  a_TimerFree( app.time.FPS_cap_timer );
 
   // Reset app state
   app.running = 0;

@@ -82,6 +82,7 @@ all: $(BIN_DIR)/native
 shared: $(BIN_DIR)/libArchimedes.so
 test:$(BIN_DIR)/test
 editor:$(BIN_DIR)/editor
+Mat:$(BIN_DIR)/mat
 
 # Emscripten Targets
 EM: $(INDEX_DIR)/index.html
@@ -215,3 +216,5 @@ $(BIN_DIR)/test: $(TEST_EXE_OBJS) | $(BIN_DIR)
 $(BIN_DIR)/editor: $(EDITOR_EXE_OBJS) | $(BIN_DIR)
 	$(CC) $^ -o $@ $(EDITOR_C_FLAGS) $(LDLIBS)
 
+$(BIN_DIR)/mat: $(NATIVE_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)

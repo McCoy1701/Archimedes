@@ -22,7 +22,7 @@
 ---------------------------------------------------------------
 */
 
-#define FPS_CAP 120
+#define FPS_CAP 60
 #define LOGIC_RATE ( 1000 / FPS_CAP )
 
 #define MAX_KEYBOARD_KEYS 350
@@ -869,6 +869,7 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name );
  */
 void a_InitWidgets( const char* filename );
 int a_FreeWidgetCache( void );
+aWidget_t a_WidgetGetHeadWidget( void );
 
 /*
 ---------------------------------------------------------------
@@ -877,7 +878,7 @@ int a_FreeWidgetCache( void );
 */
 
 aAUF_t* a_AUFParser( const char* filename );
-int a_SaveAUF( aWidget_t* widget_head, const char* filename );
+int a_AUFSaveWidgets( const char* filename );
 int a_FreeLine( char** line, const int nl_count );
 
 aAUF_t* a_AUFCreation( void );

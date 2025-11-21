@@ -148,7 +148,7 @@ static void we_CreationRenderLoop( float dt )
     char timer_text[MAX_NAME_LENGTH];
     snprintf( timer_text, MAX_NAME_LENGTH, "%d", a_TimerGetTicks( one_shot ) );
 
-    a_DrawText( timer_text, 600, 100, &a_default_text_style );
+    a_DrawText( timer_text, 600, 100, a_default_text_style );
   }
 
   a_DrawWidgets();

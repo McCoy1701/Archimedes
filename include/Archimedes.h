@@ -110,12 +110,35 @@ enum
 ---------------------------------------------------------------
 */
 
+/**
+ * @brief Floating-point rectangle structure
+ *
+ * Represents a rectangle with floating-point precision for smooth
+ * positioning and scaling. Used throughout Archimedes for entity
+ * positions, UI layout, and collision detection.
+ *
+ * @param x X coordinate of the top-left corner
+ * @param y Y coordinate of the top-left corner
+ * @param w Width of the rectangle
+ * @param h Height of the rectangle
+ */
 typedef struct
 {
   float x, y;
   float w, h;
 } aRectf_t;
 
+/**
+ * @brief Integer rectangle structure
+ *
+ * Represents a rectangle with integer precision for pixel-perfect
+ * rendering and grid-aligned UI elements.
+ *
+ * @param x X coordinate of the top-left corner (pixels)
+ * @param y Y coordinate of the top-left corner (pixels)
+ * @param w Width of the rectangle (pixels)
+ * @param h Height of the rectangle (pixels)
+ */
 typedef struct
 {
   int x, y;
@@ -539,7 +562,7 @@ void a_DrawFilledRect( const aRectf_t rect, const aColor_t color );
  * 
  * @note NULL surface is handled gracefully without crashing
  */
-void a_Blit( SDL_Surface* surf, const int x, const int y );
+void a_BlitSurface( SDL_Surface* surf, const int x, const int y );
 
 /**
  * @brief Blit a rectangular region of a surface to the screen
@@ -553,36 +576,16 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
  * @param y Destination Y coordinate
  * @param scale Scaling factor for the destination size
  * 
- * @note NULL surface is handled gracefully without crashing
  */
-void a_BlitSurfRect( SDL_Surface* surf, aRectf_t rect, const int scale );
-void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
-                        const int y, const int scale, const aColor_t color );
+void a_BlitSurfaceRect( SDL_Surface* surf, aRectf_t rect, const int scale );
 
-/*
- * @brief Blit a texture scaled to specific dimensions
- *
- * Renders the entire texture stretched or shrunk to fit the specified width and height.
- * This provides independent control over horizontal and vertical scaling without
- * requiring SDL_Rect construction or scale factor calculations.
- *
- * @param texture SDL texture to render (must not be NULL)
- * @param x Destination X coordinate (top-left corner)
- * @param y Destination Y coordinate (top-left corner)
- * @param w Scaled width in pixels
- * @param h Scaled height in pixels
- */
-void a_BlitTextureScaled( SDL_Texture* texture, const int x, const int y,
-                           const int w, const int h );
-
-/*
+/**
  * Update the window title text
  *
  * Changes the text displayed in the window's title bar
  * 
  * @param title Source of new Title
  * 
- * @note String is copied internally, original can be freed after call
  */
 void a_UpdateTitle( const char *title );
 
@@ -594,10 +597,49 @@ void a_SetPixel( SDL_Surface *surface, int x, int y, aColor_t c );
 ---------------------------------------------------------------
 */
 
-int a_InitImage( void );
-SDL_Surface* a_Image( const char *filename );
+/**
+ * @brief Initialize the image cache system
+ *
+ * Allocates memory for the image cache and prepares it for use.
+ * Must be called before any image loading operations.
+ *
+ * @return 0 on success, 1 on failure
+ */
+int a_ImageInit( void );
+
+/**
+ * @brief Load an image from disk with automatic caching
+ *
+ * Loads an SDL_Surface from the specified file path. If the image
+ * has been loaded before, returns the cached version instead of
+ * reloading from disk.
+ *
+ * @param filename Path to the image file to load
+ * @return Pointer to SDL_Surface, or NULL on failure
+ */
+SDL_Surface* a_ImageLoad( const char *filename );
+
+/**
+ * @brief Clean up and free all cached images
+ *
+ * Frees all SDL_Surfaces stored in the image cache and resets
+ * the cache structure. Should be called during shutdown.
+ *
+ * @return 0 on success, 1 if cache is NULL
+ */
 int a_ImageCacheCleanUp( void );
-int a_Screenshot( SDL_Renderer *renderer, const char *filename );
+
+/**
+ * @brief Capture the current renderer contents to a PNG file
+ *
+ * Reads pixels from the renderer and saves them as a PNG image
+ * to the specified filename.
+ *
+ * @param renderer The SDL renderer to capture from
+ * @param filename Path where the PNG file should be saved
+ * @return 1 on success, 0 on failure
+ */
+int a_ScreenshotSave( SDL_Renderer *renderer, const char *filename );
 
 /*
 ---------------------------------------------------------------
@@ -725,14 +767,14 @@ void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )
  *
  * Renders text at the specified position using a font configuration structure.
  * Supports alignment, wrapping, scaling, and color. This is the recommended
- * text drawing function - prefer it over a_DrawText().
+ * text drawing function.
  *
- * @param text Text string to render (must not be NULL)
+ * @param content Text string to render (must not be NULL)
  * @param x X coordinate (meaning depends on alignment)
  * @param y Y coordinate (top of text baseline)
- * @param config Font configuration (NULL uses a_default_text_style)
+ * @param style Font configuration (use a_default_text_style for defaults)
  */
-void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style );
+void a_DrawText( const char* content, int x, int y, aTextStyle_t style );
 
 /**
  * @brief Create an SDL texture from text
@@ -786,20 +828,6 @@ int a_GlyphExists(int font_type, unsigned int codepoint);
  * @return Glyph index to use (either requested or fallback)
  */
 int a_GetGlyphOrFallback(int font_type, unsigned int codepoint);
-
-/*
----------------------------------------------------------------
----                       Textures                          ---
----------------------------------------------------------------
-*/
-
-/**
- * @brief Convert SDL_Surface to SDL_Texture
- * @param surf Surface to convert
- * @param destroy If 1, frees the surface after conversion
- * @return SDL_Texture pointer (caller must destroy)
- */
-SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy );
 
 /*
 ---------------------------------------------------------------

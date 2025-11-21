@@ -5,8 +5,9 @@ FF-001: Naming Conventions Verification
 Ensures the naming patterns from ADR-001 are maintained:
 1. Functions use a_ prefix
 2. "Drawn" objects use a_Draw* pattern (Text, Rect, Circle, etc.)
-3. "Used" objects use a_Object* pattern (Timer, Flex, Widget, etc.)
-4. Types use aObject_t pattern (lowercase a, PascalCase, _t suffix)
+3. "Blit" objects use a_Blit* pattern (Surface, SurfaceRect)
+4. "Used" objects use a_Object* pattern (Timer, Flex, Widget, etc.)
+5. Types use aObject_t pattern (lowercase a, PascalCase, _t suffix)
 
 Based on: ADR-001 (Naming Conventions)
 
@@ -25,10 +26,15 @@ DRAWN_OBJECTS = {
     "Triangle", "FilledTriangle", "Widgets"
 }
 
+# Objects that should use a_Blit* pattern (blitting is distinct from drawing)
+BLIT_OBJECTS = {
+    "Surface", "SurfaceRect"
+}
+
 # Objects that should use a_Object* pattern (noun-verb)
 USED_OBJECTS = {
     "Timer", "Viewport", "Flex", "Widget", "Image", "Audio",
-    "AUF", "Glyph", "Font", "Texture", "Blit", "Error"
+    "AUF", "Glyph", "Font", "Texture", "Error"
 }
 
 # Pattern to match function declarations in header
@@ -91,7 +97,7 @@ def classify_function(func_name: str) -> Tuple[str, str]:
     Classify a function and determine if it follows naming conventions.
 
     Returns: (category, issue_or_empty)
-        category: "draw", "used", "lifecycle", "utility", "unknown"
+        category: "draw", "blit", "used", "lifecycle", "utility", "unknown"
         issue: Empty string if valid, otherwise description of issue
     """
     # Remove a_ prefix
@@ -104,6 +110,14 @@ def classify_function(func_name: str) -> Tuple[str, str]:
             return ("draw", "")
         # It's a Draw function but object not in our list - might need updating
         return ("draw", "")
+
+    # Check if it's a Blit function
+    if name_without_prefix.startswith("Blit"):
+        blit_obj = name_without_prefix[4:]  # Remove "Blit"
+        if blit_obj in BLIT_OBJECTS or blit_obj == "":
+            return ("blit", "")
+        # It's a Blit function but object not in our list - might need updating
+        return ("blit", "")
 
     # Check if it starts with a known "used" object
     for obj in USED_OBJECTS:
@@ -123,7 +137,7 @@ def classify_function(func_name: str) -> Tuple[str, str]:
             return ("lifecycle", "")
 
     # Special known functions
-    known_special = ["Blit", "BlitSurfRect", "BlitTextureRect", "BlitTextureScaled", "SetPixel", "PrintAUFTree"]
+    known_special = ["SetPixel", "PrintAUFTree"]
     if name_without_prefix in known_special or any(name_without_prefix.startswith(s) for s in known_special):
         return ("utility", "")
 
@@ -202,7 +216,7 @@ def get_function_stats(content: str) -> dict:
     Returns: Dictionary with counts by category
     """
     functions = extract_functions(content)
-    stats = {"draw": 0, "used": 0, "lifecycle": 0, "utility": 0, "unknown": 0, "violation": 0}
+    stats = {"draw": 0, "blit": 0, "used": 0, "lifecycle": 0, "utility": 0, "unknown": 0, "violation": 0}
 
     for func_name, _ in functions:
         if func_name.startswith("a_"):
@@ -222,7 +236,7 @@ def verify_naming_conventions(project_root: Path) -> bool:
     print("FF-001: Naming Conventions Verification")
     print("=" * 70)
     print()
-    print("Enforcing ADR-001: Hybrid naming with Draw exception")
+    print("Enforcing ADR-001: Hybrid naming with Draw and Blit exceptions")
     print()
 
     header_file = project_root / "include" / "Archimedes.h"
@@ -263,6 +277,7 @@ def verify_naming_conventions(project_root: Path) -> bool:
     print("Function classification stats:")
     stats = get_function_stats(content)
     print(f"  Draw functions (a_Draw*): {stats['draw']}")
+    print(f"  Blit functions (a_Blit*): {stats['blit']}")
     print(f"  Object functions (a_Object*): {stats['used']}")
     print(f"  Lifecycle functions: {stats['lifecycle']}")
     print(f"  Utility functions: {stats['utility']}")

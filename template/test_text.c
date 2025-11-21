@@ -185,7 +185,7 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 0
   };
-  a_DrawText( "TEXT RENDERING TEST", SCREEN_WIDTH / 2, 20, &title_config );
+  a_DrawText( "TEXT RENDERING TEST", SCREEN_WIDTH / 2, 20, title_config );
 
   // Instructions
   aTextStyle_t info_config = {
@@ -197,7 +197,7 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 0
   };
-  a_DrawText( "Ctrl+T: Back to game | ESC: Quit", 10, 70, &info_config );
+  a_DrawText( "Ctrl+T: Back to game | ESC: Quit", 10, 70, info_config );
 
   // ========================================================================
   // LEFT COLUMN: Glyph/Unicode tests
@@ -214,22 +214,22 @@ void test_text_draw( float dt )
 
   // Test 1
   int y1 = left_items[0]->calc_y;
-  a_DrawText( "Test 1: Em-dash (should show - as fallback)", 10, y1, &info_config );
-  a_DrawText( "Your Aces shimmer with stolen luck\xe2\x80\x94the House's punishment backfired.", 10, y1 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &test_config );
+  a_DrawText( "Test 1: Em-dash (should show - as fallback)", 10, y1, info_config );
+  a_DrawText( "Your Aces shimmer with stolen luck\xe2\x80\x94the House's punishment backfired.", 10, y1 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, test_config );
 
   // Test 2
   int y2 = left_items[1]->calc_y;
-  a_DrawText( "Test 2: Various Unicode chars", 10, y2, &info_config );
-  a_DrawText( "Curly quotes: \xe2\x80\x9cHello\xe2\x80\x9d Ellipsis: \xe2\x80\xa6 En-dash: \xe2\x80\x93", 10, y2 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &test_config );
+  a_DrawText( "Test 2: Various Unicode chars", 10, y2, info_config );
+  a_DrawText( "Curly quotes: \xe2\x80\x9cHello\xe2\x80\x9d Ellipsis: \xe2\x80\xa6 En-dash: \xe2\x80\x93", 10, y2 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, test_config );
 
   // Test 3
   int y3 = left_items[2]->calc_y;
-  a_DrawText( "Test 3: Normal ASCII", 10, y3, &info_config );
-  a_DrawText( "The quick brown fox jumps over the lazy dog.", 10, y3 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &test_config );
+  a_DrawText( "Test 3: Normal ASCII", 10, y3, info_config );
+  a_DrawText( "The quick brown fox jumps over the lazy dog.", 10, y3 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, test_config );
 
   // Test 4
   int y4 = left_items[3]->calc_y;
-  a_DrawText( "Test 4: Wrapped text", 10, y4, &info_config );
+  a_DrawText( "Test 4: Wrapped text", 10, y4, info_config );
   aTextStyle_t wrap_config = {
     .type = FONT_ENTER_COMMAND,
     .fg = {100, 255, 100, 255},
@@ -240,7 +240,7 @@ void test_text_draw( float dt )
     .padding = 0
   };
   a_DrawText( "This is a longer piece of text that should wrap across multiple lines. "
-              "Previously, text with em-dashes would silently truncate here.", 10, y4 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &wrap_config );
+              "Previously, text with em-dashes would silently truncate here.", 10, y4 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, wrap_config );
 
   // ========================================================================
   // RIGHT COLUMN: Background/Padding tests (Issue #12)
@@ -251,7 +251,7 @@ void test_text_draw( float dt )
   int y5 = right_items[0]->calc_y;
   char test5_header[64];
   snprintf( test5_header, sizeof(test5_header), "Test 5: [-/+] %s", test5_labels[test_index] );
-  a_DrawText( test5_header, right_x, y5, &info_config );
+  a_DrawText( test5_header, right_x, y5, info_config );
   aTextStyle_t bg_solid = {
     .type = FONT_ENTER_COMMAND,
     .fg = test5_fg[test_index],
@@ -261,13 +261,13 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 4
   };
-  a_DrawText( test5_labels[test_index], right_x, y5 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &bg_solid );
+  a_DrawText( test5_labels[test_index], right_x, y5 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, bg_solid );
 
   // Test 6
   int y6 = right_items[1]->calc_y;
   char test6_label[64];
   snprintf( test6_label, sizeof(test6_label), "Test 6: [-/+] Alpha=%d", test6_alphas[test_index] );
-  a_DrawText( test6_label, right_x, y6, &info_config );
+  a_DrawText( test6_label, right_x, y6, info_config );
   aTextStyle_t bg_semi = {
     .type = FONT_ENTER_COMMAND,
     .fg = {255, 255, 255, 255},
@@ -277,35 +277,35 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 8
   };
-  a_DrawText( "Text with alpha bg", right_x, y6 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &bg_semi );
+  a_DrawText( "Text with alpha bg", right_x, y6 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, bg_semi );
 
   // Test 7: Different padding values (random colors from palette)
   int y7 = right_items[2]->calc_y;
-  a_DrawText( "Test 7: [-/+] Padding 0, 4, 8, 16", right_x, y7, &info_config );
+  a_DrawText( "Test 7: [-/+] Padding 0, 4, 8, 16", right_x, y7, info_config );
   aTextStyle_t pad0 = { .type = FONT_ENTER_COMMAND, .fg = test5_fg[test7_fg_idx[0]], .bg = test5_bg[test7_bg_idx[0]], .scale = 0.8f, .padding = 0 };
   aTextStyle_t pad4 = { .type = FONT_ENTER_COMMAND, .fg = test5_fg[test7_fg_idx[1]], .bg = test5_bg[test7_bg_idx[1]], .scale = 0.8f, .padding = 4 };
   aTextStyle_t pad8 = { .type = FONT_ENTER_COMMAND, .fg = test5_fg[test7_fg_idx[2]], .bg = test5_bg[test7_bg_idx[2]], .scale = 0.8f, .padding = 8 };
   aTextStyle_t pad16 = { .type = FONT_ENTER_COMMAND, .fg = test5_fg[test7_fg_idx[3]], .bg = test5_bg[test7_bg_idx[3]], .scale = 0.8f, .padding = 16 };
   int y7c = y7 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP;
-  a_DrawText( "p=0", right_x, y7c, &pad0 );
-  a_DrawText( "p=4", right_x + 80, y7c, &pad4 );
-  a_DrawText( "p=8", right_x + 170, y7c, &pad8 );
-  a_DrawText( "p=16", right_x + 270, y7c, &pad16 );
+  a_DrawText( "p=0", right_x, y7c, pad0 );
+  a_DrawText( "p=4", right_x + 80, y7c, pad4 );
+  a_DrawText( "p=8", right_x + 170, y7c, pad8 );
+  a_DrawText( "p=16", right_x + 270, y7c, pad16 );
 
   // Test 8: Color combos
   int y8 = right_items[3]->calc_y;
-  a_DrawText( "Test 8: Color combos", right_x, y8, &info_config );
+  a_DrawText( "Test 8: Color combos", right_x, y8, info_config );
   aTextStyle_t red_white = { .type = FONT_ENTER_COMMAND, .fg = {255,255,255,255}, .bg = {200,50,50,255}, .scale = 0.8f, .padding = 6 };
   aTextStyle_t green_black = { .type = FONT_ENTER_COMMAND, .fg = {0,0,0,255}, .bg = {50,200,50,255}, .scale = 0.8f, .padding = 6 };
   aTextStyle_t yellow_dark = { .type = FONT_ENTER_COMMAND, .fg = {50,50,50,255}, .bg = {255,220,100,255}, .scale = 0.8f, .padding = 6 };
   int y8c = y8 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP;
-  a_DrawText( "Error!", right_x, y8c, &red_white );
-  a_DrawText( "Success", right_x + 100, y8c, &green_black );
-  a_DrawText( "Warning", right_x + 220, y8c, &yellow_dark );
+  a_DrawText( "Error!", right_x, y8c, red_white );
+  a_DrawText( "Success", right_x + 100, y8c, green_black );
+  a_DrawText( "Warning", right_x + 220, y8c, yellow_dark );
 
   // Test 9: Wrapped with background
   int y9 = right_items[4]->calc_y;
-  a_DrawText( "Test 9: Wrapped + background", right_x, y9, &info_config );
+  a_DrawText( "Test 9: Wrapped + background", right_x, y9, info_config );
   aTextStyle_t wrap_bg = {
     .type = FONT_ENTER_COMMAND,
     .fg = {255, 255, 255, 255},
@@ -315,11 +315,11 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 8
   };
-  a_DrawText( "This tooltip has a background and wraps nicely. Great for hints!", right_x, y9 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &wrap_bg );
+  a_DrawText( "This tooltip has a background and wraps nicely. Great for hints!", right_x, y9 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, wrap_bg );
 
   // Test 10: Centered with background
   int y10 = right_items[5]->calc_y;
-  a_DrawText( "Test 10: Center-aligned bg", right_x, y10, &info_config );
+  a_DrawText( "Test 10: Center-aligned bg", right_x, y10, info_config );
   aTextStyle_t center_bg = {
     .type = FONT_ENTER_COMMAND,
     .fg = {255, 255, 255, 255},
@@ -329,5 +329,5 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 10
   };
-  a_DrawText( "CENTERED", right_x + col_width / 2, y10 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, &center_bg );
+  a_DrawText( "CENTERED", right_x + col_width / 2, y10 + TEST_TITLE_HEIGHT + TEST_TITLE_CONTENT_GAP, center_bg );
 }

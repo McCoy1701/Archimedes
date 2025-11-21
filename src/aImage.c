@@ -20,7 +20,7 @@ static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface,
 //static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
 static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename );
 
-int a_InitImage( void )
+int a_ImageInit( void )
 {
   app.img_cache = ( aImageCache_t* )malloc( sizeof( aImageCache_t ) );
   if ( app.img_cache == NULL )
@@ -38,7 +38,7 @@ int a_InitImage( void )
   return 0;
 }
 
-SDL_Surface* a_Image( const char *filename )
+SDL_Surface* a_ImageLoad( const char *filename )
 {
   SDL_Surface *surf;
 
@@ -135,21 +135,6 @@ static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const ch
   return NULL;
 }
 
-SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy )
-{
-  SDL_Texture* texture;
-
-  texture = SDL_CreateTextureFromSurface( app.renderer, surf );
-
-  if ( destroy )
-  {
-    SDL_FreeSurface( surf );
-    surf = NULL;
-  }
-
-  return texture;
-}
-
 int a_ImageCacheCleanUp( void )
 {
   if ( app.img_cache == NULL )
@@ -199,7 +184,7 @@ int a_ImageCacheCleanUp( void )
   return 0;
 }
 
-int a_Screenshot( SDL_Renderer *renderer, const char *filename )
+int a_ScreenshotSave( SDL_Renderer *renderer, const char *filename )
 {
   SDL_Rect aViewport;
   SDL_Surface *aSurface = NULL;

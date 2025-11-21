@@ -29,7 +29,7 @@ void aInitGame( void )
   
   at_LoadImageCache( test_cache );
   at_TestImageCache( test_cache );
-  surf = a_Image( "resources/assets/bullet.png" );
+  surf = a_ImageLoad( "resources/assets/bullet.png" );
   if ( surf == NULL )
   {
     printf( "Failed to load image\n" );
@@ -52,7 +52,8 @@ static void aRenderLoop( float dt )
   int y = 100;
 
   //a_Blit(surf, x, y);
-  a_DrawText("Hello, World!", x, y, black, white, FONT_CODE_PAGE_437, TEXT_ALIGN_CENTER, 0 );
+  aTextStyle_t style = { .type = FONT_CODE_PAGE_437, .fg = black, .bg = white, .align = TEXT_ALIGN_CENTER, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
+  a_DrawText("Hello, World!", x, y, style );
   aRectf_t rect = (aRectf_t){ .x = 250, .y = 250, .w = 64, .h = 64 };
 
   a_DrawFilledRect( rect, blue );

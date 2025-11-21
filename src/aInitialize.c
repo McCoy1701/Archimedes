@@ -96,7 +96,7 @@ int a_Init( const int width, const int height, const char *title )
 
   // Initialize internal Archimedes Systems
   a_InitAudio();
-  a_InitImage();
+  a_ImageInit();
   a_InitFonts();
 
   return 0;

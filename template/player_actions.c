@@ -166,16 +166,14 @@ void player_draw(SDL_Surface* surf)
   // Draw the player square
   a_DrawFilledRect((aRectf_t){player_x, player_y, 32, 32}, (aColor_t){0, 0, 255, 255});
 
-  // Draw all active bullets (scaled down to 8x8)
-  SDL_Texture* bullet_tex = a_ToTexture(surf, 0); // Don't destroy surface
+  // Draw all active bullets (8x8 blitted from surface)
   for (int i = 0; i < MAX_BULLETS; i++)
   {
     if (bullets[i].active)
     {
-      a_BlitTextureScaled(bullet_tex, (int)bullets[i].x, (int)bullets[i].y, 8, 8);
+      a_BlitSurfaceRect(surf, (aRectf_t){(int)bullets[i].x, (int)bullets[i].y, 12, 12}, 1);
     }
   }
-  SDL_DestroyTexture(bullet_tex);
 }
 
 // ============================================================================

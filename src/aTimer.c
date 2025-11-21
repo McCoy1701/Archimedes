@@ -110,3 +110,24 @@ uint8_t a_TimerPaused( aTimer_t* timer )
   return timer->paused && timer->started;
 }
 
+int a_TimerOneshot( aTimer_t* timer, const uint32_t wait_ms )
+{
+  if ( !a_TimerStarted( timer ) )
+  {
+    a_TimerStart( timer );
+    return 0;
+  }
+  
+  else
+  {
+    uint32_t timer_ticks = a_TimerGetTicks( timer );
+    if ( timer_ticks >= wait_ms )
+    {
+      a_TimerStop( timer );
+      return 1;
+    }
+  }
+
+  return 0;
+}
+

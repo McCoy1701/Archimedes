@@ -21,6 +21,9 @@ static void we_creation( void );
 static aWidget_t* w;
 aAUF_t* root = NULL;
 
+int draw_box = 0;
+aTimer_t* one_shot = NULL;
+
 void aInitGame( void )
 {
   app.delegate.logic = e_Logic;
@@ -29,6 +32,8 @@ void aInitGame( void )
   //root = a_AUFParser( "resources/widgets/world.auf" );
   //a_PrintAUFTree( root->head, 10 );
 
+  one_shot = a_TimerCreate();
+  
   a_InitWidgets( "resources/widgets/world.auf" );
 
   app.active_widget = a_GetWidget( "tab_bar" );
@@ -98,7 +103,6 @@ static void we_creation( void )
   app.delegate.logic = we_CreationDoLoop;
   app.delegate.draw  = we_CreationRenderLoop;
   
-  
   app.active_widget = a_GetWidget( "generation_menu" );
   aContainerWidget_t* container = ( aContainerWidget_t* )app.active_widget->data;
   app.active_widget->hidden = 0;
@@ -120,6 +124,14 @@ static void we_CreationDoLoop( float dt )
     app.keyboard[SDL_SCANCODE_ESCAPE] = 0;
     aInitGame();
   }
+  
+  if ( draw_box )
+  {
+    if ( a_TimerOneshot( one_shot, 5000 ) == 1 )
+    {
+      draw_box = 0;
+    }
+  }
 
   a_DoWidget();
 
@@ -127,8 +139,19 @@ static void we_CreationDoLoop( float dt )
 
 static void we_CreationRenderLoop( float dt )
 {
-  a_DrawWidgets();
+  if ( draw_box )
+  {
+    aColor_t color_something = { .r = 0, .g = 255, .b = 255, .a = 255 };
+    aRectf_t rect_something = { .x = 500, .y = 100, .w = 32, .h = 32 };
+    a_DrawFilledRect( rect_something, color_something );
+    
+    char timer_text[MAX_NAME_LENGTH];
+    snprintf( timer_text, MAX_NAME_LENGTH, "%d", a_TimerGetTicks( one_shot ) );
 
+    a_DrawText( timer_text, 600, 100, &a_default_text_style );
+  }
+
+  a_DrawWidgets();
 }
 
 static void we_edit( void )
@@ -149,6 +172,7 @@ static void we_load( void )
 static void world( void )
 {
   printf("world\n");
+  draw_box = 1;
 }
 
 static void item( void )
@@ -196,8 +220,18 @@ static void e_Draw( float dt )
   
   char fps_text[MAX_NAME_LENGTH];
   snprintf(fps_text, MAX_NAME_LENGTH, "%f", app.time.avg_FPS );
+  
+  aTextStyle_t fps_text_style = (aTextStyle_t){
+    .fg = white,
+    .bg = black,
+    .type = FONT_CODE_PAGE_437,
+    .align = TEXT_ALIGN_CENTER,
+    .padding = 0,
+    .scale = 0,
+    .wrap_width = 0,
+  };
 
-  a_DrawText( fps_text, 600, 100, white, black, FONT_CODE_PAGE_437, TEXT_ALIGN_CENTER, 0 );
+  a_DrawText( fps_text, 600, 100, &fps_text_style );
 
   a_DrawWidgets();
 }

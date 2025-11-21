@@ -64,7 +64,7 @@ static void init_test_layout( void )
   int col_width = SCREEN_WIDTH / 2 - 30;
 
   // Left column: Tests 1-4
-  test_left_col = a_CreateFlexBox( 10, 100, col_width, SCREEN_HEIGHT - 120 );
+  test_left_col = a_FlexBoxCreate( 10, 100, col_width, SCREEN_HEIGHT - 120 );
   a_FlexSetDirection( test_left_col, FLEX_DIR_COLUMN );
   a_FlexSetGap( test_left_col, TEST_GROUP_GAP );
 
@@ -74,7 +74,7 @@ static void init_test_layout( void )
   }
 
   // Right column: Tests 5-10
-  test_right_col = a_CreateFlexBox( SCREEN_WIDTH / 2 + 20, 100, col_width, SCREEN_HEIGHT - 120 );
+  test_right_col = a_FlexBoxCreate( SCREEN_WIDTH / 2 + 20, 100, col_width, SCREEN_HEIGHT - 120 );
   a_FlexSetDirection( test_right_col, FLEX_DIR_COLUMN );
   a_FlexSetGap( test_right_col, TEST_GROUP_GAP );
 
@@ -92,10 +92,10 @@ static void init_test_layout( void )
 void test_text_cleanup( void )
 {
   if ( test_left_col ) {
-    a_DestroyFlexBox( &test_left_col );
+    a_FlexBoxDestroy( &test_left_col );
   }
   if ( test_right_col ) {
-    a_DestroyFlexBox( &test_right_col );
+    a_FlexBoxDestroy( &test_right_col );
   }
   test_layout_initialized = 0;
 }
@@ -109,25 +109,23 @@ int test_text_logic( float dt )
   (void)dt;  // unused
   static int minus_pressed = 0;
   static int plus_pressed = 0;
-  static int esc_pressed = 0;
+  static int ctrl_t_pressed = 0;
 
-  // ESC to return to game (with debounce)
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 && !esc_pressed )
+  // Ctrl+T to return to game
+  if ( (app.keyboard[ SDL_SCANCODE_LCTRL ] || app.keyboard[ SDL_SCANCODE_RCTRL ]) &&
+       app.keyboard[ SDL_SCANCODE_T ] == 1 && !ctrl_t_pressed )
   {
     test_text_cleanup();
-    esc_pressed = 1;
+    ctrl_t_pressed = 1;
+    app.keyboard[ SDL_SCANCODE_T ] = 0;
     return 1;  // Signal to switch back to game
   }
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 0 )
+  if ( app.keyboard[ SDL_SCANCODE_T ] == 0 )
   {
-    esc_pressed = 0;
+    ctrl_t_pressed = 0;
   }
 
-  // Q to quit
-  if ( app.keyboard[ SDL_SCANCODE_Q ] == 1 )
-  {
-    app.running = 0;
-  }
+  // ESC to quit (handled globally in main.c)
 
   // Unified controls: - and = keys control Test 5, 6, and 7
   if ( app.keyboard[ SDL_SCANCODE_MINUS ] == 1 && !minus_pressed )
@@ -199,7 +197,7 @@ void test_text_draw( float dt )
     .scale = 0.8f,
     .padding = 0
   };
-  a_DrawText( "ESC: Back to game | Q: Quit", 10, 70, &info_config );
+  a_DrawText( "Ctrl+T: Back to game | ESC: Quit", 10, 70, &info_config );
 
   // ========================================================================
   // LEFT COLUMN: Glyph/Unicode tests

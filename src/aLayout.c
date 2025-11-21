@@ -55,7 +55,7 @@ static void* simple_array_index(SimpleArray_t* arr, size_t idx) {
 // LIFECYCLE
 // ============================================================================
 
-FlexBox_t* a_CreateFlexBox(int x, int y, int w, int h) {
+FlexBox_t* a_FlexBoxCreate(int x, int y, int w, int h) {
     FlexBox_t* box = malloc(sizeof(FlexBox_t));
     if (!box) {
         return NULL;
@@ -82,7 +82,7 @@ FlexBox_t* a_CreateFlexBox(int x, int y, int w, int h) {
     return box;
 }
 
-void a_DestroyFlexBox(FlexBox_t** box) {
+void a_FlexBoxDestroy(FlexBox_t** box) {
     if (!box || !*box) {
         return;
     }

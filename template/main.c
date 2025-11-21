@@ -8,6 +8,7 @@
 
 #include "Archimedes.h"
 #include "test_text.h"
+#include "player_actions.h"
 
 // Scene system
 typedef enum {
@@ -24,25 +25,8 @@ static void scene_game_draw( float dt );
 
 static void aDoLoop( float );
 static void aRenderLoop( float );
-static void shootbullet( int x, int y );
 
 SDL_Surface* surf;
-
-// Square position (use float for smooth movement)
-static float square_x = 100.0f;
-static float square_y = 100.0f;
-static float speed = 200.0f; // pixels per second
-
-// Bullet system
-#define MAX_BULLETS 100
-typedef struct {
-  float x, y;       // Position
-  float vx, vy;     // Velocity
-  int active;       // Is this bullet alive?
-} Bullet_t;
-
-static Bullet_t bullets[MAX_BULLETS];
-static float bullet_speed = 400.0f; // pixels per second
 
 // Timer system (countdown from 15:00)
 static float time_remaining = 15.0f * 60.0f; // 15 minutes in seconds
@@ -83,35 +67,9 @@ void aInitGame( void )
   {
     printf( "Failed to load image\n" );
   }
-}
 
-static void shootbullet( int x, int y )
-{
-  // Find first inactive bullet slot
-  for ( int i = 0; i < MAX_BULLETS; i++ )
-  {
-    if ( !bullets[i].active )
-    {
-      // Calculate direction from square to mouse click
-      float dx = x - square_x;
-      float dy = y - square_y;
-      float distance = sqrtf( dx * dx + dy * dy );
-
-      // Normalize direction and set velocity
-      if ( distance > 0 )
-      {
-        // Start from center of square (32x32, so center is at +16)
-        // Offset by half bullet size to center it
-        bullets[i].x = square_x + 16 - 4; // Center 8x8 bullet on square center
-        bullets[i].y = square_y + 16 - 4;
-        bullets[i].vx = (dx / distance) * bullet_speed;
-        bullets[i].vy = (dy / distance) * bullet_speed;
-        bullets[i].active = 1;
-        printf("Fired bullet %d toward (%d, %d)\n", i, x, y);
-      }
-      break;
-    }
-  }
+  // Initialize player
+  player_init();
 }
 
 static void aDoLoop( float dt )
@@ -135,32 +93,8 @@ static void aDoLoop( float dt )
 
 static void scene_game_logic( float dt )
 {
-  // Move square with arrow keys (speed is pixels per second)
-  float dx = 0.0f;
-  float dy = 0.0f;
-
-  if ( app.keyboard[ SDL_SCANCODE_UP ] )    dy -= 1.0f;
-  if ( app.keyboard[ SDL_SCANCODE_DOWN ] )  dy += 1.0f;
-  if ( app.keyboard[ SDL_SCANCODE_LEFT ] )  dx -= 1.0f;
-  if ( app.keyboard[ SDL_SCANCODE_RIGHT ] ) dx += 1.0f;
-
-  // Shoot bullet on left click (check when button is released)
-  if ( app.mouse.button == SDL_BUTTON_LEFT && app.mouse.pressed == 0 )
-  {
-    shootbullet( app.mouse.x, app.mouse.y );
-    app.mouse.button = 0; // Prevent repeated firing
-  }
-
-  // Normalize diagonal movement
-  if ( dx != 0.0f && dy != 0.0f )
-  {
-    float diagonal = 0.7071f; // 1/sqrt(2)
-    dx *= diagonal;
-    dy *= diagonal;
-  }
-
-  square_x += dx * speed * dt;
-  square_y += dy * speed * dt;
+  // Update player movement and shooting
+  player_update( dt );
 
   // Update timer (countdown)
   time_remaining -= dt;
@@ -205,8 +139,8 @@ static void scene_game_logic( float dt )
         }
 
         // Calculate direction toward player
-        float dx = (square_x + 16) - enemies[i].x;
-        float dy = (square_y + 16) - enemies[i].y;
+        float dx = player_get_x() - enemies[i].x;
+        float dy = player_get_y() - enemies[i].y;
         float distance = sqrtf( dx * dx + dy * dy );
 
         if ( distance > 0 )
@@ -223,39 +157,16 @@ static void scene_game_logic( float dt )
     }
   }
 
-  // Update all active bullets
-  for ( int i = 0; i < MAX_BULLETS; i++ )
+  // Check bullet collisions with enemies
+  for ( int j = 0; j < MAX_ENEMIES; j++ )
   {
-    if ( bullets[i].active )
+    if ( enemies[j].active )
     {
-      bullets[i].x += bullets[i].vx * dt;
-      bullets[i].y += bullets[i].vy * dt;
-
-      // Check collision with enemies
-      for ( int j = 0; j < MAX_ENEMIES; j++ )
+      int bullet_hit = player_check_bullet_collision( enemies[j].x, enemies[j].y, 8.0f );
+      if ( bullet_hit >= 0 )
       {
-        if ( enemies[j].active )
-        {
-          float dx = (bullets[i].x + 4) - (enemies[j].x + 8); // Bullet center to enemy center
-          float dy = (bullets[i].y + 4) - (enemies[j].y + 8);
-          float dist = sqrtf( dx * dx + dy * dy );
-
-          // Hit detected (bullet radius 4 + enemy radius 8)
-          if ( dist < 12.0f )
-          {
-            printf( "Enemy struck!\n" );
-            enemies[j].hit_count++;
-            bullets[i].active = 0; // Destroy bullet
-            break;
-          }
-        }
-      }
-
-      // Deactivate bullets that go off screen
-      if ( bullets[i].x < 0 || bullets[i].x > SCREEN_WIDTH ||
-           bullets[i].y < 0 || bullets[i].y > SCREEN_HEIGHT )
-      {
-        bullets[i].active = 0;
+        printf( "Enemy struck by bullet %d!\n", bullet_hit );
+        enemies[j].hit_count++;
       }
     }
   }
@@ -274,8 +185,8 @@ static void scene_game_logic( float dt )
       }
 
       // Calculate offset target position around player
-      float player_center_x = square_x + 16;
-      float player_center_y = square_y + 16;
+      float player_center_x = player_get_x();
+      float player_center_y = player_get_y();
       float target_x = player_center_x + cosf( enemies[i].target_angle ) * orbit_distance;
       float target_y = player_center_y + sinf( enemies[i].target_angle ) * orbit_distance;
 
@@ -342,8 +253,8 @@ static void scene_game_logic( float dt )
       enemies[i].y += enemies[i].vy * dt;
 
       // Player collision detection - prevent enemies from overlapping player
-      float player_dx = (enemies[i].x + 8) - (square_x + 16);
-      float player_dy = (enemies[i].y + 8) - (square_y + 16);
+      float player_dx = (enemies[i].x + 8) - player_get_x();
+      float player_dy = (enemies[i].y + 8) - player_get_y();
       float player_dist = sqrtf( player_dx * player_dx + player_dy * player_dy );
 
       float min_distance = 24.0f; // 16 (enemy radius) + 16 (player radius) - 8 overlap allowance
@@ -402,15 +313,24 @@ static void scene_game_logic( float dt )
 
   //a_DoWidget(); // Disabled - not using widgets
 
-  // ESC to switch to test scene (with debounce)
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 && !esc_pressed )
+  // Ctrl+T to switch to test scene
+  static int ctrl_t_pressed = 0;
+  if ( (app.keyboard[ SDL_SCANCODE_LCTRL ] || app.keyboard[ SDL_SCANCODE_RCTRL ]) &&
+       app.keyboard[ SDL_SCANCODE_T ] == 1 && !ctrl_t_pressed )
   {
     current_scene = SCENE_TEST_TEXT;
-    esc_pressed = 1;
+    ctrl_t_pressed = 1;
+    app.keyboard[ SDL_SCANCODE_T ] = 0;
   }
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 0 )
+  if ( app.keyboard[ SDL_SCANCODE_T ] == 0 )
   {
-    esc_pressed = 0;
+    ctrl_t_pressed = 0;
+  }
+
+  // ESC to quit
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
+  {
+    app.running = 0;
   }
 }
 
@@ -449,19 +369,8 @@ static void scene_game_draw( float dt )
   };
   a_DrawText( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
 
-  // Draw the player square
-  a_DrawFilledRect( (aRectf_t){square_x, square_y, 32, 32}, (aColor_t){0, 0, 255, 255} );
-
-  // Draw all active bullets (scaled down to 8x8)
-  SDL_Texture* bullet_tex = a_ToTexture( surf, 0 ); // Don't destroy surface
-  for ( int i = 0; i < MAX_BULLETS; i++ )
-  {
-    if ( bullets[i].active )
-    {
-      a_BlitTextureScaled( bullet_tex, (int)bullets[i].x, (int)bullets[i].y, 8, 8 );
-    }
-  }
-  SDL_DestroyTexture( bullet_tex );
+  // Draw player and bullets
+  player_draw( surf );
 
   // Draw all active enemies - color changes with hits
   for ( int i = 0; i < MAX_ENEMIES; i++ )

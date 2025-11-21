@@ -135,7 +135,22 @@ static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const ch
   return NULL;
 }
 
-int a_CleanUpImageCache( void )
+SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy )
+{
+  SDL_Texture* texture;
+
+  texture = SDL_CreateTextureFromSurface( app.renderer, surf );
+
+  if ( destroy )
+  {
+    SDL_FreeSurface( surf );
+    surf = NULL;
+  }
+
+  return texture;
+}
+
+int a_ImageCacheCleanUp( void )
 {
   if ( app.img_cache == NULL )
       // FAIL: img_cache is NULL

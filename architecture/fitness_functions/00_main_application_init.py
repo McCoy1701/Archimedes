@@ -251,21 +251,28 @@ def check_window_creation_cleanup(content: str) -> Tuple[bool, List[str]]:
 
     if window_block_match:
         window_cleanup = window_block_match.group(1)
-        required_cleanups = ['TTF_Quit()', 'IMG_Quit()', 'SDL_Quit()']
 
-        for cleanup in required_cleanups:
-            if cleanup not in window_cleanup:
-                issues.append(f"Window creation failure must call {cleanup}")
+        # Preferred pattern: use a_CleanupSubsystems() (ADR-000)
+        if 'a_CleanupSubsystems()' in window_cleanup:
+            # Correct - using the cleanup function (DRY principle)
+            pass
+        else:
+            # Legacy pattern: explicit cleanup calls
+            required_cleanups = ['TTF_Quit()', 'IMG_Quit()', 'SDL_Quit()']
 
-        # Check order: TTF -> IMG -> SDL
-        ttf_pos = window_cleanup.find('TTF_Quit()')
-        img_pos = window_cleanup.find('IMG_Quit()')
-        sdl_pos = window_cleanup.find('SDL_Quit()')
+            for cleanup in required_cleanups:
+                if cleanup not in window_cleanup:
+                    issues.append(f"Window creation failure must call {cleanup} (or use a_CleanupSubsystems())")
 
-        if ttf_pos != -1 and img_pos != -1 and ttf_pos > img_pos:
-            issues.append("Window cleanup order wrong: TTF_Quit() must come before IMG_Quit()")
-        if img_pos != -1 and sdl_pos != -1 and img_pos > sdl_pos:
-            issues.append("Window cleanup order wrong: IMG_Quit() must come before SDL_Quit()")
+            # Check order: TTF -> IMG -> SDL
+            ttf_pos = window_cleanup.find('TTF_Quit()')
+            img_pos = window_cleanup.find('IMG_Quit()')
+            sdl_pos = window_cleanup.find('SDL_Quit()')
+
+            if ttf_pos != -1 and img_pos != -1 and ttf_pos > img_pos:
+                issues.append("Window cleanup order wrong: TTF_Quit() must come before IMG_Quit()")
+            if img_pos != -1 and sdl_pos != -1 and img_pos > sdl_pos:
+                issues.append("Window cleanup order wrong: IMG_Quit() must come before SDL_Quit()")
 
     return len(issues) == 0, issues
 

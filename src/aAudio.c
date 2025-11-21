@@ -41,7 +41,7 @@ void a_LoadSounds( const char *filename, aAudioClip_t *clip )
   }
 }
 
-void a_PlaySoundEffect(aAudioClip_t *clip)
+void a_AudioPlayEffect(aAudioClip_t *clip)
 {
   int success = SDL_QueueAudio(app.deviceID, clip->buffer, clip->length);
   

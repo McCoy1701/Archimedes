@@ -97,7 +97,6 @@ int a_Init( const int width, const int height, const char *title )
   // Initialize internal Archimedes Systems
   a_InitAudio();
   a_InitImage();
-  a_InitTextures();
   a_InitFonts();
 
   return 0;
@@ -121,7 +120,7 @@ void a_Quit( void )
   }
 
   if ( app.img_cache ) {
-    a_CleanUpImageCache();
+    a_ImageCacheCleanUp();
     free( app.img_cache );
     app.img_cache = NULL;
   }

@@ -336,11 +336,6 @@ typedef struct
   uint8_t* buffer;
 } aAudioClip_t;
 
-typedef struct _textures{
-  char name[MAX_FILENAME_LENGTH];
-  SDL_Texture* texture;
-  struct _textures* next;
-} aTexture_t;
 
 /*
 ---------------------------------------------------------------
@@ -350,7 +345,7 @@ typedef struct _textures{
 
 int a_InitAudio( void );
 void a_LoadSounds( const char *filename, aAudioClip_t *clip );
-void a_PlaySoundEffect( aAudioClip_t *clip );
+void a_AudioPlayEffect( aAudioClip_t *clip );
 
 /*
 ---------------------------------------------------------------
@@ -601,7 +596,7 @@ void a_SetPixel( SDL_Surface *surface, int x, int y, aColor_t c );
 
 int a_InitImage( void );
 SDL_Surface* a_Image( const char *filename );
-int a_CleanUpImageCache( void );
+int a_ImageCacheCleanUp( void );
 int a_Screenshot( SDL_Renderer *renderer, const char *filename );
 
 /*
@@ -798,9 +793,13 @@ int a_GetGlyphOrFallback(int font_type, unsigned int codepoint);
 ---------------------------------------------------------------
 */
 
-SDL_Texture* a_LoadTexture( const char* filename );
+/**
+ * @brief Convert SDL_Surface to SDL_Texture
+ * @param surf Surface to convert
+ * @param destroy If 1, frees the surface after conversion
+ * @return SDL_Texture pointer (caller must destroy)
+ */
 SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy );
-void a_InitTextures( void );
 
 /*
 ---------------------------------------------------------------
@@ -1319,7 +1318,7 @@ typedef struct {
  * @note Must call a_DestroyFlexBox() when done to free memory
  * @see a_DestroyFlexBox()
  */
-FlexBox_t* a_CreateFlexBox(int x, int y, int w, int h);
+FlexBox_t* a_FlexBoxCreate(int x, int y, int w, int h);
 
 /**
  * @brief Destroy a FlexBox and free all memory
@@ -1333,7 +1332,7 @@ FlexBox_t* a_CreateFlexBox(int x, int y, int w, int h);
  * @note Does NOT free user_data pointers stored in items
  * @see a_CreateFlexBox()
  */
-void a_DestroyFlexBox(FlexBox_t** box);
+void a_FlexBoxDestroy(FlexBox_t** box);
 
 /**
  * @brief Set the layout direction (row or column)

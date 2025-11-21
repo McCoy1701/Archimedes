@@ -1,6 +1,6 @@
 # ADR 00: Main Application Initialization
 
-**Status:** Proposed
+**Status:** Active
 
 ## Context
 

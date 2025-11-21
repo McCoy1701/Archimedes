@@ -66,6 +66,7 @@ Enums use all-caps with a prefix that groups related values:
 Color parameters use `fg` (foreground) and `bg` (background) consistently:
 - `aTextStyle_t` has `.fg` and `.bg`
 - `aWidget_t` has `.fg` and `.bg`
+- `aStyledRectf_t` has `.fg` and `.bg` to go along with a `aRectf_t` within its struct. Rect is pure, StyledRect has more.
 - Drawing functions use `color` for single-color operations
 
 Text-related parameters:

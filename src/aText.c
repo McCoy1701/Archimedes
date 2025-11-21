@@ -56,10 +56,11 @@ static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.E
 aTextStyle_t a_default_text_style = {
   .type = FONT_GAME,
   .fg = {255, 255, 255, 255},
-  .bg = {0, 0, 0, 255},
+  .bg = {0, 0, 0, 0},              // No background by default (alpha 0)
   .align = TEXT_ALIGN_LEFT,
   .wrap_width = 0,
-  .scale = 1.0f
+  .scale = 1.0f,
+  .padding = 0
 };
 
 void a_InitFonts( void )
@@ -185,6 +186,41 @@ void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style )
   double old_scale = app.font_scale;
   if ( s->scale != 1.0f && s->scale > 0.0f ) {
     app.font_scale = s->scale;
+  }
+
+  // Draw background if bg.a > 0
+  if ( s->bg.a > 0 )
+  {
+    float text_w, text_h;
+
+    if ( s->wrap_width > 0 )
+    {
+      text_w = (float)s->wrap_width;
+      text_h = (float)a_GetWrappedTextHeight( (char*)content, s->type, s->wrap_width );
+    }
+    else
+    {
+      a_CalcTextDimensions( content, s->type, &text_w, &text_h );
+    }
+
+    // Calculate background rect with padding
+    float bg_x = (float)x - s->padding;
+    float bg_y = (float)y - s->padding;
+    float bg_w = text_w + ( s->padding * 2 );
+    float bg_h = text_h + ( s->padding * 2 );
+
+    // Adjust for alignment
+    if ( s->align == TEXT_ALIGN_CENTER )
+    {
+      bg_x -= text_w / 2;
+    }
+    else if ( s->align == TEXT_ALIGN_RIGHT )
+    {
+      bg_x -= text_w;
+    }
+
+    aRectf_t bg_rect = { .x = bg_x, .y = bg_y, .w = bg_w, .h = bg_h };
+    a_DrawFilledRect( bg_rect, s->bg );
   }
 
   if ( s->wrap_width > 0 )

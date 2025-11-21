@@ -1165,7 +1165,7 @@ static void DrawButtonWidget( aWidget_t* w )
       }
     }
 
-    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = black, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f };
+    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
     a_DrawText( w->label, w->rect.x + w->text_offset.x, w->rect.y + offset, &style );
   }
 }
@@ -1202,7 +1202,7 @@ static void DrawSelectWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = black, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f };
+    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
     a_DrawText( w->label, w->rect.x, w->rect.y, &style );
     sprintf( text, "< %s >", s->options[s->value] );
 
@@ -1244,7 +1244,7 @@ static void DrawSliderWidget( aWidget_t* w )
 
     width = ( 1.0 * slider->value ) / 100;
 
-    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = black, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f };
+    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
     a_DrawText( w->label, w->rect.x, w->rect.y, &style );
 
     aRectf_t slider_bg_rect = (aRectf_t){ .x = slider->rect.x,
@@ -1295,7 +1295,7 @@ static void DrawInputWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = black, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f };
+    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
     a_DrawText( w->label, w->rect.x, w->rect.y, &style );
 
     a_DrawText( input->text, input->rect.x, input->rect.y, &style );
@@ -1346,7 +1346,7 @@ static void DrawControlWidget( aWidget_t* w )
       a_DrawFilledRect( rect, w->bg );
     }
 
-    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = black, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f };
+    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
     a_DrawText( w->label, w->rect.x, w->rect.y, &style );
 
     if ( handle_control_widget && app.active_widget == w )

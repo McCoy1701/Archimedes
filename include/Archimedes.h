@@ -691,11 +691,12 @@ enum
 typedef struct
 {
   int type;          // Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
-  aColor_t fg;    // Text color
-  aColor_t bg;    // Text color
+  aColor_t fg;       // Foreground/text color
+  aColor_t bg;       // Background color (alpha 0 = no background)
   int align;         // Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
   int wrap_width;    // Word wrap width (0 = no wrap)
   float scale;       // Font scale multiplier (1.0 = default)
+  int padding;       // Padding around text (expands background)
 } aTextStyle_t;
 
 /**

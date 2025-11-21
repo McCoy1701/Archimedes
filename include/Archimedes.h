@@ -696,7 +696,7 @@ typedef struct
   int align;         // Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
   int wrap_width;    // Word wrap width (0 = no wrap)
   float scale;       // Font scale multiplier (1.0 = default)
-} aFontConfig_t;
+} aTextStyle_t;
 
 /**
  * @brief Calculate the height of text with word wrapping
@@ -734,25 +734,9 @@ void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )
  * @param text Text string to render (must not be NULL)
  * @param x X coordinate (meaning depends on alignment)
  * @param y Y coordinate (top of text baseline)
- * @param config Font configuration (NULL uses a_default_font_config)
+ * @param config Font configuration (NULL uses a_default_text_style)
  */
-void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config );
-
-/**
- * @brief Draw text with individual parameters (legacy API)
- *
- * Renders text at the specified position with individual style parameters.
- * This is the legacy API - prefer a_DrawTextStyled() for new code.
- *
- * @param text Text string to render (must not be NULL)
- * @param x X coordinate (meaning depends on alignment)
- * @param y Y coordinate (top of text baseline)
- * @param color aColor_t (RGBA)
- * @param font_type Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
- * @param align Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
- * @param max_width Word wrap width (0 = no wrap)
- */
-void a_DrawText( char* text, int x, int y, aColor_t fg, aColor_t bg, int font_type, int align, int max_width );
+void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style );
 
 /**
  * @brief Create an SDL texture from text
@@ -783,7 +767,7 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type );
 void a_InitFonts( void );
 
 /** @brief Default font config (white, left-aligned, FONT_GAME, no wrap, scale 1.0) */
-extern aFontConfig_t a_default_font_config;
+extern aTextStyle_t a_default_text_style;
 
 /**
  * @brief Check if a glyph exists in the font atlas

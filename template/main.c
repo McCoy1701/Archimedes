@@ -443,27 +443,27 @@ static void scene_test_text_draw( float dt )
   (void)dt;
 
   // Title
-  aFontConfig_t title_config = {
+  aTextStyle_t title_config = {
     .type = FONT_ENTER_COMMAND,
     .fg = {255, 255, 0, 255},
     .align = TEXT_ALIGN_CENTER,
     .wrap_width = 0,
     .scale = 1.0f
   };
-  a_DrawTextStyled( "TEXT RENDERING TEST", SCREEN_WIDTH / 2, 20, &title_config );
+  a_DrawText( "TEXT RENDERING TEST", SCREEN_WIDTH / 2, 20, &title_config );
 
   // Instructions
-  aFontConfig_t info_config = {
+  aTextStyle_t info_config = {
     .type = FONT_ENTER_COMMAND,
     .fg = {200, 200, 200, 255},
     .align = TEXT_ALIGN_LEFT,
     .wrap_width = 0,
     .scale = 0.5f
   };
-  a_DrawTextStyled( "ESC: Back to game | Q: Quit", 10, 70, &info_config );
+  a_DrawText( "ESC: Back to game | Q: Quit", 10, 70, &info_config );
 
   // Test 1: Em-dash test (the bug from issue #11)
-  aFontConfig_t test_config = {
+  aTextStyle_t test_config = {
     .type = FONT_ENTER_COMMAND,
     .fg = {255, 255, 255, 255},
     .align = TEXT_ALIGN_LEFT,
@@ -471,27 +471,27 @@ static void scene_test_text_draw( float dt )
     .scale = 0.6f
   };
 
-  a_DrawTextStyled( "Test 1: Em-dash (should show - as fallback)", 10, 120, &info_config );
-  a_DrawTextStyled( "Your Aces shimmer with stolen luck\xe2\x80\x94the House's punishment backfired.", 10, 150, &test_config );
+  a_DrawText( "Test 1: Em-dash (should show - as fallback)", 10, 120, &info_config );
+  a_DrawText( "Your Aces shimmer with stolen luck\xe2\x80\x94the House's punishment backfired.", 10, 150, &test_config );
 
   // Test 2: Various Unicode
-  a_DrawTextStyled( "Test 2: Various Unicode chars", 10, 220, &info_config );
-  a_DrawTextStyled( "Curly quotes: \xe2\x80\x9cHello\xe2\x80\x9d Ellipsis: \xe2\x80\xa6 En-dash: \xe2\x80\x93", 10, 250, &test_config );
+  a_DrawText( "Test 2: Various Unicode chars", 10, 220, &info_config );
+  a_DrawText( "Curly quotes: \xe2\x80\x9cHello\xe2\x80\x9d Ellipsis: \xe2\x80\xa6 En-dash: \xe2\x80\x93", 10, 250, &test_config );
 
   // Test 3: Normal ASCII (should work perfectly)
-  a_DrawTextStyled( "Test 3: Normal ASCII (should work perfectly)", 10, 320, &info_config );
-  a_DrawTextStyled( "The quick brown fox jumps over the lazy dog. 0123456789!@#$%", 10, 350, &test_config );
+  a_DrawText( "Test 3: Normal ASCII (should work perfectly)", 10, 320, &info_config );
+  a_DrawText( "The quick brown fox jumps over the lazy dog. 0123456789!@#$%", 10, 350, &test_config );
 
   // Test 4: Long wrapped text
-  a_DrawTextStyled( "Test 4: Long wrapped text with wrap_width=600", 10, 420, &info_config );
-  aFontConfig_t wrap_config = {
+  a_DrawText( "Test 4: Long wrapped text with wrap_width=600", 10, 420, &info_config );
+  aTextStyle_t wrap_config = {
     .type = FONT_ENTER_COMMAND,
     .fg = {100, 255, 100, 255},
     .align = TEXT_ALIGN_LEFT,
     .wrap_width = 600,
     .scale = 0.5f
   };
-  a_DrawTextStyled( "This is a longer piece of text that should wrap across multiple lines. "
+  a_DrawText( "This is a longer piece of text that should wrap across multiple lines. "
                     "The wrapping should work correctly even with special characters and punctuation. "
                     "Previously, text with em-dashes would silently truncate here.", 10, 450, &wrap_config );
 }
@@ -522,14 +522,14 @@ static void scene_game_draw( float dt )
   char timer_text[32];
   snprintf( timer_text, sizeof(timer_text), "%02d:%02d", minutes, seconds );
 
-  aFontConfig_t timer_config = {
+  aTextStyle_t timer_config = {
     .type = FONT_ENTER_COMMAND,
     .fg = {255, 255, 255, 255},
     .align = TEXT_ALIGN_CENTER,
     .wrap_width = 0,
     .scale = 1.0f
   };
-  a_DrawTextStyled( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
+  a_DrawText( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
 
   // Draw the player square
   a_DrawFilledRect( (aRectf_t){square_x, square_y, 32, 32}, (aColor_t){0, 0, 255, 255} );

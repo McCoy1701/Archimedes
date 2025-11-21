@@ -53,7 +53,7 @@ static char *characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS
 static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
 #endif
 
-aFontConfig_t a_default_font_config = {
+aTextStyle_t a_default_text_style = {
   .type = FONT_GAME,
   .fg = {255, 255, 255, 255},
   .bg = {0, 0, 0, 255},
@@ -163,19 +163,19 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type )
   return a_ToTexture( surface, 1 );
 }
 
-void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config )
+void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style )
 {
-  // Use default config if NULL is passed
-  const aFontConfig_t* cfg = config ? config : &a_default_font_config;
+  // Use default style if NULL is passed
+  const aTextStyle_t* s = style ? style : &a_default_text_style;
 
   // Validate input parameters
-  int validation_result = validate_text_parameters( text, cfg->type );
+  int validation_result = validate_text_parameters( content, s->type );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
   }
 
-  validation_result = validate_color_parameters( cfg->fg.r, cfg->fg.g, cfg->fg.b );
+  validation_result = validate_color_parameters( s->fg.r, s->fg.g, s->fg.b );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
@@ -183,39 +183,24 @@ void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* conf
 
   // Temporarily set font scale if different from default
   double old_scale = app.font_scale;
-  if ( cfg->scale != 1.0f && cfg->scale > 0.0f ) {
-    app.font_scale = cfg->scale;
+  if ( s->scale != 1.0f && s->scale > 0.0f ) {
+    app.font_scale = s->scale;
   }
 
-  if ( cfg->wrap_width > 0 )
+  if ( s->wrap_width > 0 )
   {
-    DrawTextWrapped( (char*)text, x, y, cfg->fg, cfg->type,
-                     cfg->align, cfg->wrap_width, 1 );
+    DrawTextWrapped( (char*)content, x, y, s->fg, s->type,
+                     s->align, s->wrap_width, 1 );
   }
   else
   {
-    DrawTextLine( (char*)text, x, y, cfg->fg, cfg->type, cfg->align );
+    DrawTextLine( (char*)content, x, y, s->fg, s->type, s->align );
   }
 
   // Restore original scale
   app.font_scale = old_scale;
 }
 
-void a_DrawText( char* text, int x, int y, aColor_t fg, aColor_t bg, int font_type,
-                 int align, int max_width )
-{
-  // Create config from parameters and forward to new API
-  aFontConfig_t config = {
-    .type = font_type,
-    .fg = fg,
-    .bg = bg,
-    .align = align,
-    .wrap_width = max_width,
-    .scale = 1.0f
-  };
-
-  a_DrawTextStyled( text, x, y, &config );
-}
 
 static void initFontPNG( const char* filename, const int font_type,
                          const int glyph_width, const int glyph_height )

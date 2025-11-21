@@ -8,6 +8,21 @@
 
 #include "Archimedes.h"
 
+// Scene system
+typedef enum {
+  SCENE_GAME,
+  SCENE_TEST_TEXT
+} Scene_t;
+
+static Scene_t current_scene = SCENE_GAME;
+static int esc_pressed = 0;  // Debounce ESC
+
+// Scene function declarations
+static void scene_game_logic( float dt );
+static void scene_game_draw( float dt );
+static void scene_test_text_logic( float dt );
+static void scene_test_text_draw( float dt );
+
 static void aDoLoop( float );
 static void aRenderLoop( float );
 static void shootbullet( int x, int y );
@@ -104,6 +119,20 @@ static void aDoLoop( float dt )
 {
   a_DoInput();
 
+  // Dispatch to current scene
+  switch ( current_scene )
+  {
+    case SCENE_GAME:
+      scene_game_logic( dt );
+      break;
+    case SCENE_TEST_TEXT:
+      scene_test_text_logic( dt );
+      break;
+  }
+}
+
+static void scene_game_logic( float dt )
+{
   // Move square with arrow keys (speed is pixels per second)
   float dx = 0.0f;
   float dy = 0.0f;
@@ -371,14 +400,122 @@ static void aDoLoop( float dt )
 
   //a_DoWidget(); // Disabled - not using widgets
 
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
+  // ESC to switch to test scene (with debounce)
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 && !esc_pressed )
+  {
+    current_scene = SCENE_TEST_TEXT;
+    esc_pressed = 1;
+  }
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 0 )
+  {
+    esc_pressed = 0;
+  }
+}
+
+// ============================================================================
+// Test Text Scene - for testing text rendering and glyph fallback
+// ============================================================================
+
+static void scene_test_text_logic( float dt )
+{
+  (void)dt;  // unused
+
+  // ESC to return to game (with debounce)
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 && !esc_pressed )
+  {
+    current_scene = SCENE_GAME;
+    esc_pressed = 1;
+  }
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 0 )
+  {
+    esc_pressed = 0;
+  }
+
+  // Q to quit
+  if ( app.keyboard[ SDL_SCANCODE_Q ] == 1 )
   {
     app.running = 0;
   }
 }
 
+static void scene_test_text_draw( float dt )
+{
+  (void)dt;
+
+  // Title
+  aFontConfig_t title_config = {
+    .type = FONT_ENTER_COMMAND,
+    .fg = {255, 255, 0, 255},
+    .align = TEXT_ALIGN_CENTER,
+    .wrap_width = 0,
+    .scale = 1.0f
+  };
+  a_DrawTextStyled( "TEXT RENDERING TEST", SCREEN_WIDTH / 2, 20, &title_config );
+
+  // Instructions
+  aFontConfig_t info_config = {
+    .type = FONT_ENTER_COMMAND,
+    .fg = {200, 200, 200, 255},
+    .align = TEXT_ALIGN_LEFT,
+    .wrap_width = 0,
+    .scale = 0.5f
+  };
+  a_DrawTextStyled( "ESC: Back to game | Q: Quit", 10, 70, &info_config );
+
+  // Test 1: Em-dash test (the bug from issue #11)
+  aFontConfig_t test_config = {
+    .type = FONT_ENTER_COMMAND,
+    .fg = {255, 255, 255, 255},
+    .align = TEXT_ALIGN_LEFT,
+    .wrap_width = 500,
+    .scale = 0.6f
+  };
+
+  a_DrawTextStyled( "Test 1: Em-dash (should show - as fallback)", 10, 120, &info_config );
+  a_DrawTextStyled( "Your Aces shimmer with stolen luck\xe2\x80\x94the House's punishment backfired.", 10, 150, &test_config );
+
+  // Test 2: Various Unicode
+  a_DrawTextStyled( "Test 2: Various Unicode chars", 10, 220, &info_config );
+  a_DrawTextStyled( "Curly quotes: \xe2\x80\x9cHello\xe2\x80\x9d Ellipsis: \xe2\x80\xa6 En-dash: \xe2\x80\x93", 10, 250, &test_config );
+
+  // Test 3: Normal ASCII (should work perfectly)
+  a_DrawTextStyled( "Test 3: Normal ASCII (should work perfectly)", 10, 320, &info_config );
+  a_DrawTextStyled( "The quick brown fox jumps over the lazy dog. 0123456789!@#$%", 10, 350, &test_config );
+
+  // Test 4: Long wrapped text
+  a_DrawTextStyled( "Test 4: Long wrapped text with wrap_width=600", 10, 420, &info_config );
+  aFontConfig_t wrap_config = {
+    .type = FONT_ENTER_COMMAND,
+    .fg = {100, 255, 100, 255},
+    .align = TEXT_ALIGN_LEFT,
+    .wrap_width = 600,
+    .scale = 0.5f
+  };
+  a_DrawTextStyled( "This is a longer piece of text that should wrap across multiple lines. "
+                    "The wrapping should work correctly even with special characters and punctuation. "
+                    "Previously, text with em-dashes would silently truncate here.", 10, 450, &wrap_config );
+}
+
 static void aRenderLoop( float dt )
 {
+  // Dispatch to current scene
+  switch ( current_scene )
+  {
+    case SCENE_GAME:
+      scene_game_draw( dt );
+      break;
+    case SCENE_TEST_TEXT:
+      scene_test_text_draw( dt );
+      break;
+  }
+
+  a_DrawWidgets();
+}
+
+static void scene_game_draw( float dt )
+{
+  (void)dt;
+
   // Draw countdown timer
   int minutes = (int)(time_remaining / 60.0f);
   int seconds = (int)time_remaining % 60;
@@ -387,7 +524,7 @@ static void aRenderLoop( float dt )
 
   aFontConfig_t timer_config = {
     .type = FONT_ENTER_COMMAND,
-    .color = {255, 255, 255, 255},
+    .fg = {255, 255, 255, 255},
     .align = TEXT_ALIGN_CENTER,
     .wrap_width = 0,
     .scale = 1.0f
@@ -425,8 +562,6 @@ static void aRenderLoop( float dt )
       a_DrawFilledRect( (aRectf_t){enemies[i].x, enemies[i].y, 16, 16}, (aColor_t){red, green, blue, 255} );
     }
   }
-
-  a_DrawWidgets();
 }
 
 void aMainloop( void )

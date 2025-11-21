@@ -365,6 +365,13 @@ static int DrawTextWrapped( const char* text, const int x, const int y,
     int glyph_idx = a_GetGlyphOrFallback( font_type, n );
     word_width += app.glyphs[font_type][glyph_idx].w * app.font_scale;
 
+    // If glyph doesn't exist, replace buffer with fallback character
+    if ( glyph_idx != (int)n )
+    {
+      glyph_buffer[0] = (char)app.fallback_glyph[font_type];
+      glyph_buffer[1] = '\0';
+    }
+
     if ( n != ' ' )
     {
       // Safe string concatenation with bounds checking
@@ -493,7 +500,8 @@ static void DrawTextLine( const char* text, const int x, const int y,
   {
     while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
     {
-      glyph = &app.glyphs[font_type][n];
+      int glyph_idx = a_GetGlyphOrFallback( font_type, n );
+      glyph = &app.glyphs[font_type][glyph_idx];
 
       dest.x = new_x;
       dest.y = new_y;
@@ -568,9 +576,13 @@ static int NextGlyph( const char* string, int* i, char* glyph_buffer )
 
   // Check if codepoint is within bounds for our glyph array
   if ( bit >= MAX_GLYPHS ) {
-    // Skip unsupported characters (like emoji) gracefully
+    // Return fallback for unsupported characters (don't return 0 which stops parsing)
+    if ( glyph_buffer != NULL ) {
+      glyph_buffer[0] = '-';
+      glyph_buffer[1] = '\0';
+    }
     *i = *i + len;
-    return 0;
+    return '-';  // Continue parsing with fallback character
   }
 
   if ( glyph_buffer != NULL )

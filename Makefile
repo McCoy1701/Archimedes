@@ -77,7 +77,7 @@ EDITOR_EXE_OBJS = $(EDITOR_LIB_OBJS) $(EDITOR_OBJ)
 # PHONY TARGETS
 # ====================================================================
 
-.PHONY: all shared editor EM EMARCH test clean install uninstall ainstall auninstall updateHeader bear bearclean
+.PHONY: all shared editor EM EMARCH test clean install uninstall ainstall auninstall updateHeader bear bearclean verify
 all: $(BIN_DIR)/native
 shared: $(BIN_DIR)/libArchimedes.so
 test:$(BIN_DIR)/test
@@ -104,6 +104,9 @@ bear:
 	bear -- make
 bearclean:
 	rm compile_commands.json
+
+verify:
+	./verify_architecture.sh
 
 install: $(BIN_DIR)/libArchimedes.so
 	sudo cp $< /usr/lib/

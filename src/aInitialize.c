@@ -21,32 +21,54 @@
 
 aApp_t app;
 
-int a_Init( const int width, const int height, const char *title )
-{
-  // Initialize SDL subsystems
-  if (SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER ) < 0) {
-    return -1;
-  }
-  
-  if (IMG_Init( IMG_INIT_PNG ) == 0) {
-    SDL_Quit();
-    return -2;
-  }
-  
-  if (TTF_Init() < 0) {
+typedef enum {
+    INIT_SUCCESS = 0,
+    INIT_ERROR_SDL = -1,
+    INIT_ERROR_IMG = -2,
+    INIT_ERROR_TTF = -3,
+    INIT_ERROR_WINDOW = -4
+} InitStatus_t;
+
+static InitStatus_t a_ValidateSubsystems(void) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
+        return INIT_ERROR_SDL;
+    }
+
+    if (IMG_Init(IMG_INIT_PNG) == 0) {
+        SDL_Quit();
+        return INIT_ERROR_IMG;
+    }
+
+    if (TTF_Init() < 0) {
+        IMG_Quit();
+        SDL_Quit();
+        return INIT_ERROR_TTF;
+    }
+
+    return INIT_SUCCESS;
+}
+
+static void a_CleanupSubsystems(void) {
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
-    return -3;
+}
+
+int a_Init( const int width, const int height, const char *title )
+{
+  InitStatus_t status = a_ValidateSubsystems();
+  if (status != INIT_SUCCESS) {
+    return status;
   }
-  
+
   // Create window and renderer
   if (SDL_CreateWindowAndRenderer( width, height, 0, &app.window, &app.renderer ) < 0) {
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
-    return -4;
+    return INIT_ERROR_WINDOW;
   }
-  
+
   // Set window title after window creation
   SDL_SetWindowTitle( app.window, title );
 
@@ -88,41 +110,40 @@ int a_Init( const int width, const int height, const char *title )
 
 void a_Quit( void )
 {
-  // Call optional exit delegate
+  // Call optional exit delegate first
   if ( app.delegate.onExit ) {
     app.delegate.onExit();
   }
-  
-  // Destroy SDL resources
-  if ( app.renderer ) {
-    SDL_DestroyRenderer( app.renderer );
-    app.renderer = NULL;
+
+  // Clean up Archimedes-level resources (before SDL shutdown)
+  if ( app.time.FPS_timer ) {
+    a_TimerFree( app.time.FPS_timer );
+    app.time.FPS_timer = NULL;
   }
-  
-  if ( app.window ) {
-    SDL_DestroyWindow( app.window );
-    app.window = NULL;
+  if ( app.time.FPS_cap_timer ) {
+    a_TimerFree( app.time.FPS_cap_timer );
+    app.time.FPS_cap_timer = NULL;
   }
-  
-  // Clean up image cache
+
   if ( app.img_cache ) {
     a_CleanUpImageCache();
     free( app.img_cache );
     app.img_cache = NULL;
   }
 
-  /*if ( app.active_widget ) {
-    a_FreeWidgetCache();
-    app.active_widget = NULL;
-  }*/
-  
-  // Shutdown SDL subsystems
-  TTF_Quit();
-  IMG_Quit();
-  SDL_Quit();
-  
-  a_TimerFree( app.time.FPS_timer );
-  a_TimerFree( app.time.FPS_cap_timer );
+  // Destroy SDL resources (must come before subsystem shutdown)
+  if ( app.renderer ) {
+    SDL_DestroyRenderer( app.renderer );
+    app.renderer = NULL;
+  }
+
+  if ( app.window ) {
+    SDL_DestroyWindow( app.window );
+    app.window = NULL;
+  }
+
+  // Shutdown SDL subsystems last (reverse order of init)
+  a_CleanupSubsystems();
 
   // Reset app state
   app.running = 0;

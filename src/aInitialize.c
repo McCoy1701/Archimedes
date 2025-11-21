@@ -63,9 +63,7 @@ int a_Init( const int width, const int height, const char *title )
 
   // Create window and renderer
   if (SDL_CreateWindowAndRenderer( width, height, 0, &app.window, &app.renderer ) < 0) {
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
+    a_CleanupSubsystems();
     return INIT_ERROR_WINDOW;
   }
 
@@ -96,14 +94,11 @@ int a_Init( const int width, const int height, const char *title )
   // Set app to running state
   app.running = 1;
 
-  // Initialize subsystems
+  // Initialize internal Archimedes Systems
   a_InitAudio();
   a_InitImage();
   a_InitTextures();
   a_InitFonts();
-
-  // Seed random number generator
-  srand(time(NULL));
 
   return 0;
 }

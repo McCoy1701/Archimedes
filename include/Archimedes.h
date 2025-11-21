@@ -231,11 +231,11 @@ typedef struct {
   char filename[MAX_FILENAME_LENGTH];
 } aWidgetFileHeader_t;
 
-typedef struct _aAUF_Node_t {
-  struct _aAUF_Node_t* next;
-  struct _aAUF_Node_t* prev;
+typedef struct _aAUFNode_t {
+  struct _aAUFNode_t* next;
+  struct _aAUFNode_t* prev;
 
-  struct _aAUF_Node_t* child;
+  struct _aAUFNode_t* child;
 
   int type;
 
@@ -244,12 +244,12 @@ typedef struct _aAUF_Node_t {
   double value_double;
   char* string;
 
-} aAUF_Node_t;
+} aAUFNode_t;
 
 typedef struct _aAUF_t
 {
-  aAUF_Node_t* head;
-  aAUF_Node_t* tail;
+  aAUFNode_t* head;
+  aAUFNode_t* tail;
   int size;
 
 } aAUF_t;
@@ -900,14 +900,14 @@ int a_AUFSaveWidgets( const char* filename );
 int a_FreeLine( char** line, const int nl_count );
 
 aAUF_t* a_AUFCreation( void );
-aAUF_Node_t* a_AUFNodeCreation( void );
-int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node );
-int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node );
-int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node );
-int a_AUFNodeFree( aAUF_Node_t* head );
+aAUFNode_t* a_AUFNodeCreation( void );
+int a_AUFAddNode( aAUF_t* root, aAUFNode_t* node );
+int a_AUFNodeAddNode( aAUFNode_t* root, aAUFNode_t* node );
+int a_AUFNodeAddChild( aAUFNode_t* root, aAUFNode_t* node );
+int a_AUFNodeFree( aAUFNode_t* head );
 int a_AUFFree( aAUF_t* root );
-aAUF_Node_t* a_AUFGetObjectItem( aAUF_Node_t* node, char* object_str );
-void a_PrintAUFTree( aAUF_Node_t* node, int depth );
+aAUFNode_t* a_AUFGetObjectItem( aAUFNode_t* node, char* object_str );
+void a_PrintAUFTree( aAUFNode_t* node, int depth );
 
 /*
 ---------------------------------------------------------------

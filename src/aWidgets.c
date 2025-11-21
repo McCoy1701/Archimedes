@@ -16,13 +16,13 @@
 static void LoadWidgets( const char* filename );
 static void ChangeWidgetValue( const int value );
 
-static void CreateWidget( aAUF_Node_t* root );
-static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root );
-static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root );
-static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root );
-static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root );
-static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root );
-static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root );
+static void CreateWidget( aAUFNode_t* root );
+static void CreateButtonWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateSelectWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateSliderWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateInputWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateControlWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root );
 
 static void DrawButtonWidget( aWidget_t* w );
 static void DrawSelectWidget( aWidget_t* w );
@@ -291,7 +291,7 @@ aWidget_t a_WidgetGetHeadWidget( void )
 static void LoadWidgets( const char* filename )
 {
   aAUF_t* root;
-  aAUF_Node_t* node;
+  aAUFNode_t* node;
 
   root = a_AUFParser( filename );
 
@@ -447,18 +447,18 @@ static void ChangeWidgetValue( const int value )
 /**
  * @brief Creates a new widget and adds it to the global widget list.
  *
- * This function parses a AUF object (`aAUF_Node_t* root`) representing a widget's
+ * This function parses a AUF object (`aAUFNode_t* root`) representing a widget's
  * configuration. It allocates memory for a new `aWidget_t`, populates its
  * common properties (name, label, type, position, colors, etc.), and links
  * it into a global linked list of widgets. It then calls a specialized
  * creation function based on the widget's `type` to handle type-specific data.
  *
- * @param root A aAUF_Node_t object containing the configuration for the widget to be created.
+ * @param root A aAUFNode_t object containing the configuration for the widget to be created.
  */
-static void CreateWidget( aAUF_Node_t* root )
+static void CreateWidget( aAUFNode_t* root )
 {
   aWidget_t* w;
-  aAUF_Node_t* node;
+  aAUFNode_t* node;
   int type, i;
   uint8_t fg[4] = {0};
   uint8_t bg[4] = {0};
@@ -474,22 +474,22 @@ static void CreateWidget( aAUF_Node_t* root )
     w->prev = widget_tail;
     widget_tail = w;
 
-    aAUF_Node_t* temp_label   = a_AUFGetObjectItem( root, "label" );
-    aAUF_Node_t* temp_x       = a_AUFGetObjectItem( root, "x" );
-    aAUF_Node_t* temp_y       = a_AUFGetObjectItem( root, "y" );
-    aAUF_Node_t* temp_boxed   = a_AUFGetObjectItem( root, "boxed" );
-    aAUF_Node_t* temp_hidden  = a_AUFGetObjectItem( root, "hidden" );
-    aAUF_Node_t* temp_padding = a_AUFGetObjectItem( root, "padding" );
-    aAUF_Node_t* temp_texture = a_AUFGetObjectItem( root, "texture" );
-    aAUF_Node_t* temp_fg      = a_AUFGetObjectItem( root, "fg" );
-    aAUF_Node_t* temp_bg      = a_AUFGetObjectItem( root, "bg" );
-    aAUF_Node_t* temp_background = a_AUFGetObjectItem( root, "background" );
-    aAUF_Node_t* temp_pressed    = a_AUFGetObjectItem( root, "pressed" );
-    aAUF_Node_t* temp_hovering   = a_AUFGetObjectItem( root, "hovering" );
-    aAUF_Node_t* temp_disabled   = a_AUFGetObjectItem( root, "disabled" );
-    aAUF_Node_t* temp_text_x   = a_AUFGetObjectItem( root, "text_x" );
-    aAUF_Node_t* temp_text_y   = a_AUFGetObjectItem( root, "text_y" );
-    aAUF_Node_t* temp_button_drop_offset = a_AUFGetObjectItem( root, "button_drop_offset" );
+    aAUFNode_t* temp_label   = a_AUFGetObjectItem( root, "label" );
+    aAUFNode_t* temp_x       = a_AUFGetObjectItem( root, "x" );
+    aAUFNode_t* temp_y       = a_AUFGetObjectItem( root, "y" );
+    aAUFNode_t* temp_boxed   = a_AUFGetObjectItem( root, "boxed" );
+    aAUFNode_t* temp_hidden  = a_AUFGetObjectItem( root, "hidden" );
+    aAUFNode_t* temp_padding = a_AUFGetObjectItem( root, "padding" );
+    aAUFNode_t* temp_texture = a_AUFGetObjectItem( root, "texture" );
+    aAUFNode_t* temp_fg      = a_AUFGetObjectItem( root, "fg" );
+    aAUFNode_t* temp_bg      = a_AUFGetObjectItem( root, "bg" );
+    aAUFNode_t* temp_background = a_AUFGetObjectItem( root, "background" );
+    aAUFNode_t* temp_pressed    = a_AUFGetObjectItem( root, "pressed" );
+    aAUFNode_t* temp_hovering   = a_AUFGetObjectItem( root, "hovering" );
+    aAUFNode_t* temp_disabled   = a_AUFGetObjectItem( root, "disabled" );
+    aAUFNode_t* temp_text_x   = a_AUFGetObjectItem( root, "text_x" );
+    aAUFNode_t* temp_text_y   = a_AUFGetObjectItem( root, "text_y" );
+    aAUFNode_t* temp_button_drop_offset = a_AUFGetObjectItem( root, "button_drop_offset" );
     
     if ( root->value_string != NULL )
     {
@@ -640,9 +640,9 @@ static void CreateWidget( aAUF_Node_t* root )
  * uses `a_CalcTextDimensions` for this purpose.
  *
  * @param w A pointer to the `aWidget_t` structure for the button.
- * @param root A aAUF_Node_t object containing the configuration for the button.
+ * @param root A aAUFNode_t object containing the configuration for the button.
  */
-static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root )
+static void CreateButtonWidget( aWidget_t* w, aAUFNode_t* root )
 {
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
 }
@@ -652,14 +652,14 @@ static void CreateButtonWidget( aWidget_t* w, aAUF_Node_t* root )
  *
  * This function allocates and initializes an `aSliderWidget_t` structure,
  * linking it to the `data` member of the base widget. It retrieves the
- * slider's `step` and `wait_on_change` properties from the aAUF_Node_t root and
+ * slider's `step` and `wait_on_change` properties from the aAUFNode_t root and
  * calculates the slider's position and dimensions relative to its label.
  *
  * @param w A pointer to the `aWidget_t` structure for the slider widget.
  */
-static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root )
+static void CreateSelectWidget( aWidget_t* w, aAUFNode_t* root )
 {
-  aAUF_Node_t* options, *node;
+  aAUFNode_t* options, *node;
   int i, len, temp_w, temp_h;
   float width, height;
   char* temp_string;
@@ -723,13 +723,13 @@ static void CreateSelectWidget( aWidget_t* w, aAUF_Node_t* root )
  *
  * This function allocates and initializes an `aSliderWidget_t` structure,
  * linking it to the `data` member of the base widget. It retrieves the
- * slider's `step` and `wait_on_change` properties from the aAUF_Node_t root and
+ * slider's `step` and `wait_on_change` properties from the aAUFNode_t root and
  * calculates the slider's position and dimensions relative to its label.
  *
  * @param w A pointer to the `aWidget_t` structure for the slider widget.
- * @param root A aAUF_Node_t object containing the configuration for the slider widget.
+ * @param root A aAUFNode_t object containing the configuration for the slider widget.
  */
-static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root )
+static void CreateSliderWidget( aWidget_t* w, aAUFNode_t* root )
 {
   aSliderWidget_t* s;
   s = malloc( sizeof( aSliderWidget_t ) );
@@ -752,14 +752,14 @@ static void CreateSliderWidget( aWidget_t* w, aAUF_Node_t* root )
  *
  * This function allocates and initializes an `aInputWidget_t` structure,
  * linking it to the `data` member of the base widget. It retrieves the
- * `max_length` for the input text from the aAUF_Node_t root and allocates a buffer
+ * `max_length` for the input text from the aAUFNode_t root and allocates a buffer
  * for the text. It also initializes a default text and calculates the
  * input field's dimensions.
  *
  * @param w A pointer to the `aWidget_t` structure for the input widget.
- * @param root A aAUF_Node_t object containing the configuration for the input widget.
+ * @param root A aAUFNode_t object containing the configuration for the input widget.
  */
-static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root )
+static void CreateInputWidget( aWidget_t* w, aAUFNode_t* root )
 {
   aInputWidget_t* input;
 
@@ -788,9 +788,9 @@ static void CreateInputWidget( aWidget_t* w, aAUF_Node_t* root )
  * the dimensions of the base widget based on its label text.
  *
  * @param w A pointer to the `aWidget_t` structure for the control widget.
- * @param root A aAUF_Node_t object containing the configuration for the control widget.
+ * @param root A aAUFNode_t object containing the configuration for the control widget.
  */
-static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root )
+static void CreateControlWidget( aWidget_t* w, aAUFNode_t* root )
 {
   aControlWidget_t* control;
 
@@ -806,17 +806,17 @@ static void CreateControlWidget( aWidget_t* w, aAUF_Node_t* root )
  *
  * This function allocates and initializes an `aContainerWidget_t` structure,
  * linking it to the `data` member of the base widget. It parses the "components"
- * array from the aAUF_Node_t root, recursively creating and positioning child widgets
+ * array from the aAUFNode_t root, recursively creating and positioning child widgets
  * within the container. It supports different flexing modes (horizontal/vertical)
  * for component arrangement and calculates the overall dimensions of the container
  * based on its components.
  *
  * @param w A pointer to the `aWidget_t` structure for the container widget.
- * @param root A aAUF_Node_t object containing the configuration for the container widget.
+ * @param root A aAUFNode_t object containing the configuration for the container widget.
  */
-static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
+static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root )
 {
-  aAUF_Node_t* object, *node;
+  aAUFNode_t* object, *node;
   int i;
   int temp_x, temp_y;
   aContainerWidget_t* container;
@@ -826,9 +826,9 @@ static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
   uint8_t fg[4] = {0};
   uint8_t bg[4] = {0};
   
-  aAUF_Node_t* node_flex     = a_AUFGetObjectItem( root, "flex" );
-  aAUF_Node_t* node_spaceing = a_AUFGetObjectItem( root, "spacing" );
-  aAUF_Node_t* node_container = a_AUFGetObjectItem( root, "container" );
+  aAUFNode_t* node_flex     = a_AUFGetObjectItem( root, "flex" );
+  aAUFNode_t* node_spaceing = a_AUFGetObjectItem( root, "spacing" );
+  aAUFNode_t* node_container = a_AUFGetObjectItem( root, "container" );
 
   container = ( aContainerWidget_t* )malloc( sizeof( aContainerWidget_t ) );
   if ( container == NULL )
@@ -877,22 +877,22 @@ static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
 
   for ( node = node_container->child; node != NULL; node = node->next )
   {
-    aAUF_Node_t* node_label    = a_AUFGetObjectItem( node, "label" );
-    aAUF_Node_t* node_x        = a_AUFGetObjectItem( node, "x" );
-    aAUF_Node_t* node_y        = a_AUFGetObjectItem( node, "y" );
-    aAUF_Node_t* node_boxed    = a_AUFGetObjectItem( node, "boxed" );
-    aAUF_Node_t* node_hidden   = a_AUFGetObjectItem( node, "hidden" );
-    aAUF_Node_t* node_padding  = a_AUFGetObjectItem( node, "padding" );
-    aAUF_Node_t* node_texture  = a_AUFGetObjectItem( node, "texture" );
-    aAUF_Node_t* node_fg       = a_AUFGetObjectItem( node, "fg" );
-    aAUF_Node_t* node_bg       = a_AUFGetObjectItem( node, "bg" );
-    aAUF_Node_t* node_background = a_AUFGetObjectItem( node, "background" );
-    aAUF_Node_t* node_pressed    = a_AUFGetObjectItem( node, "pressed" );
-    aAUF_Node_t* node_hovering   = a_AUFGetObjectItem( node, "hovering" );
-    aAUF_Node_t* node_disabled   = a_AUFGetObjectItem( node, "disabled" );
-    aAUF_Node_t* node_text_x   = a_AUFGetObjectItem( node, "text_x" );
-    aAUF_Node_t* node_text_y   = a_AUFGetObjectItem( node, "text_y" );
-    aAUF_Node_t* node_button_drop_offset = a_AUFGetObjectItem( node, "button_drop_offset" );
+    aAUFNode_t* node_label    = a_AUFGetObjectItem( node, "label" );
+    aAUFNode_t* node_x        = a_AUFGetObjectItem( node, "x" );
+    aAUFNode_t* node_y        = a_AUFGetObjectItem( node, "y" );
+    aAUFNode_t* node_boxed    = a_AUFGetObjectItem( node, "boxed" );
+    aAUFNode_t* node_hidden   = a_AUFGetObjectItem( node, "hidden" );
+    aAUFNode_t* node_padding  = a_AUFGetObjectItem( node, "padding" );
+    aAUFNode_t* node_texture  = a_AUFGetObjectItem( node, "texture" );
+    aAUFNode_t* node_fg       = a_AUFGetObjectItem( node, "fg" );
+    aAUFNode_t* node_bg       = a_AUFGetObjectItem( node, "bg" );
+    aAUFNode_t* node_background = a_AUFGetObjectItem( node, "background" );
+    aAUFNode_t* node_pressed    = a_AUFGetObjectItem( node, "pressed" );
+    aAUFNode_t* node_hovering   = a_AUFGetObjectItem( node, "hovering" );
+    aAUFNode_t* node_disabled   = a_AUFGetObjectItem( node, "disabled" );
+    aAUFNode_t* node_text_x   = a_AUFGetObjectItem( node, "text_x" );
+    aAUFNode_t* node_text_y   = a_AUFGetObjectItem( node, "text_y" );
+    aAUFNode_t* node_button_drop_offset = a_AUFGetObjectItem( node, "button_drop_offset" );
 
     aWidget_t* current = &container->components[i];
 
@@ -926,7 +926,7 @@ static void CreateContainerWidget( aWidget_t* w, aAUF_Node_t* root )
 
     current->action = NULL;
 
-    aAUF_Node_t* object_1, *node_1;
+    aAUFNode_t* object_1, *node_1;
     if ( node_fg != NULL )
     {
       int j;

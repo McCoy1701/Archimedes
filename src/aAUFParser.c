@@ -12,15 +12,15 @@
 #include "Archimedes.h"
 
 static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count );
-static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int idx );
-static int handle_parenthesis( aAUF_Node_t* root, char* string, int str_len );
-static int handle_char( aAUF_Node_t* root, char* string, int str_len );
+static int ParserWidgetToNode( aAUFNode_t* node, char** line, int nl_count, int idx );
+static int handle_parenthesis( aAUFNode_t* root, char* string, int str_len );
+static int handle_char( aAUFNode_t* root, char* string, int str_len );
 static int GetType( char* name );
 
-static void handle_widget_definition( aAUF_Node_t* node, const char* string );
+static void handle_widget_definition( aAUFNode_t* node, const char* string );
 
-static aAUF_Node_t* g_container = NULL;
-static aAUF_Node_t* g_temp_container = NULL;
+static aAUFNode_t* g_container = NULL;
+static aAUFNode_t* g_temp_container = NULL;
 
 aAUF_t* a_AUFParser( const char* filename )
 {
@@ -56,7 +56,7 @@ static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count )
 
       if ( string[0] == '[' && string[1] != '[' )
       {
-        aAUF_Node_t* new_AUF = a_AUFNodeCreation();
+        aAUFNode_t* new_AUF = a_AUFNodeCreation();
         handle_widget_definition( new_AUF, string );
 
         if ( a_AUFAddNode( root, new_AUF ) < 0 )
@@ -82,7 +82,7 @@ static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count )
   return 0;
 }
 
-static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int idx )
+static int ParserWidgetToNode( aAUFNode_t* node, char** line, int nl_count, int idx )
 {
   int count = 0;
   for ( int i = idx; i < nl_count; i++ )
@@ -98,12 +98,12 @@ static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int
       case '[':
       if ( string[1] == '[' )
       {
-      aAUF_Node_t* child = a_AUFNodeCreation();
+      aAUFNode_t* child = a_AUFNodeCreation();
       handle_widget_definition( child, string );
 
       if ( g_container == NULL )
       {
-      aAUF_Node_t* container = a_AUFNodeCreation();
+      aAUFNode_t* container = a_AUFNodeCreation();
       container->string = strdup( "container" );
       a_AUFNodeAddChild( node, container );
       g_container = container;
@@ -143,7 +143,7 @@ static int ParserWidgetToNode( aAUF_Node_t* node, char** line, int nl_count, int
   return count;
 }
 
-static int handle_parenthesis( aAUF_Node_t* root, char* string, int str_len )
+static int handle_parenthesis( aAUFNode_t* root, char* string, int str_len )
 {
   if ( root == NULL || string == NULL || str_len == 0 )
   {
@@ -152,8 +152,8 @@ static int handle_parenthesis( aAUF_Node_t* root, char* string, int str_len )
     return 1;
   }
 
-  aAUF_Node_t* x_AUF = a_AUFNodeCreation();
-  aAUF_Node_t* y_AUF = a_AUFNodeCreation();
+  aAUFNode_t* x_AUF = a_AUFNodeCreation();
+  aAUFNode_t* y_AUF = a_AUFNodeCreation();
   x_AUF->string = a_ParseString( ',', string+1, str_len );
   char* str_y_start  = strchr( string, ',' );
   size_t str_y_len = strlen( str_y_start );
@@ -197,11 +197,11 @@ static int handle_parenthesis( aAUF_Node_t* root, char* string, int str_len )
   return 0;
 }
 
-static int handle_char( aAUF_Node_t* root, char* string, int str_len )
+static int handle_char( aAUFNode_t* root, char* string, int str_len )
 {
   char* str_end = strchr( string, ':' );
   size_t str_end_len = strlen( str_end );
-  aAUF_Node_t* new_AUF = a_AUFNodeCreation();
+  aAUFNode_t* new_AUF = a_AUFNodeCreation();
   char* num_value = NULL;
   int count = 0;
 
@@ -234,7 +234,7 @@ static int handle_char( aAUF_Node_t* root, char* string, int str_len )
             
             if ( strchr( str_value, ',') ) continue;
 
-            aAUF_Node_t* new_num = a_AUFNodeCreation();
+            aAUFNode_t* new_num = a_AUFNodeCreation();
             
             new_num->string = malloc( sizeof( char ) * MAX_LINE_LENGTH );
             if ( new_num->string == NULL )
@@ -269,7 +269,7 @@ static int handle_char( aAUF_Node_t* root, char* string, int str_len )
             num_value[num_len] = '\0';
             i += num_len;
             
-            aAUF_Node_t* new_num = a_AUFNodeCreation();
+            aAUFNode_t* new_num = a_AUFNodeCreation();
             
             new_num->string = malloc( sizeof( char ) * MAX_LINE_LENGTH );
             if ( new_num->string == NULL )
@@ -363,7 +363,7 @@ static int GetType( char* type )
   return WT_UNKNOWN;
 }
 
-static void handle_widget_definition( aAUF_Node_t* node, const char* string )
+static void handle_widget_definition( aAUFNode_t* node, const char* string )
 {
   const char* start = strstr( string, "WT_" );
   if ( !start ) return;
@@ -399,7 +399,7 @@ int a_FreeLine( char** line, const int nl_count )
   return 0;
 }
 
-void a_PrintAUFTree( aAUF_Node_t* node, int depth )
+void a_PrintAUFTree( aAUFNode_t* node, int depth )
 {
   while ( node )
   {

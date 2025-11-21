@@ -1028,6 +1028,7 @@ void a_TimerUnpause( aTimer_t* timer );
 uint32_t a_TimerGetTicks( aTimer_t* timer );
 uint8_t a_TimerStarted( aTimer_t* timer );
 uint8_t a_TimerPaused( aTimer_t* timer );
+int a_TimerOneshot( aTimer_t* timer, const uint32_t wait_ms );
 
 /*
 ---------------------------------------------------------------

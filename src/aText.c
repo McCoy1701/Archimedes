@@ -54,7 +54,7 @@ static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.E
 #endif
 
 aTextStyle_t a_default_text_style = {
-  .type = FONT_GAME,
+  .type = FONT_CODE_PAGE_437,
   .fg = {255, 255, 255, 255},
   .bg = {0, 0, 0, 0},              // No background by default (alpha 0)
   .align = TEXT_ALIGN_LEFT,

@@ -197,7 +197,16 @@ static void e_Draw( float dt )
   char fps_text[MAX_NAME_LENGTH];
   snprintf(fps_text, MAX_NAME_LENGTH, "%f", app.time.avg_FPS );
 
-  a_DrawText( fps_text, 600, 100, white, black, FONT_CODE_PAGE_437, TEXT_ALIGN_CENTER, 0 );
+  aTextStyle_t fps_style = {
+    .type = FONT_CODE_PAGE_437,
+    .fg = white,
+    .bg = black,
+    .align = TEXT_ALIGN_CENTER,
+    .wrap_width = 0,
+    .scale = 1.0f,
+    .padding = 0
+  };
+  a_DrawText( fps_text, 600, 100, fps_style );
 
   a_DrawWidgets();
 }

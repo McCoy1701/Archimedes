@@ -62,7 +62,7 @@ void aInitGame( void )
   // Set background color (dark blue)
   app.background = (aColor_t){20, 20, 60, 255};
 
-  surf = a_Image( "resources/assets/bullet.png" );
+  surf = a_ImageLoad( "resources/assets/bullet.png" );
   if ( surf == NULL )
   {
     printf( "Failed to load image\n" );
@@ -75,6 +75,12 @@ void aInitGame( void )
 static void aDoLoop( float dt )
 {
   a_DoInput();
+
+  // Global ESC to quit (works in all scenes)
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
+  {
+    app.running = 0;
+  }
 
   // Dispatch to current scene
   switch ( current_scene )
@@ -326,12 +332,6 @@ static void scene_game_logic( float dt )
   {
     ctrl_t_pressed = 0;
   }
-
-  // ESC to quit
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
-  {
-    app.running = 0;
-  }
 }
 
 static void aRenderLoop( float dt )
@@ -367,7 +367,7 @@ static void scene_game_draw( float dt )
     .wrap_width = 0,
     .scale = 0.8f
   };
-  a_DrawText( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
+  a_DrawText( timer_text, SCREEN_WIDTH / 2, 25, timer_config );
 
   // Draw player and bullets
   player_draw( surf );

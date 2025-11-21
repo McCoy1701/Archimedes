@@ -28,7 +28,7 @@ Functions are named with the `a_` prefix, followed by the object/noun, then the 
 - `a_FlexSetDirection()`, `a_FlexAddItem()`, `a_FlexLayout()`
 - `a_ViewportDrawRect()`, `a_ViewportIsRectVisible()`
 
-**Exception: Drawing functions use `a_Draw*` pattern**
+**Exception 1: Drawing functions use `a_Draw*` pattern**
 
 All primitive drawing operations are grouped under `a_Draw` for discoverability:
 - `a_DrawRect()`, `a_DrawFilledRect()`
@@ -39,6 +39,14 @@ All primitive drawing operations are grouped under `a_Draw` for discoverability:
 - `a_DrawWidgets()`
 
 This allows developers to type `a_Draw` and see all rendering primitives in autocomplete.
+
+**Exception 2: Blitting functions use `a_Blit*` pattern**
+
+Blitting operations (copying surfaces/textures to the renderer) are distinct from drawing primitives and use `a_Blit` prefix:
+- `a_BlitSurface()` - blit a surface at x,y coordinates
+- `a_BlitSurfaceRect()` - blit a surface with scaling and clipping
+
+Blitting is a separate rendering concept from drawing primitives, so it deserves its own namespace. This maintains semantic clarity: drawing creates pixels procedurally, blitting copies pre-rendered pixel data.
 
 ### Type Naming
 
@@ -95,12 +103,12 @@ Text-related parameters:
 - New contributors can follow established patterns
 
 **Negative:**
-- Draw exception creates inconsistency (not purely object-first)
+- Draw and Blit exceptions create inconsistency (not purely object-first)
 - Some functions have long names (`a_ViewportCalculateScale`)
 - Enum prefixes can be verbose (`FLEX_JUSTIFY_SPACE_BETWEEN`)
 
 **Accepted Trade-offs:**
-- The Draw exception's discoverability benefit outweighs naming purity
+- The Draw and Blit exceptions' discoverability benefits outweigh naming purity
 - Long descriptive names are preferred over short cryptic ones
 - Verbose enum names provide self-documentation
 
@@ -111,5 +119,8 @@ For fitness function verification, objects are classified as:
 **Drawn Objects** (use `a_Draw*` pattern):
 - Text, Rect, Circle, Line, Point, Triangle, Widgets, FilledRect, FilledCircle, FilledTriangle, HorizontalLine, VerticalLine
 
+**Blit Objects** (use `a_Blit*` pattern):
+- Surface, SurfaceRect
+
 **Used Objects** (use `a_Object*` pattern):
-- Timer, Viewport, Flex, Widget, Image, Audio, AUF, Glyph, Font, Texture, Blit, Init, Quit, Input, Error, Color
+- Timer, Viewport, Flex, Widget, Image, Audio, AUF, Glyph, Font, Texture, Init, Quit, Input, Error, Color

@@ -160,23 +160,23 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type )
   }
   
   surface = TTF_RenderUTF8_Blended( app.fonts[font_type], text, white_ );
-  
-  return a_ToTexture( surface, 1 );
+
+  SDL_Texture* texture = SDL_CreateTextureFromSurface( app.renderer, surface );
+  SDL_FreeSurface( surface );
+
+  return texture;
 }
 
-void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style )
+void a_DrawText( const char* content, int x, int y, aTextStyle_t style )
 {
-  // Use default style if NULL is passed
-  const aTextStyle_t* s = style ? style : &a_default_text_style;
-
   // Validate input parameters
-  int validation_result = validate_text_parameters( content, s->type );
+  int validation_result = validate_text_parameters( content, style.type );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
   }
 
-  validation_result = validate_color_parameters( s->fg.r, s->fg.g, s->fg.b );
+  validation_result = validate_color_parameters( style.fg.r, style.fg.g, style.fg.b );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
@@ -184,53 +184,53 @@ void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style )
 
   // Temporarily set font scale if different from default
   double old_scale = app.font_scale;
-  if ( s->scale != 1.0f && s->scale > 0.0f ) {
-    app.font_scale = s->scale;
+  if ( style.scale != 1.0f && style.scale > 0.0f ) {
+    app.font_scale = style.scale;
   }
 
   // Draw background if bg.a > 0
-  if ( s->bg.a > 0 )
+  if ( style.bg.a > 0 )
   {
     float text_w, text_h;
 
-    if ( s->wrap_width > 0 )
+    if ( style.wrap_width > 0 )
     {
-      text_w = (float)s->wrap_width;
-      text_h = (float)a_GetWrappedTextHeight( (char*)content, s->type, s->wrap_width );
+      text_w = (float)style.wrap_width;
+      text_h = (float)a_GetWrappedTextHeight( (char*)content, style.type, style.wrap_width );
     }
     else
     {
-      a_CalcTextDimensions( content, s->type, &text_w, &text_h );
+      a_CalcTextDimensions( content, style.type, &text_w, &text_h );
     }
 
     // Calculate background rect with padding
-    float bg_x = (float)x - s->padding;
-    float bg_y = (float)y - s->padding;
-    float bg_w = text_w + ( s->padding * 2 );
-    float bg_h = text_h + ( s->padding * 2 );
+    float bg_x = (float)x - style.padding;
+    float bg_y = (float)y - style.padding;
+    float bg_w = text_w + ( style.padding * 2 );
+    float bg_h = text_h + ( style.padding * 2 );
 
     // Adjust for alignment
-    if ( s->align == TEXT_ALIGN_CENTER )
+    if ( style.align == TEXT_ALIGN_CENTER )
     {
       bg_x -= text_w / 2;
     }
-    else if ( s->align == TEXT_ALIGN_RIGHT )
+    else if ( style.align == TEXT_ALIGN_RIGHT )
     {
       bg_x -= text_w;
     }
 
     aRectf_t bg_rect = { .x = bg_x, .y = bg_y, .w = bg_w, .h = bg_h };
-    a_DrawFilledRect( bg_rect, s->bg );
+    a_DrawFilledRect( bg_rect, style.bg );
   }
 
-  if ( s->wrap_width > 0 )
+  if ( style.wrap_width > 0 )
   {
-    DrawTextWrapped( (char*)content, x, y, s->fg, s->type,
-                     s->align, s->wrap_width, 1 );
+    DrawTextWrapped( (char*)content, x, y, style.fg, style.type,
+                     style.align, style.wrap_width, 1 );
   }
   else
   {
-    DrawTextLine( (char*)content, x, y, s->fg, s->type, s->align );
+    DrawTextLine( (char*)content, x, y, style.fg, style.type, style.align );
   }
 
   // Restore original scale
@@ -249,7 +249,7 @@ static void initFontPNG( const char* filename, const int font_type,
   memset( app.glyph_exists[font_type], 0, sizeof( app.glyph_exists[font_type] ) );
   app.fallback_glyph[font_type] = '-' - 1;  // PNG fonts use ASCII-1 indexing
 
-  font_surf = a_Image( filename );
+  font_surf = a_ImageLoad( filename );
   if( font_surf == NULL )
   {
     printf( "Failed to open font surface %s, %s", filename, SDL_GetError() );
@@ -289,7 +289,8 @@ static void initFontPNG( const char* filename, const int font_type,
     rect.x += rect.w;
   }
 
-  app.font_textures[font_type] = a_ToTexture( surface, 1 );
+  app.font_textures[font_type] = SDL_CreateTextureFromSurface( app.renderer, surface );
+  SDL_FreeSurface( surface );
 }
 
 static void initFont( const char* filename, const int font_type, const int font_size )
@@ -357,7 +358,8 @@ static void initFont( const char* filename, const int font_type, const int font_
     }
   }
 
-  app.font_textures[font_type] = a_ToTexture( surface, 1 );
+  app.font_textures[font_type] = SDL_CreateTextureFromSurface( app.renderer, surface );
+  SDL_FreeSurface( surface );
 }
 
 static int DrawTextWrapped( const char* text, const int x, const int y,

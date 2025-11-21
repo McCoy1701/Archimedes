@@ -29,7 +29,7 @@ void aInitGame( void )
   
   at_LoadImageCache( test_cache );
   at_TestImageCache( test_cache );
-  surf = a_Image( "resources/assets/bullet.png" );
+  surf = a_ImageLoad( "resources/assets/bullet.png" );
   if ( surf == NULL )
   {
     printf( "Failed to load image\n" );

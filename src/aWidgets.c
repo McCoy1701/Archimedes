@@ -564,22 +564,22 @@ static void CreateWidget( aAUFNode_t* root )
     {
       if ( temp_background != NULL )
       {
-        w->surfs[WI_BACKGROUND] = a_Image( temp_background->value_string );
+        w->surfs[WI_BACKGROUND] = a_ImageLoad( temp_background->value_string );
       }
       
       if ( temp_pressed != NULL )
       {
-        w->surfs[WI_PRESSED] = a_Image( temp_pressed->value_string );
+        w->surfs[WI_PRESSED] = a_ImageLoad( temp_pressed->value_string );
       }
       
       if ( temp_hovering != NULL )
       {
-        w->surfs[WI_HOVERING] = a_Image( temp_hovering->value_string );
+        w->surfs[WI_HOVERING] = a_ImageLoad( temp_hovering->value_string );
       }
       
       if ( temp_disabled != NULL )
       {
-        w->surfs[WI_DISABLED] = a_Image( temp_disabled->value_string );
+        w->surfs[WI_DISABLED] = a_ImageLoad( temp_disabled->value_string );
       }
     }
 
@@ -993,22 +993,22 @@ static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root )
     {
       if ( node_background != NULL )
       {
-        current->surfs[WI_BACKGROUND] = a_Image( node_background->value_string );
+        current->surfs[WI_BACKGROUND] = a_ImageLoad( node_background->value_string );
       }
 
       if ( node_pressed != NULL )
       {
-        current->surfs[WI_PRESSED] = a_Image( node_pressed->value_string );
+        current->surfs[WI_PRESSED] = a_ImageLoad( node_pressed->value_string );
       }
 
       if ( node_hovering != NULL )
       {
-        current->surfs[WI_HOVERING] = a_Image( node_hovering->value_string );
+        current->surfs[WI_HOVERING] = a_ImageLoad( node_hovering->value_string );
       }
 
       if ( node_disabled != NULL )
       {
-        current->surfs[WI_DISABLED] = a_Image( node_disabled->value_string );
+        current->surfs[WI_DISABLED] = a_ImageLoad( node_disabled->value_string );
       }
     }
     
@@ -1139,7 +1139,7 @@ static void DrawButtonWidget( aWidget_t* w )
         .w = ( w->rect.w + ( 2 * w->padding ) + ( 2 * w->text_offset.x ) ),
         .h = ( w->rect.h + ( 2 * w->padding ) + ( 2 * w->text_offset.y ) ) };
       
-      a_BlitSurfRect( w->surfs[w->state], rect, 1 );
+      a_BlitSurfaceRect( w->surfs[w->state], rect, 1 );
 
       if ( w->state == WI_PRESSED )
       {
@@ -1166,7 +1166,7 @@ static void DrawButtonWidget( aWidget_t* w )
     }
 
     aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
-    a_DrawText( w->label, w->rect.x + w->text_offset.x, w->rect.y + offset, &style );
+    a_DrawText( w->label, w->rect.x + w->text_offset.x, w->rect.y + offset, style );
   }
 }
 
@@ -1203,10 +1203,10 @@ static void DrawSelectWidget( aWidget_t* w )
     }
 
     aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
-    a_DrawText( w->label, w->rect.x, w->rect.y, &style );
+    a_DrawText( w->label, w->rect.x, w->rect.y, style );
     sprintf( text, "< %s >", s->options[s->value] );
 
-    a_DrawText( text, s->rect.x + 100, s->rect.y, &style );
+    a_DrawText( text, s->rect.x + 100, s->rect.y, style );
   }
 }
 
@@ -1245,7 +1245,7 @@ static void DrawSliderWidget( aWidget_t* w )
     width = ( 1.0 * slider->value ) / 100;
 
     aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
-    a_DrawText( w->label, w->rect.x, w->rect.y, &style );
+    a_DrawText( w->label, w->rect.x, w->rect.y, style );
 
     aRectf_t slider_bg_rect = (aRectf_t){ .x = slider->rect.x,
                                           .y = slider->rect.y,
@@ -1296,9 +1296,9 @@ static void DrawInputWidget( aWidget_t* w )
     }
 
     aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
-    a_DrawText( w->label, w->rect.x, w->rect.y, &style );
+    a_DrawText( w->label, w->rect.x, w->rect.y, style );
 
-    a_DrawText( input->text, input->rect.x, input->rect.y, &style );
+    a_DrawText( input->text, input->rect.x, input->rect.y, style );
 
     if ( handle_input_widget && app.active_widget == w &&
          ( (int)cursor_blink % (int)FPS_CAP < ( FPS_CAP / 2 ) ) )
@@ -1347,17 +1347,17 @@ static void DrawControlWidget( aWidget_t* w )
     }
 
     aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
-    a_DrawText( w->label, w->rect.x, w->rect.y, &style );
+    a_DrawText( w->label, w->rect.x, w->rect.y, style );
 
     if ( handle_control_widget && app.active_widget == w )
     {
-      a_DrawText( "...", control->x, control->y, &style );
+      a_DrawText( "...", control->x, control->y, style );
     }
 
     else
     {
       sprintf( text, "%s", SDL_GetScancodeName( control->value ) );
-      a_DrawText( text, control->x, control->y, &style );
+      a_DrawText( text, control->x, control->y, style );
     }
   }
 }
@@ -1389,7 +1389,7 @@ static void DrawContainerWidget( aWidget_t* w )
     
     if ( w->texture )
     {
-      a_BlitSurfRect( w->surfs[w->state], rect, 1 );
+      a_BlitSurfaceRect( w->surfs[w->state], rect, 1 );
     }
 
     else

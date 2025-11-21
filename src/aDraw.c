@@ -199,7 +199,7 @@ void a_DrawFilledRect( const aRectf_t rect, const aColor_t color )
   SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
-void a_Blit( SDL_Surface* surf, const int x, const int y )
+void a_BlitSurface( SDL_Surface* surf, const int x, const int y )
 {
   SDL_Rect dest;
   SDL_Texture* img;
@@ -221,7 +221,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y )
   SDL_DestroyTexture(img);
 }
 
-void a_BlitSurfRect( SDL_Surface* surf, aRectf_t rect, const int scale )
+void a_BlitSurfaceRect( SDL_Surface* surf, aRectf_t rect, const int scale )
 {
   SDL_Rect dest, src;
   SDL_Texture* img;
@@ -245,56 +245,9 @@ void a_BlitSurfRect( SDL_Surface* surf, aRectf_t rect, const int scale )
     printf("Error creating texture %s\n", SDL_GetError());
   }
 
-  SDL_RenderCopy( app.renderer, img, NULL, &dest );
-}
+  SDL_RenderCopy( app.renderer, img, &src, &dest );
 
-void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
-                        const int y, const int scale, const aColor_t color )
-{
-  SDL_Rect dest;
-
-  dest.x = x;
-  dest.y = y;
-  dest.w = src.w * scale;
-  dest.h = src.h * scale;
-  SDL_SetTextureColorMod( texture, color.r, color.g, color.b );
-  SDL_SetTextureAlphaMod( texture, color.a );
-
-  SDL_RenderCopy(app.renderer, texture, &src, &dest);
-}
-
-/**
- * @brief Renders a texture scaled to specific dimensions
- *
- * Implementation details:
- * 1. Validates texture pointer (returns silently if NULL)
- * 2. Constructs destination rectangle with specified x, y, w, h
- * 3. Renders entire texture (src=NULL) to scaled destination
- * 4. No color modulation applied (texture rendered as-is)
- *
- * This is the simplest texture rendering function for cases where you
- * know the exact pixel dimensions you want but don't need source rectangle
- * clipping or color modulation.
- *
- * @implementation Direct SDL_RenderCopy with NULL source rect
- * @complexity O(1) for setup, O(w*h) for GPU rasterization
- * @thread_safety Not thread-safe, must be called from main render thread
- */
-void a_BlitTextureScaled( SDL_Texture* texture, const int x, const int y,
-                           const int w, const int h )
-{
-  if ( !texture )
-  {
-    return;
-  }
-
-  SDL_Rect dest;
-  dest.x = x;
-  dest.y = y;
-  dest.w = w;
-  dest.h = h;
-
-  SDL_RenderCopy( app.renderer, texture, NULL, &dest );
+  SDL_DestroyTexture( img );
 }
 
 void a_UpdateTitle( const char *title )

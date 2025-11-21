@@ -21,32 +21,48 @@
 
 aApp_t app;
 
+typedef enum {
+    INIT_SUCCESS = 0,
+    INIT_ERROR_SDL = -1,
+    INIT_ERROR_IMG = -2,
+    INIT_ERROR_TTF = -3,
+    INIT_ERROR_WINDOW = -4
+} InitStatus_t;
+
+static InitStatus_t a_ValidateSubsystems(void) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
+        return INIT_ERROR_SDL;
+    }
+
+    if (IMG_Init(IMG_INIT_PNG) == 0) {
+        SDL_Quit();
+        return INIT_ERROR_IMG;
+    }
+
+    if (TTF_Init() < 0) {
+        IMG_Quit();
+        SDL_Quit();
+        return INIT_ERROR_TTF;
+    }
+
+    return INIT_SUCCESS;
+}
+
 int a_Init( const int width, const int height, const char *title )
 {
-  // Initialize SDL subsystems
-  if (SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER ) < 0) {
-    return -1;
+  InitStatus_t status = a_ValidateSubsystems();
+  if (status != INIT_SUCCESS) {
+    return status;
   }
-  
-  if (IMG_Init( IMG_INIT_PNG ) == 0) {
-    SDL_Quit();
-    return -2;
-  }
-  
-  if (TTF_Init() < 0) {
-    IMG_Quit();
-    SDL_Quit();
-    return -3;
-  }
-  
+
   // Create window and renderer
   if (SDL_CreateWindowAndRenderer( width, height, 0, &app.window, &app.renderer ) < 0) {
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
-    return -4;
+    return INIT_ERROR_WINDOW;
   }
-  
+
   // Set window title after window creation
   SDL_SetWindowTitle( app.window, title );
 

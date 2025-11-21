@@ -209,7 +209,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y )
 
   img = SDL_CreateTextureFromSurface(app.renderer, surf);
 
-  int success = SDL_QueryTexture(img, NULL, NULL, &dest.w, &dest.h);
+  int success = SDL_QueryTexture(img, NULL, NULL, NULL, NULL);
 
   if (success < 0)
   {
@@ -221,29 +221,31 @@ void a_Blit( SDL_Surface* surf, const int x, const int y )
   SDL_DestroyTexture(img);
 }
 
-void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
-                     const int scale )
+void a_BlitSurfRect( SDL_Surface* surf, aRectf_t rect, const int scale )
 {
-  SDL_Rect dest;
+  SDL_Rect dest, src;
   SDL_Texture* img;
 
-  dest.x = x;
-  dest.y = y;
-  dest.w = src.w * scale;
-  dest.h = src.h * scale;
+  dest.x = rect.x;
+  dest.y = rect.y;
+  dest.w = rect.w * scale;
+  dest.h = rect.h * scale;
 
-  img = SDL_CreateTextureFromSurface(app.renderer, surf);
+  src.x = 0;
+  src.y = 0;
+  src.w = rect.w;
+  src.h = rect.h;
 
-  SDL_FreeSurface(surf);
+  img = SDL_CreateTextureFromSurface( app.renderer, surf );
 
-  int success = SDL_QueryTexture(img, NULL, NULL, &dest.w, &dest.h);
+  int success = SDL_QueryTexture( img, NULL, NULL, NULL, NULL );
 
-  if (success < 0)
+  if ( success < 0 )
   {
     printf("Error creating texture %s\n", SDL_GetError());
   }
 
-  SDL_RenderCopy(app.renderer, img, &src, &dest);
+  SDL_RenderCopy( app.renderer, img, NULL, &dest );
 }
 
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
@@ -259,7 +261,6 @@ void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
   SDL_SetTextureAlphaMod( texture, color.a );
 
   SDL_RenderCopy(app.renderer, texture, &src, &dest);
-
 }
 
 /**

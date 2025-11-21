@@ -25,7 +25,10 @@ void aInitGame( void )
 {
   app.delegate.logic = e_Logic;
   app.delegate.draw  = e_Draw;
-  
+    
+  //root = a_AUFParser( "resources/widgets/world.auf" );
+  //a_PrintAUFTree( root->head, 10 );
+
   a_InitWidgets( "resources/widgets/world.auf" );
 
   app.active_widget = a_GetWidget( "tab_bar" );
@@ -124,10 +127,6 @@ static void we_CreationDoLoop( float dt )
 
 static void we_CreationRenderLoop( float dt )
 {
-  aColor_t color_something = { .r = 255, .g = 0, .b = 255, .a = 255 };
-  aRectf_t rect_something = { .x = 240, .y = 240, .w = 400, .h = 265 };
-  a_DrawFilledRect( rect_something, color_something );
-  
   a_DrawWidgets();
 
 }

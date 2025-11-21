@@ -46,7 +46,7 @@ SDL_Surface* a_Image( const char *filename )
 
   if ( surf == NULL )
   {
-    SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename );
+    //SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename );
     surf = IMG_Load( filename );
 
     if ( surf == NULL )

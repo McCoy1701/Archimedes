@@ -76,7 +76,7 @@ void a_InitFonts( void )
 #endif
 
   app.font_scale = 1;
-  app.font_type = FONT_ENTER_COMMAND;
+  app.font_type = FONT_CODE_PAGE_437;
 }
 
 void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )

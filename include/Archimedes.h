@@ -52,6 +52,7 @@
 #define MAX_GLYPH_SIZE 8
 #define MAX_WORD_LENGTH 32
 #define MAX_LINE_LENGTH 1024
+#define MAX_WIDGET_IMAGE 4
 
 // Text system error codes
 #define ARCH_TEXT_SUCCESS 0
@@ -173,8 +174,12 @@ typedef struct _widget_t
   int hidden;
   int padding;
   int flex;
+  int texture;
   aColor_t fg;
   aColor_t bg;
+  SDL_Surface* surfs[MAX_WIDGET_IMAGE];
+  int state;
+  aPoint3f_t text_offset;
   struct _widget_t* next;
   struct _widget_t* prev;
   void (*action)( void );
@@ -553,8 +558,7 @@ void a_Blit( SDL_Surface* surf, const int x, const int y );
  * 
  * @note NULL surface is handled gracefully without crashing
  */
-void a_BlitSurfRect( SDL_Surface* surf, SDL_Rect src, const int x, const int y,
-                     const int scale );
+void a_BlitSurfRect( SDL_Surface* surf, aRectf_t rect, const int scale );
 void a_BlitTextureRect( SDL_Texture* texture, SDL_Rect src, const int x,
                         const int y, const int scale, const aColor_t color );
 
@@ -807,6 +811,14 @@ enum
   WT_INPUT,
   WT_CONTROL,
   WT_CONTAINER,
+};
+
+enum
+{
+  WI_BACKGROUND = 0,
+  WI_PRESSED,
+  WI_HOVERING,
+  WI_DISABLED,
 };
 
 /**

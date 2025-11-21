@@ -611,30 +611,27 @@ int a_Screenshot( SDL_Renderer *renderer, const char *filename );
 extern aApp_t app;
 
 /**
- * @brief Initializes the Archimedes framework and SDL subsystems.
- *
- * This function sets up the complete Archimedes environment including SDL video,
- * audio, and timer subsystems, creates a window and renderer, initializes all
- * app state variables, and sets up the audio, image, texture, and font systems.
- * The random number generator is also seeded with the current time.
- *
- * The initialization sequence includes:
- * - SDL video, audio, and timer subsystem initialization
- * - PNG image format support initialization
- * - TTF font support initialization
- * - Window and renderer creation with specified dimensions
- * - Mouse and timing state initialization
- * - Image cache setup
- * - Audio, image, texture, and font system initialization
- * - Random number generator seeding
- *
- * This function must be called before any other Archimedes functions.
- * The global `app` structure will be populated with initialized values.
- *
+ * @brief Initialize the Archimedes framework and SDL subsystems
+ * 
+ * Sets up SDL (video, audio, timer), IMG (PNG support), TTF (font rendering),
+ * creates the window and renderer, and initializes the global app state including
+ * mouse tracking, timing system, image cache, and RNG seeding.
+ * 
+ * Must be called before any other Archimedes functions.
+ * 
  * @param width Window width in pixels (must be > 0)
  * @param height Window height in pixels (must be > 0)
- * @param title Window title string (cannot be NULL)
- * @return 0 on success, negative value on failure (-1: SDL init, -2: IMG init, -3: TTF init, -4: window creation)
+ * @param title Window title string (must not be NULL)
+ * @return InitStatus_t error code:
+ *         - INIT_SUCCESS (0): Initialization successful
+ *         - INIT_ERROR_SDL (-1): SDL subsystem initialization failed
+ *         - INIT_ERROR_IMG (-2): SDL_image initialization failed
+ *         - INIT_ERROR_TTF (-3): SDL_ttf initialization failed
+ *         - INIT_ERROR_WINDOW (-4): Window/renderer creation failed
+ * 
+ * @note Populates global `app` structure with initialized state
+ * @note Automatically cleans up subsystems on failure
+ * @see a_Quit()
  */
 int a_Init( const int width, const int height, const char *title );
 

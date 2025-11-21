@@ -48,6 +48,12 @@ static InitStatus_t a_ValidateSubsystems(void) {
     return INIT_SUCCESS;
 }
 
+static void a_CleanupSubsystems(void) {
+    TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
+}
+
 int a_Init( const int width, const int height, const char *title )
 {
   InitStatus_t status = a_ValidateSubsystems();
@@ -104,41 +110,40 @@ int a_Init( const int width, const int height, const char *title )
 
 void a_Quit( void )
 {
-  // Call optional exit delegate
+  // Call optional exit delegate first
   if ( app.delegate.onExit ) {
     app.delegate.onExit();
   }
-  
-  // Destroy SDL resources
-  if ( app.renderer ) {
-    SDL_DestroyRenderer( app.renderer );
-    app.renderer = NULL;
+
+  // Clean up Archimedes-level resources (before SDL shutdown)
+  if ( app.time.FPS_timer ) {
+    a_TimerFree( app.time.FPS_timer );
+    app.time.FPS_timer = NULL;
   }
-  
-  if ( app.window ) {
-    SDL_DestroyWindow( app.window );
-    app.window = NULL;
+  if ( app.time.FPS_cap_timer ) {
+    a_TimerFree( app.time.FPS_cap_timer );
+    app.time.FPS_cap_timer = NULL;
   }
-  
-  // Clean up image cache
+
   if ( app.img_cache ) {
     a_CleanUpImageCache();
     free( app.img_cache );
     app.img_cache = NULL;
   }
 
-  /*if ( app.active_widget ) {
-    a_FreeWidgetCache();
-    app.active_widget = NULL;
-  }*/
-  
-  // Shutdown SDL subsystems
-  TTF_Quit();
-  IMG_Quit();
-  SDL_Quit();
-  
-  a_TimerFree( app.time.FPS_timer );
-  a_TimerFree( app.time.FPS_cap_timer );
+  // Destroy SDL resources (must come before subsystem shutdown)
+  if ( app.renderer ) {
+    SDL_DestroyRenderer( app.renderer );
+    app.renderer = NULL;
+  }
+
+  if ( app.window ) {
+    SDL_DestroyWindow( app.window );
+    app.window = NULL;
+  }
+
+  // Shutdown SDL subsystems last (reverse order of init)
+  a_CleanupSubsystems();
 
   // Reset app state
   app.running = 0;

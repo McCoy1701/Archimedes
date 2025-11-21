@@ -319,6 +319,8 @@ typedef struct
   SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
   TTF_Font* fonts[FONT_MAX];
   SDL_Texture* font_textures[FONT_MAX];
+  uint8_t glyph_exists[FONT_MAX][MAX_GLYPHS];  // Track which glyphs are in atlas
+  int fallback_glyph[FONT_MAX];                 // Index of '-' fallback for each font
   aMouse_t mouse;
   int running;
   char input_text[MAX_INPUT_LENGTH];
@@ -782,6 +784,28 @@ void a_InitFonts( void );
 
 /** @brief Default font config (white, left-aligned, FONT_GAME, no wrap, scale 1.0) */
 extern aFontConfig_t a_default_font_config;
+
+/**
+ * @brief Check if a glyph exists in the font atlas
+ *
+ * @param font_type Font type to check (FONT_ENTER_COMMAND, FONT_GAME, etc.)
+ * @param codepoint Unicode codepoint to check
+ * @return 1 if glyph exists, 0 otherwise
+ */
+int a_GlyphExists(int font_type, unsigned int codepoint);
+
+/**
+ * @brief Get glyph index, returning fallback if glyph doesn't exist
+ *
+ * If the requested codepoint doesn't exist in the font atlas, returns
+ * the fallback glyph (typically '-') instead. Logs a warning once per
+ * missing glyph type.
+ *
+ * @param font_type Font type to use
+ * @param codepoint Unicode codepoint to look up
+ * @return Glyph index to use (either requested or fallback)
+ */
+int a_GetGlyphOrFallback(int font_type, unsigned int codepoint);
 
 /*
 ---------------------------------------------------------------

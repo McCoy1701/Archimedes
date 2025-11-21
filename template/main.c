@@ -395,7 +395,7 @@ static void aRenderLoop( float dt )
   a_DrawTextStyled( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
 
   // Draw the player square
-  a_DrawFilledRect( (int)square_x, (int)square_y, 32, 32, 0, 0, 255, 255 );
+  a_DrawFilledRect( (aRectf_t){square_x, square_y, 32, 32}, (aColor_t){0, 0, 255, 255} );
 
   // Draw all active bullets (scaled down to 8x8)
   SDL_Texture* bullet_tex = a_ToTexture( surf, 0 ); // Don't destroy surface
@@ -422,7 +422,7 @@ static void aRenderLoop( float dt )
       if ( green < 0 ) green = 0;
       if ( blue < 0 ) blue = 0;
 
-      a_DrawFilledRect( (int)enemies[i].x, (int)enemies[i].y, 16, 16, red, green, blue, 255 );
+      a_DrawFilledRect( (aRectf_t){enemies[i].x, enemies[i].y, 16, 16}, (aColor_t){red, green, blue, 255} );
     }
   }
 

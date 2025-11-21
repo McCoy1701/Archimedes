@@ -36,6 +36,9 @@ static int validate_text_parameters( const char* text, int font_type );
 static int validate_color_parameters( const int r, const int g, const int b );
 static int is_valid_utf8_sequence( const char* text, const int start_pos, int* sequence_length );
 
+// Warning deduplication for missing glyphs
+static uint8_t warned_about[FONT_MAX][MAX_GLYPHS];
+
 static SDL_Color white_ = {255, 255, 255, 255};
 //static TTF_Font* fonts[FONT_MAX];
 //static SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
@@ -104,7 +107,8 @@ void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )
 
   while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
   {
-    g = &app.glyphs[font_type][n];
+    int glyph_idx = a_GetGlyphOrFallback( font_type, n );
+    g = &app.glyphs[font_type][glyph_idx];
     *w += g->w * app.font_scale;
     *h = MAX( g->h * app.font_scale, *h );
   }
@@ -221,7 +225,9 @@ static void initFontPNG( const char* filename, const int font_type,
   int i;
 
   memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
-  
+  memset( app.glyph_exists[font_type], 0, sizeof( app.glyph_exists[font_type] ) );
+  app.fallback_glyph[font_type] = '-' - 1;  // PNG fonts use ASCII-1 indexing
+
   font_surf = a_Image( filename );
   if( font_surf == NULL )
   {
@@ -253,8 +259,10 @@ static void initFontPNG( const char* filename, const int font_type,
     }
 
     SDL_BlitSurface( font_surf, &rect, surface, &dest );
-    
-    app.glyphs[font_type][i++] = dest;
+
+    app.glyphs[font_type][i] = dest;
+    app.glyph_exists[font_type][i] = 1;  // Mark glyph as existing
+    i++;
 
     dest.x += dest.w;
     rect.x += rect.w;
@@ -270,7 +278,9 @@ static void initFont( const char* filename, const int font_type, const int font_
   int i, n;
   char glyph_buffer[MAX_GLYPH_SIZE];
 
-  //memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS ); //TODO: Find out why this breaks on Mat's PC
+  // Clear glyph existence tracking for this font
+  memset( app.glyph_exists[font_type], 0, sizeof( app.glyph_exists[font_type] ) );
+  app.fallback_glyph[font_type] = '-';  // Default fallback, will be validated
 
   app.fonts[font_type] = TTF_OpenFont( filename, font_size );
   if( app.fonts[font_type] == NULL )
@@ -311,11 +321,21 @@ static void initFont( const char* filename, const int font_type, const int font_
 
     SDL_BlitSurface( text, NULL, surface, &dest );
     app.glyphs[font_type][n] = dest;
+    app.glyph_exists[font_type][n] = 1;  // Mark glyph as existing
 
     SDL_FreeSurface( text );
     dest.x += dest.w;
   }
-  
+
+  // Validate fallback glyph exists
+  if ( !app.glyph_exists[font_type]['-'] ) {
+    printf( "WARNING: Fallback glyph '-' not in font atlas for font_type %d\n", font_type );
+    // Try space as backup fallback
+    if ( app.glyph_exists[font_type][' '] ) {
+      app.fallback_glyph[font_type] = ' ';
+    }
+  }
+
   app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 
@@ -341,8 +361,10 @@ static int DrawTextWrapped( const char* text, const int x, const int y,
 
   while ( ( n = NextGlyph( text, &i, glyph_buffer ) ) != 0 )
   {
-    word_width += app.glyphs[font_type][n].w * app.font_scale;
-    
+    // Use fallback for missing glyphs
+    int glyph_idx = a_GetGlyphOrFallback( font_type, n );
+    word_width += app.glyphs[font_type][glyph_idx].w * app.font_scale;
+
     if ( n != ' ' )
     {
       // Safe string concatenation with bounds checking
@@ -652,5 +674,42 @@ static int is_valid_utf8_sequence( const char* text, int start_pos, int* sequenc
   
   // Invalid UTF-8 start byte
   return ARCH_TEXT_ERROR_INVALID_UTF8;
+}
+
+// ============================================================================
+// Glyph Registry API
+// ============================================================================
+
+int a_GlyphExists(int font_type, unsigned int codepoint)
+{
+  if ( font_type < 0 || font_type >= FONT_MAX ) {
+    return 0;
+  }
+  if ( codepoint >= MAX_GLYPHS ) {
+    return 0;
+  }
+  return app.glyph_exists[font_type][codepoint];
+}
+
+int a_GetGlyphOrFallback(int font_type, unsigned int codepoint)
+{
+  if ( font_type < 0 || font_type >= FONT_MAX ) {
+    return '-';  // Safety fallback
+  }
+
+  // If glyph exists, return it
+  if ( codepoint < MAX_GLYPHS && app.glyph_exists[font_type][codepoint] ) {
+    return codepoint;
+  }
+
+  // Glyph doesn't exist - log warning once and return fallback
+  if ( codepoint < MAX_GLYPHS && !warned_about[font_type][codepoint] ) {
+    warned_about[font_type][codepoint] = 1;
+    SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN,
+                    "Missing glyph U+%04X in font_type %d, using fallback",
+                    codepoint, font_type );
+  }
+
+  return app.fallback_glyph[font_type];
 }
 

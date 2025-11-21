@@ -231,11 +231,11 @@ typedef struct {
   char filename[MAX_FILENAME_LENGTH];
 } aWidgetFileHeader_t;
 
-typedef struct _aAUF_Node_t {
-  struct _aAUF_Node_t* next;
-  struct _aAUF_Node_t* prev;
+typedef struct _aAUFNode_t {
+  struct _aAUFNode_t* next;
+  struct _aAUFNode_t* prev;
 
-  struct _aAUF_Node_t* child;
+  struct _aAUFNode_t* child;
 
   int type;
 
@@ -244,12 +244,12 @@ typedef struct _aAUF_Node_t {
   double value_double;
   char* string;
 
-} aAUF_Node_t;
+} aAUFNode_t;
 
 typedef struct _aAUF_t
 {
-  aAUF_Node_t* head;
-  aAUF_Node_t* tail;
+  aAUFNode_t* head;
+  aAUFNode_t* tail;
   int size;
 
 } aAUF_t;
@@ -319,6 +319,8 @@ typedef struct
   SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
   TTF_Font* fonts[FONT_MAX];
   SDL_Texture* font_textures[FONT_MAX];
+  uint8_t glyph_exists[FONT_MAX][MAX_GLYPHS];  // Track which glyphs are in atlas
+  int fallback_glyph[FONT_MAX];                 // Index of '-' fallback for each font
   aMouse_t mouse;
   int running;
   char input_text[MAX_INPUT_LENGTH];
@@ -689,12 +691,13 @@ enum
 typedef struct
 {
   int type;          // Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
-  aColor_t fg;    // Text color
-  aColor_t bg;    // Text color
+  aColor_t fg;       // Foreground/text color
+  aColor_t bg;       // Background color (alpha 0 = no background)
   int align;         // Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
   int wrap_width;    // Word wrap width (0 = no wrap)
   float scale;       // Font scale multiplier (1.0 = default)
-} aFontConfig_t;
+  int padding;       // Padding around text (expands background)
+} aTextStyle_t;
 
 /**
  * @brief Calculate the height of text with word wrapping
@@ -732,25 +735,9 @@ void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )
  * @param text Text string to render (must not be NULL)
  * @param x X coordinate (meaning depends on alignment)
  * @param y Y coordinate (top of text baseline)
- * @param config Font configuration (NULL uses a_default_font_config)
+ * @param config Font configuration (NULL uses a_default_text_style)
  */
-void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config );
-
-/**
- * @brief Draw text with individual parameters (legacy API)
- *
- * Renders text at the specified position with individual style parameters.
- * This is the legacy API - prefer a_DrawTextStyled() for new code.
- *
- * @param text Text string to render (must not be NULL)
- * @param x X coordinate (meaning depends on alignment)
- * @param y Y coordinate (top of text baseline)
- * @param color aColor_t (RGBA)
- * @param font_type Font type (FONT_ENTER_COMMAND, FONT_GAME, etc.)
- * @param align Text alignment (TEXT_ALIGN_LEFT/CENTER/RIGHT)
- * @param max_width Word wrap width (0 = no wrap)
- */
-void a_DrawText( char* text, int x, int y, aColor_t fg, aColor_t bg, int font_type, int align, int max_width );
+void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style );
 
 /**
  * @brief Create an SDL texture from text
@@ -781,7 +768,29 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type );
 void a_InitFonts( void );
 
 /** @brief Default font config (white, left-aligned, FONT_GAME, no wrap, scale 1.0) */
-extern aFontConfig_t a_default_font_config;
+extern aTextStyle_t a_default_text_style;
+
+/**
+ * @brief Check if a glyph exists in the font atlas
+ *
+ * @param font_type Font type to check (FONT_ENTER_COMMAND, FONT_GAME, etc.)
+ * @param codepoint Unicode codepoint to check
+ * @return 1 if glyph exists, 0 otherwise
+ */
+int a_GlyphExists(int font_type, unsigned int codepoint);
+
+/**
+ * @brief Get glyph index, returning fallback if glyph doesn't exist
+ *
+ * If the requested codepoint doesn't exist in the font atlas, returns
+ * the fallback glyph (typically '-') instead. Logs a warning once per
+ * missing glyph type.
+ *
+ * @param font_type Font type to use
+ * @param codepoint Unicode codepoint to look up
+ * @return Glyph index to use (either requested or fallback)
+ */
+int a_GetGlyphOrFallback(int font_type, unsigned int codepoint);
 
 /*
 ---------------------------------------------------------------
@@ -891,14 +900,14 @@ int a_AUFSaveWidgets( const char* filename );
 int a_FreeLine( char** line, const int nl_count );
 
 aAUF_t* a_AUFCreation( void );
-aAUF_Node_t* a_AUFNodeCreation( void );
-int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node );
-int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node );
-int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node );
-int a_AUFNodeFree( aAUF_Node_t* head );
+aAUFNode_t* a_AUFNodeCreation( void );
+int a_AUFAddNode( aAUF_t* root, aAUFNode_t* node );
+int a_AUFNodeAddNode( aAUFNode_t* root, aAUFNode_t* node );
+int a_AUFNodeAddChild( aAUFNode_t* root, aAUFNode_t* node );
+int a_AUFNodeFree( aAUFNode_t* head );
 int a_AUFFree( aAUF_t* root );
-aAUF_Node_t* a_AUFGetObjectItem( aAUF_Node_t* node, char* object_str );
-void a_PrintAUFTree( aAUF_Node_t* node, int depth );
+aAUFNode_t* a_AUFGetObjectItem( aAUFNode_t* node, char* object_str );
+void a_PrintAUFTree( aAUFNode_t* node, int depth );
 
 /*
 ---------------------------------------------------------------

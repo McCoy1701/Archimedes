@@ -25,6 +25,14 @@ spec0 = importlib.util.spec_from_file_location(
 main_application_init = importlib.util.module_from_spec(spec0)
 spec0.loader.exec_module(main_application_init)
 
+# FF-001: Naming Conventions
+spec1 = importlib.util.spec_from_file_location(
+    "naming_conventions",
+    Path(__file__).parent / "01_naming_conventions.py"
+)
+naming_conventions = importlib.util.module_from_spec(spec1)
+spec1.loader.exec_module(naming_conventions)
+
 
 def run_fitness_functions() -> List[Tuple[str, bool]]:
     """Run all fitness functions and collect results"""
@@ -45,6 +53,16 @@ def run_fitness_functions() -> List[Tuple[str, bool]]:
     except Exception as e:
         print(f"FF-000 crashed: {e}")
         results.append(("FF-000: Main Application Init", False))
+
+    print()
+
+    # FF-001: Naming Conventions
+    try:
+        success = naming_conventions.verify_naming_conventions(project_root)
+        results.append(("FF-001: Naming Conventions", success))
+    except Exception as e:
+        print(f"FF-001 crashed: {e}")
+        results.append(("FF-001: Naming Conventions", False))
 
     print()
 

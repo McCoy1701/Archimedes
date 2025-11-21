@@ -21,9 +21,9 @@ aAUF_t* a_AUFCreation( void )
   return new_AUF;
 }
 
-aAUF_Node_t* a_AUFNodeCreation( void )
+aAUFNode_t* a_AUFNodeCreation( void )
 {
-  aAUF_Node_t* new_AUF = malloc( sizeof( aAUF_Node_t ) );
+  aAUFNode_t* new_AUF = malloc( sizeof( aAUFNode_t ) );
   if ( new_AUF == NULL )
   {
     printf( "Failed to allocate memory for node: %s, %d\n", __FILE__, __LINE__ );
@@ -43,7 +43,7 @@ aAUF_Node_t* a_AUFNodeCreation( void )
   return new_AUF;
 }
 
-int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node )
+int a_AUFAddNode( aAUF_t* root, aAUFNode_t* node )
 {
   if ( root == NULL || node == NULL )
   {
@@ -72,7 +72,7 @@ int a_AUFAddNode( aAUF_t* root, aAUF_Node_t* node )
   return 0;
 }
 
-int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node )
+int a_AUFNodeAddNode( aAUFNode_t* root, aAUFNode_t* node )
 {
   if ( root == NULL || node == NULL )
   {
@@ -88,7 +88,7 @@ int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node )
     return 0;
   }
 
-  aAUF_Node_t* current = root;
+  aAUFNode_t* current = root;
   while ( current->next != NULL )
   {
     current = current->next;
@@ -101,7 +101,7 @@ int a_AUFNodeAddNode( aAUF_Node_t* root, aAUF_Node_t* node )
   return 0;
 }
 
-int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node )
+int a_AUFNodeAddChild( aAUFNode_t* root, aAUFNode_t* node )
 {
   if ( root == NULL || node == NULL )
   {
@@ -117,7 +117,7 @@ int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node )
     return 0;
   }
 
-  aAUF_Node_t* current = root->child;
+  aAUFNode_t* current = root->child;
   while ( current->next != NULL )
   {
     current = current->next;
@@ -130,9 +130,9 @@ int a_AUFNodeAddChild( aAUF_Node_t* root, aAUF_Node_t* node )
   return 0;
 }
 
-int a_AUFNodeFree( aAUF_Node_t* head )
+int a_AUFNodeFree( aAUFNode_t* head )
 {
-  aAUF_Node_t* next = NULL;
+  aAUFNode_t* next = NULL;
   while ( head != NULL )
   {
     next = head->next;
@@ -178,7 +178,7 @@ int a_AUFFree( aAUF_t* root )
   return 0;
 }
 
-aAUF_Node_t* a_AUFGetObjectItem( aAUF_Node_t* node, char* object_str )
+aAUFNode_t* a_AUFGetObjectItem( aAUFNode_t* node, char* object_str )
 {
   if ( node == NULL )
   {
@@ -186,7 +186,7 @@ aAUF_Node_t* a_AUFGetObjectItem( aAUF_Node_t* node, char* object_str )
     return NULL;
   }
 
-  aAUF_Node_t* current = node->child;
+  aAUFNode_t* current = node->child;
   while ( current != NULL )
   {
     if ( current->string != NULL && strcmp( current->string, object_str ) == 0 )

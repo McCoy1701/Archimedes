@@ -66,10 +66,11 @@ NATIVE_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(ARCHIMEDES_SRCS))
 EIDTOR_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_EDITOR)/%.o, $(WIDGET_EIDTOR_SRCS))
 
 MAIN_OBJ = $(OBJ_DIR_NATIVE)/n_main.o
+TEST_TEXT_OBJ = $(OBJ_DIR_NATIVE)/test_text.o
 TEST_WID_OBJ = $(OBJ_DIR_NATIVE)/test_widgets.o
 EDITOR_OBJ = $(OBJ_DIR_EDITOR)/WidgetEditor.o
 
-NATIVE_EXE_OBJS = $(NATIVE_LIB_OBJS) $(MAIN_OBJ)
+NATIVE_EXE_OBJS = $(NATIVE_LIB_OBJS) $(MAIN_OBJ) $(TEST_TEXT_OBJ)
 TEST_EXE_OBJS = $(NATIVE_LIB_OBJS) $(TEST_WID_OBJ)
 EDITOR_EXE_OBJS = $(EDITOR_LIB_OBJS) $(EDITOR_OBJ)
 
@@ -144,7 +145,10 @@ $(OBJ_DIR_NATIVE)/test_widgets.o: $(TEST_DIR)/test_widgets.c | $(OBJ_DIR_NATIVE)
 	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
 
 $(OBJ_DIR_NATIVE)/n_main.o: $(TEM_DIR)/main.c | $(OBJ_DIR_NATIVE)
-	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS) -I$(TEM_DIR)
+
+$(OBJ_DIR_NATIVE)/test_text.o: $(TEM_DIR)/test_text.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS) -I$(TEM_DIR)
 
 
 # ====================================================================

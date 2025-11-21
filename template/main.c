@@ -7,6 +7,20 @@
 #endif
 
 #include "Archimedes.h"
+#include "test_text.h"
+
+// Scene system
+typedef enum {
+  SCENE_GAME,
+  SCENE_TEST_TEXT
+} Scene_t;
+
+static Scene_t current_scene = SCENE_GAME;
+static int esc_pressed = 0;  // Debounce ESC
+
+// Scene function declarations
+static void scene_game_logic( float dt );
+static void scene_game_draw( float dt );
 
 static void aDoLoop( float );
 static void aRenderLoop( float );
@@ -104,6 +118,23 @@ static void aDoLoop( float dt )
 {
   a_DoInput();
 
+  // Dispatch to current scene
+  switch ( current_scene )
+  {
+    case SCENE_GAME:
+      scene_game_logic( dt );
+      break;
+    case SCENE_TEST_TEXT:
+      if ( test_text_logic( dt ) )
+      {
+        current_scene = SCENE_GAME;
+      }
+      break;
+  }
+}
+
+static void scene_game_logic( float dt )
+{
   // Move square with arrow keys (speed is pixels per second)
   float dx = 0.0f;
   float dy = 0.0f;
@@ -371,31 +402,55 @@ static void aDoLoop( float dt )
 
   //a_DoWidget(); // Disabled - not using widgets
 
-  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 )
+  // ESC to switch to test scene (with debounce)
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 1 && !esc_pressed )
   {
-    app.running = 0;
+    current_scene = SCENE_TEST_TEXT;
+    esc_pressed = 1;
+  }
+  if ( app.keyboard[ SDL_SCANCODE_ESCAPE ] == 0 )
+  {
+    esc_pressed = 0;
   }
 }
 
 static void aRenderLoop( float dt )
 {
+  // Dispatch to current scene
+  switch ( current_scene )
+  {
+    case SCENE_GAME:
+      scene_game_draw( dt );
+      break;
+    case SCENE_TEST_TEXT:
+      test_text_draw( dt );
+      break;
+  }
+
+  a_DrawWidgets();
+}
+
+static void scene_game_draw( float dt )
+{
+  (void)dt;
+
   // Draw countdown timer
   int minutes = (int)(time_remaining / 60.0f);
   int seconds = (int)time_remaining % 60;
   char timer_text[32];
   snprintf( timer_text, sizeof(timer_text), "%02d:%02d", minutes, seconds );
 
-  aFontConfig_t timer_config = {
+  aTextStyle_t timer_config = {
     .type = FONT_ENTER_COMMAND,
-    .color = {255, 255, 255, 255},
+    .fg = {255, 255, 255, 255},
     .align = TEXT_ALIGN_CENTER,
     .wrap_width = 0,
-    .scale = 1.0f
+    .scale = 0.8f
   };
-  a_DrawTextStyled( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
+  a_DrawText( timer_text, SCREEN_WIDTH / 2, 25, &timer_config );
 
   // Draw the player square
-  a_DrawFilledRect( (int)square_x, (int)square_y, 32, 32, 0, 0, 255, 255 );
+  a_DrawFilledRect( (aRectf_t){square_x, square_y, 32, 32}, (aColor_t){0, 0, 255, 255} );
 
   // Draw all active bullets (scaled down to 8x8)
   SDL_Texture* bullet_tex = a_ToTexture( surf, 0 ); // Don't destroy surface
@@ -422,11 +477,9 @@ static void aRenderLoop( float dt )
       if ( green < 0 ) green = 0;
       if ( blue < 0 ) blue = 0;
 
-      a_DrawFilledRect( (int)enemies[i].x, (int)enemies[i].y, 16, 16, red, green, blue, 255 );
+      a_DrawFilledRect( (aRectf_t){enemies[i].x, enemies[i].y, 16, 16}, (aColor_t){red, green, blue, 255} );
     }
   }
-
-  a_DrawWidgets();
 }
 
 void aMainloop( void )

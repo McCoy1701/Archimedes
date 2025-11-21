@@ -36,6 +36,9 @@ static int validate_text_parameters( const char* text, int font_type );
 static int validate_color_parameters( const int r, const int g, const int b );
 static int is_valid_utf8_sequence( const char* text, const int start_pos, int* sequence_length );
 
+// Warning deduplication for missing glyphs
+static uint8_t warned_about[FONT_MAX][MAX_GLYPHS];
+
 static SDL_Color white_ = {255, 255, 255, 255};
 //static TTF_Font* fonts[FONT_MAX];
 //static SDL_Rect glyphs[FONT_MAX][MAX_GLYPHS];
@@ -50,13 +53,14 @@ static char *characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS
 static char *characters = "~`^$Ö&|_# POfileorTBFS:handWCpygt2015-6,JwsbuGNUL3.Emj@c/\"IV\\RMD8+v?x;=%!AYq()'kH[]KzQX4Z79*àéí¡Çóè·úïçüºòÉÒÍÀ°æåøÆÅØ<>öÄäßÜá¿ñÁÊûâîôÈêùœÙìëęąłćżńśźŻŚŁĆÖ";
 #endif
 
-aFontConfig_t a_default_font_config = {
+aTextStyle_t a_default_text_style = {
   .type = FONT_GAME,
   .fg = {255, 255, 255, 255},
-  .bg = {0, 0, 0, 255},
+  .bg = {0, 0, 0, 0},              // No background by default (alpha 0)
   .align = TEXT_ALIGN_LEFT,
   .wrap_width = 0,
-  .scale = 1.0f
+  .scale = 1.0f,
+  .padding = 0
 };
 
 void a_InitFonts( void )
@@ -104,7 +108,8 @@ void a_CalcTextDimensions( const char* text, int font_type, float* w, float* h )
 
   while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
   {
-    g = &app.glyphs[font_type][n];
+    int glyph_idx = a_GetGlyphOrFallback( font_type, n );
+    g = &app.glyphs[font_type][glyph_idx];
     *w += g->w * app.font_scale;
     *h = MAX( g->h * app.font_scale, *h );
   }
@@ -159,19 +164,19 @@ SDL_Texture* a_GetTextTexture( char* text, int font_type )
   return a_ToTexture( surface, 1 );
 }
 
-void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* config )
+void a_DrawText( const char* content, int x, int y, const aTextStyle_t* style )
 {
-  // Use default config if NULL is passed
-  const aFontConfig_t* cfg = config ? config : &a_default_font_config;
+  // Use default style if NULL is passed
+  const aTextStyle_t* s = style ? style : &a_default_text_style;
 
   // Validate input parameters
-  int validation_result = validate_text_parameters( text, cfg->type );
+  int validation_result = validate_text_parameters( content, s->type );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
   }
 
-  validation_result = validate_color_parameters( cfg->fg.r, cfg->fg.g, cfg->fg.b );
+  validation_result = validate_color_parameters( s->fg.r, s->fg.g, s->fg.b );
   if ( validation_result != ARCH_TEXT_SUCCESS ) {
     // Silently fail for now to maintain API compatibility
     return;
@@ -179,39 +184,59 @@ void a_DrawTextStyled( const char* text, int x, int y, const aFontConfig_t* conf
 
   // Temporarily set font scale if different from default
   double old_scale = app.font_scale;
-  if ( cfg->scale != 1.0f && cfg->scale > 0.0f ) {
-    app.font_scale = cfg->scale;
+  if ( s->scale != 1.0f && s->scale > 0.0f ) {
+    app.font_scale = s->scale;
   }
 
-  if ( cfg->wrap_width > 0 )
+  // Draw background if bg.a > 0
+  if ( s->bg.a > 0 )
   {
-    DrawTextWrapped( (char*)text, x, y, cfg->fg, cfg->type,
-                     cfg->align, cfg->wrap_width, 1 );
+    float text_w, text_h;
+
+    if ( s->wrap_width > 0 )
+    {
+      text_w = (float)s->wrap_width;
+      text_h = (float)a_GetWrappedTextHeight( (char*)content, s->type, s->wrap_width );
+    }
+    else
+    {
+      a_CalcTextDimensions( content, s->type, &text_w, &text_h );
+    }
+
+    // Calculate background rect with padding
+    float bg_x = (float)x - s->padding;
+    float bg_y = (float)y - s->padding;
+    float bg_w = text_w + ( s->padding * 2 );
+    float bg_h = text_h + ( s->padding * 2 );
+
+    // Adjust for alignment
+    if ( s->align == TEXT_ALIGN_CENTER )
+    {
+      bg_x -= text_w / 2;
+    }
+    else if ( s->align == TEXT_ALIGN_RIGHT )
+    {
+      bg_x -= text_w;
+    }
+
+    aRectf_t bg_rect = { .x = bg_x, .y = bg_y, .w = bg_w, .h = bg_h };
+    a_DrawFilledRect( bg_rect, s->bg );
+  }
+
+  if ( s->wrap_width > 0 )
+  {
+    DrawTextWrapped( (char*)content, x, y, s->fg, s->type,
+                     s->align, s->wrap_width, 1 );
   }
   else
   {
-    DrawTextLine( (char*)text, x, y, cfg->fg, cfg->type, cfg->align );
+    DrawTextLine( (char*)content, x, y, s->fg, s->type, s->align );
   }
 
   // Restore original scale
   app.font_scale = old_scale;
 }
 
-void a_DrawText( char* text, int x, int y, aColor_t fg, aColor_t bg, int font_type,
-                 int align, int max_width )
-{
-  // Create config from parameters and forward to new API
-  aFontConfig_t config = {
-    .type = font_type,
-    .fg = fg,
-    .bg = bg,
-    .align = align,
-    .wrap_width = max_width,
-    .scale = 1.0f
-  };
-
-  a_DrawTextStyled( text, x, y, &config );
-}
 
 static void initFontPNG( const char* filename, const int font_type,
                          const int glyph_width, const int glyph_height )
@@ -221,7 +246,9 @@ static void initFontPNG( const char* filename, const int font_type,
   int i;
 
   memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS );
-  
+  memset( app.glyph_exists[font_type], 0, sizeof( app.glyph_exists[font_type] ) );
+  app.fallback_glyph[font_type] = '-' - 1;  // PNG fonts use ASCII-1 indexing
+
   font_surf = a_Image( filename );
   if( font_surf == NULL )
   {
@@ -253,8 +280,10 @@ static void initFontPNG( const char* filename, const int font_type,
     }
 
     SDL_BlitSurface( font_surf, &rect, surface, &dest );
-    
-    app.glyphs[font_type][i++] = dest;
+
+    app.glyphs[font_type][i] = dest;
+    app.glyph_exists[font_type][i] = 1;  // Mark glyph as existing
+    i++;
 
     dest.x += dest.w;
     rect.x += rect.w;
@@ -270,7 +299,9 @@ static void initFont( const char* filename, const int font_type, const int font_
   int i, n;
   char glyph_buffer[MAX_GLYPH_SIZE];
 
-  //memset( &app.glyphs[font_type], 0, sizeof( SDL_Rect ) * MAX_GLYPHS ); //TODO: Find out why this breaks on Mat's PC
+  // Clear glyph existence tracking for this font
+  memset( app.glyph_exists[font_type], 0, sizeof( app.glyph_exists[font_type] ) );
+  app.fallback_glyph[font_type] = '-';  // Default fallback, will be validated
 
   app.fonts[font_type] = TTF_OpenFont( filename, font_size );
   if( app.fonts[font_type] == NULL )
@@ -311,11 +342,21 @@ static void initFont( const char* filename, const int font_type, const int font_
 
     SDL_BlitSurface( text, NULL, surface, &dest );
     app.glyphs[font_type][n] = dest;
+    app.glyph_exists[font_type][n] = 1;  // Mark glyph as existing
 
     SDL_FreeSurface( text );
     dest.x += dest.w;
   }
-  
+
+  // Validate fallback glyph exists
+  if ( !app.glyph_exists[font_type]['-'] ) {
+    printf( "WARNING: Fallback glyph '-' not in font atlas for font_type %d\n", font_type );
+    // Try space as backup fallback
+    if ( app.glyph_exists[font_type][' '] ) {
+      app.fallback_glyph[font_type] = ' ';
+    }
+  }
+
   app.font_textures[font_type] = a_ToTexture( surface, 1 );
 }
 
@@ -341,8 +382,17 @@ static int DrawTextWrapped( const char* text, const int x, const int y,
 
   while ( ( n = NextGlyph( text, &i, glyph_buffer ) ) != 0 )
   {
-    word_width += app.glyphs[font_type][n].w * app.font_scale;
-    
+    // Use fallback for missing glyphs
+    int glyph_idx = a_GetGlyphOrFallback( font_type, n );
+    word_width += app.glyphs[font_type][glyph_idx].w * app.font_scale;
+
+    // If glyph doesn't exist, replace buffer with fallback character
+    if ( glyph_idx != (int)n )
+    {
+      glyph_buffer[0] = (char)app.fallback_glyph[font_type];
+      glyph_buffer[1] = '\0';
+    }
+
     if ( n != ' ' )
     {
       // Safe string concatenation with bounds checking
@@ -471,7 +521,8 @@ static void DrawTextLine( const char* text, const int x, const int y,
   {
     while ( ( n = NextGlyph( text, &i, NULL ) ) != 0 )
     {
-      glyph = &app.glyphs[font_type][n];
+      int glyph_idx = a_GetGlyphOrFallback( font_type, n );
+      glyph = &app.glyphs[font_type][glyph_idx];
 
       dest.x = new_x;
       dest.y = new_y;
@@ -546,9 +597,13 @@ static int NextGlyph( const char* string, int* i, char* glyph_buffer )
 
   // Check if codepoint is within bounds for our glyph array
   if ( bit >= MAX_GLYPHS ) {
-    // Skip unsupported characters (like emoji) gracefully
+    // Return fallback for unsupported characters (don't return 0 which stops parsing)
+    if ( glyph_buffer != NULL ) {
+      glyph_buffer[0] = '-';
+      glyph_buffer[1] = '\0';
+    }
     *i = *i + len;
-    return 0;
+    return '-';  // Continue parsing with fallback character
   }
 
   if ( glyph_buffer != NULL )
@@ -652,5 +707,42 @@ static int is_valid_utf8_sequence( const char* text, int start_pos, int* sequenc
   
   // Invalid UTF-8 start byte
   return ARCH_TEXT_ERROR_INVALID_UTF8;
+}
+
+// ============================================================================
+// Glyph Registry API
+// ============================================================================
+
+int a_GlyphExists(int font_type, unsigned int codepoint)
+{
+  if ( font_type < 0 || font_type >= FONT_MAX ) {
+    return 0;
+  }
+  if ( codepoint >= MAX_GLYPHS ) {
+    return 0;
+  }
+  return app.glyph_exists[font_type][codepoint];
+}
+
+int a_GetGlyphOrFallback(int font_type, unsigned int codepoint)
+{
+  if ( font_type < 0 || font_type >= FONT_MAX ) {
+    return '-';  // Safety fallback
+  }
+
+  // If glyph exists, return it
+  if ( codepoint < MAX_GLYPHS && app.glyph_exists[font_type][codepoint] ) {
+    return codepoint;
+  }
+
+  // Glyph doesn't exist - log warning once and return fallback
+  if ( codepoint < MAX_GLYPHS && !warned_about[font_type][codepoint] ) {
+    warned_about[font_type][codepoint] = 1;
+    SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN,
+                    "Missing glyph U+%04X in font_type %d, using fallback",
+                    codepoint, font_type );
+  }
+
+  return app.fallback_glyph[font_type];
 }
 

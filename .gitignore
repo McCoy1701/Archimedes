@@ -9,6 +9,13 @@ core
 bin/
 obj/
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
 .sisyphus/
 sisyphus.legend
 

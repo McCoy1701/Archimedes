@@ -1266,14 +1266,13 @@ enum
 */
 
 /**
- * @defgroup flexbox FlexBox Layout System
- * @brief CSS-inspired automatic layout engine for UI positioning
+ * FlexBox Layout System
+ * CSS-inspired automatic layout engine for UI positioning
  *
  * The FlexBox system provides automatic positioning of UI elements using
  * CSS flexbox-like rules. Items can be arranged horizontally or vertically
  * with various alignment and spacing options.
  *
- * @{
  */
 
 /**
@@ -1624,7 +1623,13 @@ int a_FlexGetItemY(const FlexBox_t* box, int index);
  */
 void a_FlexDebugRender(const FlexBox_t* box);
 
-/** @} */ // end of flexbox group
+/*
+---------------------------------------------------------------
+---                       Animations                        ---
+---------------------------------------------------------------
+*/
+
+
 
 #endif
 

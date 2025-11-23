@@ -608,21 +608,16 @@ SDL_Texture* a_SurfaceToTexture( SDL_Surface* surface );
 void a_BlitTexture( SDL_Texture* texture, int x, int y );
 
 /**
- * @brief Render texture portion to destination rect
+ * @brief Render texture with scaling
  *
- * Renders texture with full control over source region and destination size.
- * Supports scaling by making dest different size than src.
- * Pass NULL for src to render entire texture.
- *
- * Example: Render entire 512x512 texture scaled to 256x256 at (100, 100):
- *   SDL_Rect dest = {100, 100, 256, 256};
- *   a_BlitTextureRect(texture, NULL, &dest);
+ * Renders texture at specified position and size with scaling factor.
+ * Matches the signature of a_BlitSurfaceRect() for consistency.
  *
  * @param texture Texture to render
- * @param src Source rectangle (portion of texture to render, NULL = entire texture)
- * @param dest Destination rectangle (position + size on screen)
+ * @param rect Destination rectangle (x, y, w, h)
+ * @param scale Scaling factor for the destination size
  */
-void a_BlitTextureRect( SDL_Texture* texture, const SDL_Rect* src, const SDL_Rect* dest );
+void a_BlitTextureRect( SDL_Texture* texture, aRectf_t rect, const int scale );
 
 /**
  * Update the window title text

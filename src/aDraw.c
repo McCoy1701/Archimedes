@@ -285,10 +285,23 @@ void a_BlitTexture( SDL_Texture* texture, int x, int y )
   SDL_RenderCopy( app.renderer, texture, NULL, &dest );
 }
 
-void a_BlitTextureRect( SDL_Texture* texture, const SDL_Rect* src, const SDL_Rect* dest )
+void a_BlitTextureRect( SDL_Texture* texture, aRectf_t rect, const int scale )
 {
-  if ( !texture || !dest ) return;
-  SDL_RenderCopy( app.renderer, texture, src, dest );
+  if ( !texture ) return;
+
+  SDL_Rect dest, src;
+
+  dest.x = rect.x;
+  dest.y = rect.y;
+  dest.w = rect.w * scale;
+  dest.h = rect.h * scale;
+
+  src.x = 0;
+  src.y = 0;
+  src.w = rect.w;
+  src.h = rect.h;
+
+  SDL_RenderCopy( app.renderer, texture, &src, &dest );
 }
 
 void a_UpdateTitle( const char *title )

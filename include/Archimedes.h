@@ -566,26 +566,71 @@ void a_BlitSurface( SDL_Surface* surf, const int x, const int y );
 
 /**
  * @brief Blit a rectangular region of a surface to the screen
- * 
+ *
  * Converts a portion of an SDL surface to a texture and renders it with scaling.
  * Only the specified rectangular region from the source is drawn.
- * 
+ *
  * @param surf Source SDL surface to draw from
  * @param src Source rectangle within the surface
  * @param x Destination X coordinate
  * @param y Destination Y coordinate
  * @param scale Scaling factor for the destination size
- * 
+ *
  */
 void a_BlitSurfaceRect( SDL_Surface* surf, aRectf_t rect, const int scale );
+
+/**
+ * @brief Convert surface to texture for GPU rendering
+ *
+ * Creates a GPU texture from surface data. Caller is responsible for
+ * destroying the returned texture with SDL_DestroyTexture().
+ * The original surface can be kept for pixel manipulation or freed.
+ *
+ * @param surface Source surface (not modified or freed)
+ * @return SDL_Texture* - New texture (caller must destroy), or NULL on error
+ *
+ * @note Enables alpha blending by default
+ * @note Texture should be created once and reused, not every frame
+ */
+SDL_Texture* a_SurfaceToTexture( SDL_Surface* surface );
+
+/**
+ * @brief Render texture at position with original dimensions
+ *
+ * Renders texture at original size. For scaling, use a_BlitTextureRect().
+ *
+ * @param texture Texture to render
+ * @param x Screen X position
+ * @param y Screen Y position
+ *
+ * @note For scaling or clipping, use a_BlitTextureRect()
+ */
+void a_BlitTexture( SDL_Texture* texture, int x, int y );
+
+/**
+ * @brief Render texture portion to destination rect
+ *
+ * Renders texture with full control over source region and destination size.
+ * Supports scaling by making dest different size than src.
+ * Pass NULL for src to render entire texture.
+ *
+ * Example: Render entire 512x512 texture scaled to 256x256 at (100, 100):
+ *   SDL_Rect dest = {100, 100, 256, 256};
+ *   a_BlitTextureRect(texture, NULL, &dest);
+ *
+ * @param texture Texture to render
+ * @param src Source rectangle (portion of texture to render, NULL = entire texture)
+ * @param dest Destination rectangle (position + size on screen)
+ */
+void a_BlitTextureRect( SDL_Texture* texture, const SDL_Rect* src, const SDL_Rect* dest );
 
 /**
  * Update the window title text
  *
  * Changes the text displayed in the window's title bar
- * 
+ *
  * @param title Source of new Title
- * 
+ *
  */
 void a_UpdateTitle( const char *title );
 

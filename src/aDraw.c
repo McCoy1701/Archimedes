@@ -250,6 +250,47 @@ void a_BlitSurfaceRect( SDL_Surface* surf, aRectf_t rect, const int scale )
   SDL_DestroyTexture( img );
 }
 
+SDL_Texture* a_SurfaceToTexture( SDL_Surface* surface )
+{
+  if ( !surface )
+  {
+    printf("a_SurfaceToTexture: NULL surface\n");
+    return NULL;
+  }
+
+  SDL_Texture* texture = SDL_CreateTextureFromSurface( app.renderer, surface );
+  if ( !texture )
+  {
+    printf("a_SurfaceToTexture error: %s\n", SDL_GetError());
+    return NULL;
+  }
+
+  // Enable alpha blending for transparency
+  SDL_SetTextureBlendMode( texture, SDL_BLENDMODE_BLEND );
+
+  return texture;
+}
+
+void a_BlitTexture( SDL_Texture* texture, int x, int y )
+{
+  if ( !texture ) return;
+
+  SDL_Rect dest;
+  dest.x = x;
+  dest.y = y;
+
+  // Query texture for its original dimensions
+  SDL_QueryTexture( texture, NULL, NULL, &dest.w, &dest.h );
+
+  SDL_RenderCopy( app.renderer, texture, NULL, &dest );
+}
+
+void a_BlitTextureRect( SDL_Texture* texture, const SDL_Rect* src, const SDL_Rect* dest )
+{
+  if ( !texture || !dest ) return;
+  SDL_RenderCopy( app.renderer, texture, src, dest );
+}
+
 void a_UpdateTitle( const char *title )
 {
   SDL_SetWindowTitle( app.window, title );

@@ -18,6 +18,9 @@ import re
 from pathlib import Path
 from typing import List, Tuple, Set
 
+# Import doxygen parser for API documentation generation
+from doxygen_docs import parse_header_file, generate_unified_api_html
+
 
 # Objects that should use a_Draw* pattern for discoverability
 DRAWN_OBJECTS = {
@@ -122,7 +125,7 @@ def classify_function(func_name: str) -> Tuple[str, str]:
     # Check if it starts with a known "used" object
     for obj in USED_OBJECTS:
         if name_without_prefix.startswith(obj):
-            return ("used", "")
+            return (f"used:{obj}", "")
 
     # Check if it's a drawn object that should use Draw prefix
     for drawn in DRAWN_OBJECTS:
@@ -221,7 +224,11 @@ def get_function_stats(content: str) -> dict:
     for func_name, _ in functions:
         if func_name.startswith("a_"):
             category, _ = classify_function(func_name)
-            stats[category] = stats.get(category, 0) + 1
+            # Group all used:ObjectName under "used" for stats
+            if category.startswith("used:"):
+                stats["used"] = stats.get("used", 0) + 1
+            else:
+                stats[category] = stats.get(category, 0) + 1
 
     return stats
 
@@ -286,6 +293,37 @@ def verify_naming_conventions(project_root: Path) -> bool:
         print(f"  Violations: {stats['violation']}")
 
     print()
+
+    # Generate unified API reference with taxonomy + Doxygen docs
+    print("Generating API documentation...")
+
+    # Build categorized functions dict
+    functions = extract_functions(content)
+    categorized = {
+        "draw": [],
+        "blit": [],
+        "lifecycle": [],
+        "utility": [],
+        "unknown": [],
+        "violation": []
+    }
+
+    for func_name, line_num in functions:
+        if func_name.startswith("a_"):
+            category, _ = classify_function(func_name)
+
+            # Handle used:ObjectName format
+            if category.startswith("used:"):
+                if category not in categorized:
+                    categorized[category] = []
+
+            categorized[category].append((func_name, line_num))
+
+    # Parse Doxygen documentation
+    documented_functions = parse_header_file(header_file)
+
+    # Generate unified HTML (taxonomy + expandable docs)
+    generate_unified_api_html(categorized, documented_functions, project_root)
 
     if all_issues:
         print("=" * 70)

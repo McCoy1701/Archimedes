@@ -368,6 +368,11 @@ typedef struct
   uint8_t* buffer;
 } aAudioClip_t;
 
+typedef struct _textures{
+  char name[MAX_FILENAME_LENGTH];
+  SDL_Texture* texture;
+  struct _textures* next;
+} aTexture_t;
 
 /*
 ---------------------------------------------------------------
@@ -877,6 +882,16 @@ int a_GlyphExists(int font_type, unsigned int codepoint);
  * @return Glyph index to use (either requested or fallback)
  */
 int a_GetGlyphOrFallback(int font_type, unsigned int codepoint);
+
+/*
+---------------------------------------------------------------
+---                       Textures                          ---
+---------------------------------------------------------------
+*/
+
+SDL_Texture* a_LoadTexture( const char* filename );
+SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy );
+void a_InitTextures( void );
 
 /*
 ---------------------------------------------------------------

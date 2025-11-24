@@ -149,6 +149,9 @@ $(OBJ_DIR_SHARED)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_SHARED)
 $(OBJ_DIR_NATIVE)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_NATIVE)
 	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
 
+$(OBJ_DIR_NATIVE)/%.o: $(TEM_DIR)/%.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
 $(OBJ_DIR_EDITOR)/%.o: $(EDITOR_DIR)/%.c | $(OBJ_DIR_EDITOR)
 	$(CC) -c $< -o $@ $(EDITOR_C_FLAGS)
 

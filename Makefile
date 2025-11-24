@@ -32,10 +32,11 @@ LDLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm
 EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
 
 C_FLAGS = -Wall -Wextra $(CINC)
-ED_FLAGS = -Wall -Wextra $(EDINC)
-NATIVE_C_FLAGS = $(C_FLAGS) -ggdb
-SHARED_C_FLAGS = $(C_FLAGS) -fPIC -pedantic
-EDITOR_C_FLAGS = $(ED_FLAGS) -ggdb -lArchimedes
+ED_FLAGS = -Wall -Wextra $(EDINC) #editor flags
+NATIVE_C_FLAGS  = $(C_FLAGS) -ggdb
+SHARED_C_FLAGS  = $(C_FLAGS) -fPIC -pedantic
+EDITOR_C_FLAGS  = $(ED_FLAGS) -ggdb -lArchimedes
+EMSCRIP_C_FLAGS = $(C_FLAGS) $(EFLAGS)
 
 
 # ====================================================================
@@ -60,17 +61,23 @@ ARCHIMEDES_SRCS = \
 
 WIDGET_EIDTOR_SRCS = WidgetEditor.c
 
+NATIVE_SRCS = player_actions.c\
+							test_text.c
+
 SHARED_OBJS = $(patsubst %.c, $(OBJ_DIR_SHARED)/%.o, $(ARCHIMEDES_SRCS))
+TEMPLATE_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(NATIVE_SRCS))
+EMCC_OBJS = $(patsubst %.c, $(OBJ_DIR_EM)/%.o, $(ARCHIMEDES_SRCS))
+EMCC_TEMPLATE_OBJS = $(patsubst %.c, $(OBJ_DIR_EM)/%.o, $(NATIVE_SRCS))
 NATIVE_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(ARCHIMEDES_SRCS))
 EIDTOR_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_EDITOR)/%.o, $(WIDGET_EIDTOR_SRCS))
 
 MAIN_OBJ = $(OBJ_DIR_NATIVE)/n_main.o
-TEST_TEXT_OBJ = $(OBJ_DIR_NATIVE)/test_text.o
-PLAYER_ACTIONS_OBJ = $(OBJ_DIR_NATIVE)/player_actions.o
 TEST_WID_OBJ = $(OBJ_DIR_NATIVE)/test_widgets.o
 EDITOR_OBJ = $(OBJ_DIR_EDITOR)/WidgetEditor.o
+EM_OBJ = $(OBJ_DIR_EM)/em_main.o
 
-NATIVE_EXE_OBJS = $(NATIVE_LIB_OBJS) $(MAIN_OBJ) $(TEST_TEXT_OBJ) $(PLAYER_ACTIONS_OBJ)
+EMCC_EXE_OBJS = $(EM_OBJ) $(EMCC_TEMPLATE_OBJS) $(BIN_DIR)/libArchimedes.a
+NATIVE_EXE_OBJS = $(NATIVE_LIB_OBJS) $(TEMPLATE_OBJS) $(MAIN_OBJ)
 TEST_EXE_OBJS = $(NATIVE_LIB_OBJS) $(TEST_WID_OBJ)
 EDITOR_EXE_OBJS = $(EDITOR_LIB_OBJS) $(EDITOR_OBJ)
 
@@ -83,10 +90,10 @@ all: $(BIN_DIR)/native
 shared: $(BIN_DIR)/libArchimedes.so
 test:$(BIN_DIR)/test
 editor:$(BIN_DIR)/editor
-Mat:$(BIN_DIR)/mat
 
 # Emscripten Targets
-EM: $(INDEX_DIR)/index.html
+
+EM: $(INDEX_DIR)/index
 EMARCH: $(BIN_DIR)/libArchimedes.a
 
 # ====================================================================
@@ -94,11 +101,14 @@ EMARCH: $(BIN_DIR)/libArchimedes.a
 # ====================================================================
 
 # Ensure the directories exist before attempting to write files to them
-$(BIN_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(OBJ_DIR_EDITOR):
+$(BIN_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(OBJ_DIR_EDITOR) $(OBJ_DIR_EM):
+	mkdir -p $@
+
+$(INDEX_DIR):
 	mkdir -p $@
 
 clean:
-	rm -rf $(OBJ_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(INDEX_DIR)
 	@clear
 
 bear:
@@ -147,66 +157,19 @@ $(OBJ_DIR_NATIVE)/test_widgets.o: $(TEST_DIR)/test_widgets.c | $(OBJ_DIR_NATIVE)
 $(OBJ_DIR_NATIVE)/n_main.o: $(TEM_DIR)/main.c | $(OBJ_DIR_NATIVE)
 	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS) -I$(TEM_DIR)
 
-$(OBJ_DIR_NATIVE)/test_text.o: $(TEM_DIR)/test_text.c | $(OBJ_DIR_NATIVE)
-	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS) -I$(TEM_DIR)
-
-$(OBJ_DIR_NATIVE)/player_actions.o: $(TEM_DIR)/player_actions.c | $(OBJ_DIR_NATIVE)
-	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS) -I$(TEM_DIR)
-
 
 # ====================================================================
 # COMPILATION RULES (Emscripten - ECC)
 # ====================================================================
 
-.PHONY: EMARCH
-EMARCH: always $(BIN_DIR)/libArchimedes.a
+$(OBJ_DIR_EM)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_EM)
+	$(ECC) -c $< -o $@ $(EMSCRIP_C_FLAGS)
 
-$(OBJ_DIR)/em_cJSON.o: $(JSON_DIR)/cJSON.c
-	$(ECC) -c $< $(CINC) -o $@
+$(OBJ_DIR_EM)/%.o: $(TEM_DIR)/%.c | $(OBJ_DIR_EM)
+	$(ECC) -c $< -o $@ $(EMSCRIP_C_FLAGS)
 
-$(OBJ_DIR)/em_aAudio.o: $(SRC_DIR)/aAudio.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aDeltaTime.o: $(SRC_DIR)/aDeltaTime.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aDraw.o: $(SRC_DIR)/aDraw.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aImage.o: $(SRC_DIR)/aImage.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aInitialize.o: $(SRC_DIR)/aInitialize.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aInput.o: $(SRC_DIR)/aInput.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aText.o: $(SRC_DIR)/aText.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aTextures.o: $(SRC_DIR)/aTextures.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aWidgets.o: $(SRC_DIR)/aWidgets.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(OBJ_DIR)/em_aLayout.o: $(SRC_DIR)/aLayout.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(BIN_DIR)/libArchimedes.a: $(OBJ_DIR)/em_cJSON.o $(OBJ_DIR)/em_aAudio.o $(OBJ_DIR)/em_aDeltaTime.o $(OBJ_DIR)/em_aDraw.o $(OBJ_DIR)/em_aImage.o $(OBJ_DIR)/em_aInitialize.o $(OBJ_DIR)/em_aInput.o $(OBJ_DIR)/em_aText.o $(OBJ_DIR)/em_aTextures.o $(OBJ_DIR)/em_aWidgets.o $(OBJ_DIR)/em_aLayout.o
-	$(EMAR) $@ $^
-
-
-.PHONY: EM
-EM: always $(INDEX_DIR)/index
-
-$(OBJ_DIR)/em_main.o: $(TEM_DIR)/main.c
-	$(ECC) -c $< $(CINC) $(EFLAGS) -o $@
-
-$(INDEX_DIR)/index: $(OBJ_DIR)/em_main.o $(BIN_DIR)/libArchimedes.a
-	mkdir -p $(INDEX_DIR)
-	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file resources/ -o $@.html
+$(OBJ_DIR_EM)/em_main.o: $(TEM_DIR)/main.c | $(OBJ_DIR_EM)
+	$(ECC) -c $< -o $@ $(EMSCRIP_C_FLAGS)
 
 # ====================================================================
 # LINKING RULES
@@ -226,5 +189,9 @@ $(BIN_DIR)/test: $(TEST_EXE_OBJS) | $(BIN_DIR)
 $(BIN_DIR)/editor: $(EDITOR_EXE_OBJS) | $(BIN_DIR)
 	$(CC) $^ -o $@ $(EDITOR_C_FLAGS) $(LDLIBS)
 
-$(BIN_DIR)/mat: $(NATIVE_EXE_OBJS) | $(BIN_DIR)
-	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
+$(BIN_DIR)/libArchimedes.a: $(EMCC_OBJS) | $(BIN_DIR)
+	$(EMAR) $@ $^
+
+$(INDEX_DIR)/index: $(EMCC_EXE_OBJS) | $(INDEX_DIR)
+	$(ECC) $^ -s WASM=1 $(EFLAGS) --shell-file htmlTemplate/template.html --preload-file resources/ -o $@.html
+

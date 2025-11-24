@@ -187,6 +187,15 @@ typedef struct
   int  error_type;
 } aError_t;
 
+typedef struct
+{
+  SDL_Surface* sprite_sheet;
+  int frame_count;
+  int sprite_w, sprite_h;
+  uint32_t frame_duration;
+  aTimer_t animation_timer;
+} aAnimation_t;
+
 typedef struct _widget_t
 {
   int type;

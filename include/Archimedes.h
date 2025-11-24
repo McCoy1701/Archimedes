@@ -187,6 +187,15 @@ typedef struct
   int  error_type;
 } aError_t;
 
+typedef struct
+{
+  SDL_Surface* sprite_sheet;
+  int frame_count;
+  int sprite_w, sprite_h;
+  uint32_t frame_duration;
+  aTimer_t animation_timer;
+} aAnimation_t;
+
 typedef struct _widget_t
 {
   int type;
@@ -1306,14 +1315,13 @@ enum
 */
 
 /**
- * @defgroup flexbox FlexBox Layout System
- * @brief CSS-inspired automatic layout engine for UI positioning
+ * FlexBox Layout System
+ * CSS-inspired automatic layout engine for UI positioning
  *
  * The FlexBox system provides automatic positioning of UI elements using
  * CSS flexbox-like rules. Items can be arranged horizontally or vertically
  * with various alignment and spacing options.
  *
- * @{
  */
 
 /**
@@ -1664,7 +1672,13 @@ int a_FlexGetItemY(const FlexBox_t* box, int index);
  */
 void a_FlexDebugRender(const FlexBox_t* box);
 
-/** @} */ // end of flexbox group
+/*
+---------------------------------------------------------------
+---                       Animations                        ---
+---------------------------------------------------------------
+*/
+
+
 
 #endif
 

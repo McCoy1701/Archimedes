@@ -190,6 +190,7 @@ typedef struct
 typedef struct
 {
   SDL_Surface* sprite_sheet;
+  SDL_Texture* render_texture;
   int frame_count;
   int sprite_w, sprite_h;
   uint32_t frame_duration;
@@ -1693,7 +1694,9 @@ void a_FlexDebugRender(const FlexBox_t* box);
 ---------------------------------------------------------------
 */
 
-
+aAnimation_t* a_AnimationCreate( const char* filename );
+void a_AnimationFree( aAnimation_t* animation );
+void a_AnimationPlay( aPoint2f_t pos, aAnimation_t* animtion );
 
 #endif
 

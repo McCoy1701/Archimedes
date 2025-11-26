@@ -44,6 +44,7 @@ EMSCRIP_C_FLAGS = $(C_FLAGS) $(EFLAGS)
 # ====================================================================
 
 ARCHIMEDES_SRCS = \
+    aAnimation.c \
     aAudio.c \
     aAUF.c \
     aAUFParser.c \

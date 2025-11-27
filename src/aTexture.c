@@ -16,13 +16,13 @@ static void AddTextureToCache( const char* name, SDL_Texture* sdl_texture );
 static aTexture_t  textures_head;
 static aTexture_t* textures_tail;
 
-void a_InitTextures( void )
+void a_TexturesInit( void )
 {
   memset( &textures_head, 0, sizeof( aTexture_t ) );
   textures_tail = &textures_head;
 }
 
-SDL_Texture* a_LoadTexture( const char* filename )
+SDL_Texture* a_TextureLoad( const char* filename )
 {
   SDL_Texture* texture;
 
@@ -38,7 +38,7 @@ SDL_Texture* a_LoadTexture( const char* filename )
   return texture;
 }
 
-SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy )
+SDL_Texture* a_SurfaceToTexture( SDL_Surface* surf, int destroy )
 {
   SDL_Texture* texture;
 
@@ -49,6 +49,8 @@ SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy )
     SDL_FreeSurface( surf );
     surf = NULL;
   }
+  
+  SDL_SetTextureBlendMode( texture, SDL_BLENDMODE_BLEND );
 
   return texture;
 }

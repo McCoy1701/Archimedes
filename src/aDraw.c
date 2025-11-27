@@ -17,6 +17,7 @@
  */
 
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -199,95 +200,23 @@ void a_DrawFilledRect( const aRectf_t rect, const aColor_t color )
   SDL_SetRenderDrawBlendMode( app.renderer, SDL_BLENDMODE_NONE );
 }
 
-void a_BlitSurface( SDL_Surface* surf, const int x, const int y )
+void a_Blit( aImage_t* img, int x, int y )
 {
-  SDL_Rect dest;
-  SDL_Texture* img;
-
-  dest.x = x;
-  dest.y = y;
-
-  img = SDL_CreateTextureFromSurface(app.renderer, surf);
-
-  int success = SDL_QueryTexture(img, NULL, NULL, NULL, NULL);
-
-  if (success < 0)
-  {
-    printf("Error creating texture %s\n", SDL_GetError());
-  }
-
-  SDL_RenderCopy(app.renderer, img, NULL, &dest);
-
-  SDL_DestroyTexture(img);
-}
-
-void a_BlitSurfaceRect( SDL_Surface* surf, aRectf_t rect, const int scale )
-{
-  SDL_Rect dest, src;
-  SDL_Texture* img;
-
-  dest.x = rect.x;
-  dest.y = rect.y;
-  dest.w = rect.w * scale;
-  dest.h = rect.h * scale;
-
-  src.x = 0;
-  src.y = 0;
-  src.w = rect.w;
-  src.h = rect.h;
-
-  img = SDL_CreateTextureFromSurface( app.renderer, surf );
-
-  int success = SDL_QueryTexture( img, NULL, NULL, NULL, NULL );
-
-  if ( success < 0 )
-  {
-    printf("Error creating texture %s\n", SDL_GetError());
-  }
-
-  SDL_RenderCopy( app.renderer, img, &src, &dest );
-
-  SDL_DestroyTexture( img );
-}
-
-SDL_Texture* a_SurfaceToTexture( SDL_Surface* surface )
-{
-  if ( !surface )
-  {
-    printf("a_SurfaceToTexture: NULL surface\n");
-    return NULL;
-  }
-
-  SDL_Texture* texture = SDL_CreateTextureFromSurface( app.renderer, surface );
-  if ( !texture )
-  {
-    printf("a_SurfaceToTexture error: %s\n", SDL_GetError());
-    return NULL;
-  }
-
-  // Enable alpha blending for transparency
-  SDL_SetTextureBlendMode( texture, SDL_BLENDMODE_BLEND );
-
-  return texture;
-}
-
-void a_BlitTexture( SDL_Texture* texture, int x, int y )
-{
-  if ( !texture ) return;
+  if ( !img ) return;
 
   SDL_Rect dest;
   dest.x = x;
   dest.y = y;
 
   // Query texture for its original dimensions
-  SDL_QueryTexture( texture, NULL, NULL, &dest.w, &dest.h );
+  SDL_QueryTexture( img->texture, NULL, NULL, &dest.w, &dest.h );
 
-  SDL_RenderCopy( app.renderer, texture, NULL, &dest );
+  SDL_RenderCopy( app.renderer, img->texture, NULL, &dest );
 }
 
-void a_BlitTextureRect( SDL_Texture* texture, aRectf_t rect, const int scale )
+void a_BlitRect( aImage_t* img, aRectf_t rect, const int scale )
 {
-  if ( !texture ) return;
+  if ( !img ) return;
 
   SDL_Rect dest, src;
 
@@ -301,7 +230,26 @@ void a_BlitTextureRect( SDL_Texture* texture, aRectf_t rect, const int scale )
   src.w = rect.w;
   src.h = rect.h;
 
-  SDL_RenderCopy( app.renderer, texture, &src, &dest );
+  SDL_RenderCopy( app.renderer, img->texture, &src, &dest );
+}
+
+void a_BlitSurfaceToSurfaceScaled( aImage_t* src, aImage_t* dest,
+                                   aRectf_t dest_rect, int scale )
+{
+  SDL_Rect temp_rect = (SDL_Rect){
+    .x = dest_rect.x,
+    .y = dest_rect.y,
+    .w = dest_rect.w * scale,
+    .h = dest_rect.h * scale,
+  };
+
+  if ( scale )
+  {
+    temp_rect.w *= scale;
+    temp_rect.h *= scale;
+  }
+
+  SDL_BlitSurface( src->surface, NULL, dest->surface, &temp_rect );
 }
 
 void a_UpdateTitle( const char *title )

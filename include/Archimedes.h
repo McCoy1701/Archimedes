@@ -304,11 +304,16 @@ typedef struct
   int8_t  wheel;
 } aMouse_t;
 
+typedef struct
+{
+  SDL_Surface* surface;
+  SDL_Texture* texture;
+  char* filename;
+} aImage_t;
+
 typedef struct _aImageCacheNode_t
 {
-  SDL_Surface* surf;
-  int ID;
-  char filename[MAX_FILENAME_LENGTH];
+  aImage_t* image;
   struct _aImageCacheNode_t* next;
 } aImageCacheNode_t;
 
@@ -368,12 +373,6 @@ typedef struct
   uint32_t length;
   uint8_t* buffer;
 } aAudioClip_t;
-
-typedef struct _textures{
-  char name[MAX_FILENAME_LENGTH];
-  SDL_Texture* texture;
-  struct _textures* next;
-} aTexture_t;
 
 /*
 ---------------------------------------------------------------
@@ -566,50 +565,6 @@ void a_DrawRect( const aRectf_t rect, const aColor_t color );
 void a_DrawFilledRect( const aRectf_t rect, const aColor_t color );
 
 /**
- * @brief Blit a surface to the screen at specified position
- * 
- * Converts an SDL surface to a texture and renders it at the specified coordinates.
- * The surface dimensions determine the size of the rendered image.
- * 
- * @param surf Source SDL surface to draw
- * @param x Destination X coordinate
- * @param y Destination Y coordinate
- * 
- * @note NULL surface is handled gracefully without crashing
- */
-void a_BlitSurface( SDL_Surface* surf, const int x, const int y );
-
-/**
- * @brief Blit a rectangular region of a surface to the screen
- *
- * Converts a portion of an SDL surface to a texture and renders it with scaling.
- * Only the specified rectangular region from the source is drawn.
- *
- * @param surf Source SDL surface to draw from
- * @param src Source rectangle within the surface
- * @param x Destination X coordinate
- * @param y Destination Y coordinate
- * @param scale Scaling factor for the destination size
- *
- */
-void a_BlitSurfaceRect( SDL_Surface* surf, aRectf_t rect, const int scale );
-
-/**
- * @brief Convert surface to texture for GPU rendering
- *
- * Creates a GPU texture from surface data. Caller is responsible for
- * destroying the returned texture with SDL_DestroyTexture().
- * The original surface can be kept for pixel manipulation or freed.
- *
- * @param surface Source surface (not modified or freed)
- * @return SDL_Texture* - New texture (caller must destroy), or NULL on error
- *
- * @note Enables alpha blending by default
- * @note Texture should be created once and reused, not every frame
- */
-SDL_Texture* a_SurfaceToTexture( SDL_Surface* surface );
-
-/**
  * @brief Render texture at position with original dimensions
  *
  * Renders texture at original size. For scaling, use a_BlitTextureRect().
@@ -620,7 +575,7 @@ SDL_Texture* a_SurfaceToTexture( SDL_Surface* surface );
  *
  * @note For scaling or clipping, use a_BlitTextureRect()
  */
-void a_BlitTexture( SDL_Texture* texture, int x, int y );
+void a_Blit( aImage_t* img, int x, int y );
 
 /**
  * @brief Render texture with scaling
@@ -632,7 +587,19 @@ void a_BlitTexture( SDL_Texture* texture, int x, int y );
  * @param rect Destination rectangle (x, y, w, h)
  * @param scale Scaling factor for the destination size
  */
-void a_BlitTextureRect( SDL_Texture* texture, aRectf_t rect, const int scale );
+void a_BlitRect( aImage_t* img, aRectf_t rect, const int scale );
+
+/**
+ * @brief Blit a rectangular region of a surface to another surface
+ *
+ * @param surf Source SDL surface to draw from
+ * @param dest Destination SDL surface to draw to
+ * @param dest_rect Destination rect
+ * @param scale Scaling factor for the destination size
+ *
+ */
+void a_BlitSurfaceToSurfaceScaled( aImage_t* src, aImage_t* dest,
+                                   aRectf_t dest_rect, int scale );
 
 /**
  * Update the window title text
@@ -672,7 +639,7 @@ int a_ImageInit( void );
  * @param filename Path to the image file to load
  * @return Pointer to SDL_Surface, or NULL on failure
  */
-SDL_Surface* a_ImageLoad( const char *filename );
+aImage_t* a_ImageLoad( const char *filename );
 
 /**
  * @brief Clean up and free all cached images
@@ -890,9 +857,9 @@ int a_GetGlyphOrFallback(int font_type, unsigned int codepoint);
 ---------------------------------------------------------------
 */
 
-SDL_Texture* a_LoadTexture( const char* filename );
-SDL_Texture* a_ToTexture( SDL_Surface* surf, int destroy );
-void a_InitTextures( void );
+SDL_Texture* a_TextureLoad( const char* filename );
+SDL_Texture* a_SurfaceToTexture( SDL_Surface* surf, int destroy );
+void a_TexturesInit( void );
 
 /*
 ---------------------------------------------------------------

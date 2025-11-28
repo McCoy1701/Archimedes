@@ -90,6 +90,7 @@ int a_Init( const int width, const int height, const char *title )
   // Initialize image cache
   app.img_cache = NULL;
   app.options.frame_cap = 1;
+  app.options.scale_factor = 2;
 
   // Set app to running state
   app.running = 1;

@@ -16,10 +16,9 @@
 
 #include "Archimedes.h"
 
-static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface,
-                          const char* filename, const int ID );
-//static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID );
-static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename );
+static int a_CacheImage( aImageCache_t* head, aImage_t* img );
+static aImage_t* a_GetImageFromCacheByFilename( aImageCache_t* head,
+                                                   const char* filename );
 
 int a_ImageInit( void )
 {
@@ -39,18 +38,32 @@ int a_ImageInit( void )
   return 0;
 }
 
-SDL_Surface* a_ImageLoad( const char *filename )
+aImage_t* a_ImageLoad( const char *filename )
 {
-  SDL_Surface *surf;
+  aImage_t *img = NULL;
 
-  surf = a_GetImageFromCacheByFilename( app.img_cache, filename );
+  img = a_GetImageFromCacheByFilename( app.img_cache, filename );
+  
+  if ( img == NULL )
+  {
+    img = malloc( sizeof( aImage_t ) );
+    if ( img == NULL )
+    {
+      LOG( "Failed to allocate memory for img" );
+    }
+    img->surface = NULL;
+    img->texture = NULL;
+    img->filename = NULL;
+  }
 
-  if ( surf == NULL )
+  if ( img->surface == NULL )
   {
     //SDL_LogMessage( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename );
-    surf = IMG_Load( filename );
+    img->filename = strndup( filename, MAX_FILENAME_LENGTH );
+    img->surface = IMG_Load( filename );
+    img->texture = SDL_CreateTextureFromSurface( app.renderer, img->surface );
 
-    if ( surf == NULL )
+    if ( img->surface == NULL )
     {
       aError_t new_error;
       new_error.error_type = FATAL;
@@ -61,13 +74,13 @@ SDL_Surface* a_ImageLoad( const char *filename )
       return NULL;
     }
 
-    a_CacheImage( app.img_cache, surf, filename, 0 );
+    a_CacheImage( app.img_cache, img );
   }
 
-  return surf;
+  return img;
 }
 
-static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface, const char* filename, const int ID )
+static int a_CacheImage( aImageCache_t* head, aImage_t* img )
 {
   aImageCacheNode_t* new_bucket = ( aImageCacheNode_t* )malloc( sizeof( aImageCacheNode_t ) );
   if ( new_bucket == NULL )
@@ -81,9 +94,34 @@ static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface, const char* 
     return 1;
   }
 
-  new_bucket->surf = surface;
-  STRNCPY( new_bucket->filename, filename, MAX_FILENAME_LENGTH );
-  new_bucket->ID = ID;
+  new_bucket->image = malloc( sizeof( aImage_t ) );
+  if ( new_bucket->image == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = FATAL;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for a new bucket",
+             log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    
+    return 1;
+  }
+
+  new_bucket->image->filename = malloc( MAX_FILENAME_LENGTH );
+  if ( new_bucket->image->filename == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = FATAL;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH,
+              "%s: Failed to allocate memory for new bucket's filename",
+              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    
+    return 1;
+  }
+
+  new_bucket->image->surface = img->surface;
+  new_bucket->image->texture = img->texture;
+  STRNCPY( new_bucket->image->filename, img->filename, MAX_FILENAME_LENGTH );
   new_bucket->next = NULL;
 
   if ( head->head != NULL )
@@ -106,30 +144,15 @@ static int a_CacheImage( aImageCache_t* head, SDL_Surface* surface, const char* 
   return 0;
 }
 
-/*static SDL_Surface* a_GetImageFromCacheByID( aImageCache_t* head, const int ID )
+static aImage_t* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename )
 {
   aImageCacheNode_t* current;
 
   for ( current = head->head; current != NULL; current = current->next )
   {
-    if ( current->ID == ID )
+    if ( strcmp( current->image->filename, filename ) == 0 )
     {
-      return current->surf;
-    }
-  }
-
-  return NULL;
-}*/
-
-static SDL_Surface* a_GetImageFromCacheByFilename( aImageCache_t* head, const char* filename )
-{
-  aImageCacheNode_t* current;
-
-  for ( current = head->head; current != NULL; current = current->next )
-  {
-    if ( strcmp( current->filename, filename ) == 0 )
-    {
-      return current->surf;
+      return current->image;
     }
   }
 
@@ -168,10 +191,24 @@ int a_ImageCacheCleanUp( void )
     while ( current != NULL )
     {
       next = current->next;
-      if ( current->surf != NULL )
+      if ( current->image->surface != NULL )
       {
-        SDL_FreeSurface( current->surf );
-        current->surf = NULL;
+        SDL_FreeSurface( current->image->surface );
+        current->image->surface = NULL;
+
+      }
+     
+      if ( current->image->filename != NULL )
+      {
+        free( current->image->filename );
+        current->image->filename = NULL;
+
+      }
+      
+      if ( current->image->texture != NULL )
+      {
+        SDL_DestroyTexture( current->image->texture );
+        current->image->texture = NULL;
 
       }
 

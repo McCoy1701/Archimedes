@@ -564,22 +564,22 @@ static void CreateWidget( aAUFNode_t* root )
     {
       if ( temp_background != NULL )
       {
-        w->surfs[WI_BACKGROUND] = a_ImageLoad( temp_background->value_string );
+        w->images[WI_BACKGROUND] = a_ImageLoad( temp_background->value_string );
       }
       
       if ( temp_pressed != NULL )
       {
-        w->surfs[WI_PRESSED] = a_ImageLoad( temp_pressed->value_string );
+        w->images[WI_PRESSED] = a_ImageLoad( temp_pressed->value_string );
       }
       
       if ( temp_hovering != NULL )
       {
-        w->surfs[WI_HOVERING] = a_ImageLoad( temp_hovering->value_string );
+        w->images[WI_HOVERING] = a_ImageLoad( temp_hovering->value_string );
       }
       
       if ( temp_disabled != NULL )
       {
-        w->surfs[WI_DISABLED] = a_ImageLoad( temp_disabled->value_string );
+        w->images[WI_DISABLED] = a_ImageLoad( temp_disabled->value_string );
       }
     }
 
@@ -993,22 +993,22 @@ static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root )
     {
       if ( node_background != NULL )
       {
-        current->surfs[WI_BACKGROUND] = a_ImageLoad( node_background->value_string );
+        current->images[WI_BACKGROUND] = a_ImageLoad( node_background->value_string );
       }
 
       if ( node_pressed != NULL )
       {
-        current->surfs[WI_PRESSED] = a_ImageLoad( node_pressed->value_string );
+        current->images[WI_PRESSED] = a_ImageLoad( node_pressed->value_string );
       }
 
       if ( node_hovering != NULL )
       {
-        current->surfs[WI_HOVERING] = a_ImageLoad( node_hovering->value_string );
+        current->images[WI_HOVERING] = a_ImageLoad( node_hovering->value_string );
       }
 
       if ( node_disabled != NULL )
       {
-        current->surfs[WI_DISABLED] = a_ImageLoad( node_disabled->value_string );
+        current->images[WI_DISABLED] = a_ImageLoad( node_disabled->value_string );
       }
     }
     
@@ -1139,7 +1139,7 @@ static void DrawButtonWidget( aWidget_t* w )
         .w = ( w->rect.w + ( 2 * w->padding ) + ( 2 * w->text_offset.x ) ),
         .h = ( w->rect.h + ( 2 * w->padding ) + ( 2 * w->text_offset.y ) ) };
       
-      a_BlitSurfaceRect( w->surfs[w->state], rect, 1 );
+      a_BlitRect( w->images[w->state], NULL, &rect, 1 );
 
       if ( w->state == WI_PRESSED )
       {
@@ -1389,7 +1389,7 @@ static void DrawContainerWidget( aWidget_t* w )
     
     if ( w->texture )
     {
-      a_BlitSurfaceRect( w->surfs[w->state], rect, 1 );
+      a_BlitRect( w->images[w->state], NULL, &rect, 1 );
     }
 
     else

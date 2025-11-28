@@ -161,7 +161,7 @@ int player_check_bullet_collision(float enemy_x, float enemy_y, float enemy_radi
 // Drawing
 // ============================================================================
 
-void player_draw(SDL_Surface* surf)
+void player_draw(aImage_t* img)
 {
   // Draw the player square
   a_DrawFilledRect((aRectf_t){player_x, player_y, 32, 32}, (aColor_t){0, 0, 255, 255});
@@ -171,10 +171,39 @@ void player_draw(SDL_Surface* surf)
   {
     if (bullets[i].active)
     {
-      a_BlitSurfaceRect(surf, (aRectf_t){(int)bullets[i].x, (int)bullets[i].y, 12, 12}, 1);
+      aRectf_t dest = (aRectf_t){ bullets[i].x, bullets[i].y, img->surface->w, img->surface->h };
+      aRectf_t src = (aRectf_t){0, 0, img->surface->w, img->surface->h};
+      a_BlitRect(img, &src, &dest, 0.25);
     }
   }
 }
+
+/*void player_draw(aImage_t* img)
+{
+  // Draw the player square
+  a_DrawFilledRect((aRectf_t){player_x, player_y, 32, 32}, (aColor_t){0, 0, 255, 255});
+
+  // Draw all active bullets at 25% size
+  if (img != NULL && img->surface != NULL)
+  {
+    float img_w = (float)img->surface->w;
+    float img_h = (float)img->surface->h;
+    float scaled_w = img_w * 0.25f;
+    float scaled_h = img_h * 0.25f;
+
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+      if (bullets[i].active)
+      {
+        aRectf_t src = {0, 0, img_w, img_h};
+        aRectf_t dest = {bullets[i].x, bullets[i].y, scaled_w, scaled_h};
+
+        // scale = 1 because dest already has the scaled size
+        a_BlitRect(img, &src, &dest, 1);
+      }
+    }
+  }
+}*/
 
 // ============================================================================
 // Getters (for enemy targeting)

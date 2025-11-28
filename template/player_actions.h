@@ -24,7 +24,7 @@ void player_update(float dt);
  * @brief Draw player and active bullets
  * @param surf Bullet texture surface
  */
-void player_draw(SDL_Surface* surf);
+void player_draw(aImage_t* img);
 
 /**
  * @brief Fire a bullet toward target position

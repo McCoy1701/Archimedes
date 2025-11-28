@@ -26,7 +26,7 @@ static void scene_game_draw( float dt );
 static void aDoLoop( float );
 static void aRenderLoop( float );
 
-SDL_Surface* surf;
+aImage_t* img;
 
 // Timer system (countdown from 15:00)
 static float time_remaining = 15.0f * 60.0f; // 15 minutes in seconds
@@ -62,8 +62,8 @@ void aInitGame( void )
   // Set background color (dark blue)
   app.background = (aColor_t){20, 20, 60, 255};
 
-  surf = a_ImageLoad( "resources/assets/bullet.png" );
-  if ( surf == NULL )
+  img = a_ImageLoad( "resources/assets/bullet.png" );
+  if ( img == NULL )
   {
     printf( "Failed to load image\n" );
   }
@@ -370,7 +370,7 @@ static void scene_game_draw( float dt )
   a_DrawText( timer_text, SCREEN_WIDTH / 2, 25, timer_config );
 
   // Draw player and bullets
-  player_draw( surf );
+  player_draw( img );
 
   // Draw all active enemies - color changes with hits
   for ( int i = 0; i < MAX_ENEMIES; i++ )

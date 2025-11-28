@@ -214,7 +214,7 @@ void a_Blit( aImage_t* img, int x, int y )
   SDL_RenderCopy( app.renderer, img->texture, NULL, &dest );
 }
 
-void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const int scale )
+void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const float scale )
 {
   if ( !img ) return;
 

@@ -59,20 +59,21 @@ TYPE_DECL_PATTERN = re.compile(
 VALID_TYPE_PATTERN = re.compile(r'^a[A-Z][A-Za-z0-9]*_t$')
 
 
-def extract_functions(content: str) -> List[Tuple[str, int]]:
+def extract_functions(content: str) -> List[Tuple[str, int, bool]]:
     """
     Extract all a_* function names and their line numbers.
 
-    Returns: List of (function_name, line_number) tuples
+    Returns: List of (function_name, line_number, is_static) tuples
     """
-    functions: List[Tuple[str, int]] = []
+    functions: List[Tuple[str, int, bool]] = []
     lines = content.split('\n')
 
     for i, line in enumerate(lines, 1):
         match = FUNCTION_DECL_PATTERN.search(line)
         if match:
             func_name = match.group(1)
-            functions.append((func_name, i))
+            is_static = 'static' in line
+            functions.append((func_name, i, is_static))
 
     return functions
 
@@ -95,7 +96,7 @@ def extract_types(content: str) -> List[Tuple[str, int]]:
     return types
 
 
-def classify_function(func_name: str) -> Tuple[str, str]:
+def classify_function(func_name: str, is_static: bool = False) -> Tuple[str, str]:
     """
     Classify a function and determine if it follows naming conventions.
 
@@ -105,6 +106,18 @@ def classify_function(func_name: str) -> Tuple[str, str]:
     """
     # Remove a_ prefix
     name_without_prefix = func_name[2:]  # Remove "a_"
+
+    # VIOLATION: Public functions starting with a_Load or a_To are not allowed
+    # (a_Init is allowed as an exception for library initialization)
+    if not is_static:
+        forbidden_prefixes = ["Load", "To"]
+        for prefix in forbidden_prefixes:
+            if name_without_prefix.startswith(prefix):
+                return ("violation", f"'{func_name}' is a public function starting with 'a_{prefix}' - use object-based naming instead (e.g., a_Texture{prefix}...)")
+
+        # VIOLATION: Public functions should not contain a_ after the initial prefix
+        if "a_" in name_without_prefix:
+            return ("violation", f"'{func_name}' contains 'a_' in the function name - only use 'a_' as the initial prefix")
 
     # Check if it's a Draw function
     if name_without_prefix.startswith("Draw"):
@@ -156,13 +169,13 @@ def check_function_naming(content: str) -> Tuple[bool, List[str]]:
     issues:  List[str] = []
     functions = extract_functions(content)
 
-    for func_name, line_num in functions:
+    for func_name, line_num, is_static in functions:
         # Must start with a_
         if not func_name.startswith("a_"):
             issues.append(f"Line {line_num}: '{func_name}' must start with 'a_' prefix")
             continue
 
-        _, issue = classify_function(func_name)
+        _, issue = classify_function(func_name, is_static)
         if issue:
             issues.append(f"Line {line_num}: {issue}")
 
@@ -221,9 +234,9 @@ def get_function_stats(content: str) -> dict:
     functions = extract_functions(content)
     stats = {"draw": 0, "blit": 0, "used": 0, "lifecycle": 0, "utility": 0, "unknown": 0, "violation": 0}
 
-    for func_name, _ in functions:
+    for func_name, _, is_static in functions:
         if func_name.startswith("a_"):
-            category, _ = classify_function(func_name)
+            category, _ = classify_function(func_name, is_static)
             # Group all used:ObjectName under "used" for stats
             if category.startswith("used:"):
                 stats["used"] = stats.get("used", 0) + 1
@@ -308,9 +321,9 @@ def verify_naming_conventions(project_root: Path) -> bool:
         "violation": []
     }
 
-    for func_name, line_num in functions:
+    for func_name, line_num, is_static in functions:
         if func_name.startswith("a_"):
-            category, _ = classify_function(func_name)
+            category, _ = classify_function(func_name, is_static)
 
             # Handle used:ObjectName format
             if category.startswith("used:"):

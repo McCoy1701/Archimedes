@@ -63,7 +63,9 @@ ARCHIMEDES_SRCS = \
 WIDGET_EIDTOR_SRCS = WidgetEditor.c
 
 NATIVE_SRCS = player_actions.c\
-							test_text.c
+							test_text.c\
+							audio_test.c\
+							enemy.c
 
 SHARED_OBJS = $(patsubst %.c, $(OBJ_DIR_SHARED)/%.o, $(ARCHIMEDES_SRCS))
 TEMPLATE_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(NATIVE_SRCS))

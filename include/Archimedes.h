@@ -998,7 +998,7 @@ void a_Blit( aImage_t* img, int x, int y );
  * @param rect Destination rectangle (x, y, w, h)
  * @param scale Scaling factor for the destination size
  */
-void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const int scale );
+void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const float scale );
 
 /**
  * @brief Blit a rectangular region of a surface to another surface

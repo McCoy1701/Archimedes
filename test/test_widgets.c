@@ -36,7 +36,7 @@ void aInitGame( void )
 
   one_shot = a_TimerCreate();
 
-  test = a_AnimationCreate( "resources/assets/coins.png", 16.0f, 16.0f, 5, 200 );
+  test = a_AnimationCreate( "resources/assets/coins.png", 16.0f, 16.0f, 5, 250 );
 
   a_InitWidgets( "resources/widgets/world.auf" );
 
@@ -240,6 +240,14 @@ static void e_Draw( float dt )
   aPoint2f_t pos = (aPoint2f_t){ .x = 250, .y = 250 };
   
   a_AnimationPlay( pos, test );
+  aPoint2f_t pos1 = (aPoint2f_t){ .x = 350, .y = 250 };
+  
+  a_AnimationPlay( pos1, test );
+  
+  char anim_text[MAX_NAME_LENGTH];
+  snprintf(anim_text, MAX_NAME_LENGTH, "%d, %f", test->frame_index, test->sprite_rect.x );
+  
+  a_DrawText( anim_text, 250, 300, fps_style );
 
   a_DrawWidgets();
 }

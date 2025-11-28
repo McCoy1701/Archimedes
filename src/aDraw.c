@@ -219,15 +219,31 @@ void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const int scale )
   if ( !img ) return;
 
   SDL_Rect temp_dest, temp_src;
-  temp_dest = (SDL_Rect){ .x = dest->x,
-                          .y = dest->y,
-                          .w = dest->w * scale,
-                          .h = dest->h * scale };
+  if ( dest != NULL )
+  {
+    temp_dest = (SDL_Rect){ .x = dest->x,
+      .y = dest->y,
+      .w = dest->w * scale,
+      .h = dest->h * scale };
+  }
+  
+  else
+  {
+    temp_dest = (SDL_Rect){0};
+  }
 
-  temp_src = (SDL_Rect){ .x = src->x,
-                         .y = src->y,
-                         .w = src->w,
-                         .h = src->h };
+  if ( src != NULL )
+  {
+    temp_src = (SDL_Rect){ .x = src->x,
+      .y = src->y,
+      .w = src->w,
+      .h = src->h };
+  }
+  
+  else
+  {
+    temp_src = (SDL_Rect){0};
+  }
 
   SDL_RenderCopy( app.renderer, img->texture, &temp_src, &temp_dest );
 }

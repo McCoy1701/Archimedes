@@ -46,7 +46,7 @@ aImage_t* a_ImageLoad( const char *filename )
   
   if ( img == NULL )
   {
-    aImage_t *img = malloc( sizeof( aImage_t ) );
+    img = malloc( sizeof( aImage_t ) );
     if ( img == NULL )
     {
       LOG( "Failed to allocate memory for img" );
@@ -101,6 +101,19 @@ static int a_CacheImage( aImageCache_t* head, aImage_t* img )
     new_error.error_type = FATAL;
     snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for a new bucket",
              log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    
+    return 1;
+  }
+
+  new_bucket->image->filename = malloc( MAX_FILENAME_LENGTH );
+  if ( new_bucket->image->filename == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = FATAL;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH,
+              "%s: Failed to allocate memory for new bucket's filename",
+              log_level_strings[new_error.error_type] );
     LOG( new_error.error_msg );
     
     return 1;

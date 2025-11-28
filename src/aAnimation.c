@@ -44,10 +44,17 @@ void a_AnimationFree( aAnimation_t* animation )
 
 void a_AnimationPlay( aPoint2f_t pos, aAnimation_t* animation )
 {
+  aRectf_t dest = {0};
   if ( !a_TimerStarted( animation->animation_timer ) )
   {
     a_TimerStart( animation->animation_timer );
+    
+    animation->sprite_rect.x += animation->frame_index * animation->sprite_rect.w;
+    dest = (aRectf_t){ .x = pos.x, .y = pos.y,
+                       .w = animation->sprite_rect.w,
+                       .h = animation->sprite_rect.h };
   }
+
   else
   {
     if ( a_TimerOneshot( animation->animation_timer, animation->frame_duration ) )
@@ -58,8 +65,7 @@ void a_AnimationPlay( aPoint2f_t pos, aAnimation_t* animation )
     }
 
     //display frame
-    animation->sprite_rect.x += animation->frame_index * animation->sprite_rect.w;
-    animation->sprite_rect.y += animation->frame_index * animation->sprite_rect.h;
+    a_BlitRect( animation->sprite_sheet, &animation->sprite_rect, &dest, 1 );
   }
 }
 

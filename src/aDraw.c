@@ -214,23 +214,22 @@ void a_Blit( aImage_t* img, int x, int y )
   SDL_RenderCopy( app.renderer, img->texture, NULL, &dest );
 }
 
-void a_BlitRect( aImage_t* img, aRectf_t rect, const int scale )
+void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const int scale )
 {
   if ( !img ) return;
 
-  SDL_Rect dest, src;
+  SDL_Rect temp_dest, temp_src;
+  temp_dest = (SDL_Rect){ .x = dest->x,
+                          .y = dest->y,
+                          .w = dest->w * scale,
+                          .h = dest->h * scale };
 
-  dest.x = rect.x;
-  dest.y = rect.y;
-  dest.w = rect.w * scale;
-  dest.h = rect.h * scale;
+  temp_src = (SDL_Rect){ .x = src->x,
+                         .y = src->y,
+                         .w = src->w,
+                         .h = src->h };
 
-  src.x = 0;
-  src.y = 0;
-  src.w = rect.w;
-  src.h = rect.h;
-
-  SDL_RenderCopy( app.renderer, img->texture, &src, &dest );
+  SDL_RenderCopy( app.renderer, img->texture, &temp_src, &temp_dest );
 }
 
 void a_BlitSurfaceToSurfaceScaled( aImage_t* src, aImage_t* dest,

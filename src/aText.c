@@ -249,7 +249,7 @@ static void initFontPNG( const char* filename, const int font_type,
   memset( app.glyph_exists[font_type], 0, sizeof( app.glyph_exists[font_type] ) );
   app.fallback_glyph[font_type] = '-' - 1;  // PNG fonts use ASCII-1 indexing
 
-  font_surf = a_ImageLoad( filename );
+  font_surf = IMG_Load( filename );
   if( font_surf == NULL )
   {
     printf( "Failed to open font surface %s, %s", filename, SDL_GetError() );

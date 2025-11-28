@@ -24,6 +24,8 @@ aAUF_t* root = NULL;
 int draw_box = 0;
 aTimer_t* one_shot = NULL;
 
+aAnimation_t* test;
+
 void aInitGame( void )
 {
   app.delegate.logic = e_Logic;
@@ -33,7 +35,9 @@ void aInitGame( void )
   //a_PrintAUFTree( root->head, 10 );
 
   one_shot = a_TimerCreate();
-  
+
+  test = a_AnimationCreate( "resources/assets/coins.png", 16.0f, 16.0f, 5, 200 );
+
   a_InitWidgets( "resources/widgets/world.auf" );
 
   app.active_widget = a_GetWidget( "tab_bar" );
@@ -232,6 +236,10 @@ static void e_Draw( float dt )
   };
 
   a_DrawText( fps_text, 600, 100, fps_style );
+  
+  aPoint2f_t pos = (aPoint2f_t){ .x = 250, .y = 250 };
+  
+  a_AnimationPlay( pos, test );
 
   a_DrawWidgets();
 }

@@ -94,6 +94,18 @@ static int a_CacheImage( aImageCache_t* head, aImage_t* img )
     return 1;
   }
 
+  new_bucket->image = malloc( sizeof( aImage_t ) );
+  if ( new_bucket->image == NULL )
+  {
+    aError_t new_error;
+    new_error.error_type = FATAL;
+    snprintf( new_error.error_msg, MAX_LINE_LENGTH, "%s: Failed to allocate memory for a new bucket",
+             log_level_strings[new_error.error_type] );
+    LOG( new_error.error_msg );
+    
+    return 1;
+  }
+
   new_bucket->image->surface = img->surface;
   new_bucket->image->texture = img->texture;
   STRNCPY( new_bucket->image->filename, img->filename, MAX_FILENAME_LENGTH );

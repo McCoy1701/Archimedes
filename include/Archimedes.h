@@ -297,6 +297,7 @@ typedef struct _aAUF_t
 typedef struct
 {
   uint8_t frame_cap;
+  int scale_factor;
 } aOptions_t;
 
 typedef struct

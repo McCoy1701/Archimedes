@@ -25,6 +25,7 @@ int draw_box = 0;
 aTimer_t* one_shot = NULL;
 
 aAnimation_t* test;
+aAnimation_t* stick;
 
 void aInitGame( void )
 {
@@ -36,7 +37,8 @@ void aInitGame( void )
 
   one_shot = a_TimerCreate();
 
-  test = a_AnimationCreate( "resources/assets/coins.png", 16.0f, 16.0f, 5, 250 );
+  test = a_AnimationCreate( "resources/assets/coins.png", 16.0f, 16.0f, 5, 100 );
+  stick = a_AnimationCreate( "resources/assets/BasicStickAnim.png", 16.0f, 32.0f, 6, 200 );
 
   a_InitWidgets( "resources/widgets/world.auf" );
 
@@ -238,8 +240,10 @@ static void e_Draw( float dt )
   a_DrawText( fps_text, 600, 100, fps_style );
   
   aPoint2f_t pos = (aPoint2f_t){ .x = 250, .y = 250 };
+  aPoint2f_t pos2 = (aPoint2f_t){ .x = 450, .y = 250 };
   
   a_AnimationPlay( pos, test );
+  a_AnimationPlay( pos2, stick );
   aPoint2f_t pos1 = (aPoint2f_t){ .x = 350, .y = 250 };
   
   a_AnimationPlay( pos1, test );

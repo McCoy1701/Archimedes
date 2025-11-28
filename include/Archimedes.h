@@ -167,6 +167,13 @@ typedef struct
 
 typedef struct
 {
+  SDL_Surface* surface;
+  SDL_Texture* texture;
+  char* filename;
+} aImage_t;
+
+typedef struct
+{
   uint8_t r;
   uint8_t g;
   uint8_t b;
@@ -189,12 +196,12 @@ typedef struct
 
 typedef struct
 {
-  SDL_Surface* sprite_sheet;
-  SDL_Texture* render_texture;
+  aImage_t * sprite_sheet;
   int frame_count;
-  int sprite_w, sprite_h;
+  int frame_index;
+  aRectf_t sprite_rect;
   uint32_t frame_duration;
-  aTimer_t animation_timer;
+  aTimer_t* animation_timer;
 } aAnimation_t;
 
 typedef struct _widget_t
@@ -210,7 +217,7 @@ typedef struct _widget_t
   int texture;
   aColor_t fg;
   aColor_t bg;
-  SDL_Surface* surfs[MAX_WIDGET_IMAGE];
+  aImage_t* images[MAX_WIDGET_IMAGE];
   int state;
   aPoint3f_t text_offset;
   struct _widget_t* next;
@@ -303,13 +310,6 @@ typedef struct
   uint8_t motion;
   int8_t  wheel;
 } aMouse_t;
-
-typedef struct
-{
-  SDL_Surface* surface;
-  SDL_Texture* texture;
-  char* filename;
-} aImage_t;
 
 typedef struct _aImageCacheNode_t
 {
@@ -1661,7 +1661,9 @@ void a_FlexDebugRender(const FlexBox_t* box);
 ---------------------------------------------------------------
 */
 
-aAnimation_t* a_AnimationCreate( const char* filename );
+aAnimation_t* a_AnimationCreate( const char* filename, const float w,
+                                 const float h, const int frame_count,
+                                 const uint32_t frame_duration );
 void a_AnimationFree( aAnimation_t* animation );
 void a_AnimationPlay( aPoint2f_t pos, aAnimation_t* animtion );
 

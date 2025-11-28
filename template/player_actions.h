@@ -22,7 +22,7 @@ void player_update(float dt);
 
 /**
  * @brief Draw player and active bullets
- * @param surf Bullet texture surface
+ * @param img Bullet texture image
  */
 void player_draw(aImage_t* img);
 
@@ -53,5 +53,31 @@ float player_get_y(void);
  * @return Index of bullet that hit, or -1 if no hit
  */
 int player_check_bullet_collision(float enemy_x, float enemy_y, float enemy_radius);
+
+/**
+ * @brief Get bullet velocity for blood splatter direction
+ * @param bullet_index Index of the bullet
+ * @param out_vx Output X velocity
+ * @param out_vy Output Y velocity
+ */
+void player_get_bullet_velocity(int bullet_index, float* out_vx, float* out_vy);
+
+/**
+ * @brief Destroy a bullet by index
+ * @param bullet_index Index of the bullet to destroy
+ */
+void player_destroy_bullet(int bullet_index);
+
+/**
+ * @brief Get player velocity X (for enemy AI prediction)
+ * @return Player velocity X
+ */
+float player_get_vx(void);
+
+/**
+ * @brief Get player velocity Y (for enemy AI prediction)
+ * @return Player velocity Y
+ */
+float player_get_vy(void);
 
 #endif /* PLAYER_ACTIONS_H */

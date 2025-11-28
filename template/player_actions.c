@@ -13,10 +13,19 @@
 // Player State
 // ============================================================================
 
-// Player position (use float for smooth movement)
+// Player position and velocity (use float for smooth movement)
 static float player_x = 100.0f;
 static float player_y = 100.0f;
+static float player_vx = 0.0f;  // Velocity X
+static float player_vy = 0.0f;  // Velocity Y
 static float player_speed = 200.0f; // pixels per second
+
+// ============================================================================
+// Audio
+// ============================================================================
+
+static aSoundEffect_t shot_sound;
+static int audio_loaded = 0;
 
 // ============================================================================
 // Bullet System
@@ -31,7 +40,7 @@ typedef struct {
 } Bullet_t;
 
 static Bullet_t bullets[MAX_BULLETS];
-static float bullet_speed = 400.0f; // pixels per second
+static float bullet_speed = 600.0f; // pixels per second
 
 // ============================================================================
 // Initialization
@@ -45,6 +54,15 @@ void player_init(void)
   // Clear all bullets
   for (int i = 0; i < MAX_BULLETS; i++) {
     bullets[i].active = 0;
+  }
+
+  // Load shooting sound effect
+  if (a_AudioLoadSound("resources/soundEffects/bang_02.wav", &shot_sound) == 0) {
+    printf("Loaded shooting sound: bang_02.wav\n");
+    audio_loaded = 1;
+  } else {
+    printf("Failed to load shooting sound\n");
+    audio_loaded = 0;
   }
 }
 
@@ -68,12 +86,25 @@ void player_shoot(int target_x, int target_y)
       if (distance > 0)
       {
         // Start from center of player (32x32, so center is at +16)
-        // Offset by half bullet size to center it
-        bullets[i].x = player_x + 16 - 4; // Center 8x8 bullet on player center
-        bullets[i].y = player_y + 16 - 4;
+        // Bullet is 100x100 scaled to 25% = 25x25, so offset by 12.5
+        bullets[i].x = player_x + 16 - 12.5f; // Center 25x25 bullet on player center
+        bullets[i].y = player_y + 16 - 12.5f;
         bullets[i].vx = (dx / distance) * bullet_speed;
         bullets[i].vy = (dy / distance) * bullet_speed;
         bullets[i].active = 1;
+
+        // Play shooting sound on dedicated player channel with interrupt
+        if (audio_loaded) {
+          aAudioOptions_t opts = {
+            .channel = AUDIO_CHANNEL_PLAYER,
+            .volume = 64,         // Use default volume
+            .loops = 0,           // Play once
+            .fade_ms = 0,         // No fade
+            .interrupt = 1        // Interrupt previous shot sound (rapid fire)
+          };
+          a_AudioPlaySound(&shot_sound, &opts);
+        }
+
         printf("Fired bullet %d toward (%d, %d)\n", i, target_x, target_y);
       }
       break;
@@ -111,8 +142,13 @@ void player_update(float dt)
     dy *= diagonal;
   }
 
-  player_x += dx * player_speed * dt;
-  player_y += dy * player_speed * dt;
+  // Update velocity (for enemy AI prediction)
+  player_vx = dx * player_speed;
+  player_vy = dy * player_speed;
+
+  // Update position
+  player_x += player_vx * dt;
+  player_y += player_vy * dt;
 
   // Update all active bullets
   for (int i = 0; i < MAX_BULLETS; i++)
@@ -149,7 +185,7 @@ int player_check_bullet_collision(float enemy_x, float enemy_y, float enemy_radi
       // Hit detected (bullet radius 4 + enemy radius)
       if (dist < (4.0f + enemy_radius))
       {
-        bullets[i].active = 0; // Destroy bullet
+        // Don't destroy here - let caller handle it after getting velocity
         return i; // Return bullet index that hit
       }
     }
@@ -166,14 +202,24 @@ void player_draw(aImage_t* img)
   // Draw the player square
   a_DrawFilledRect((aRectf_t){player_x, player_y, 32, 32}, (aColor_t){0, 0, 255, 255});
 
-  // Draw all active bullets (8x8 blitted from surface)
-  for (int i = 0; i < MAX_BULLETS; i++)
+  // Draw all active bullets at 25% size
+  if (img != NULL && img->surface != NULL)
   {
-    if (bullets[i].active)
+    float img_w = (float)img->surface->w;
+    float img_h = (float)img->surface->h;
+    float scaled_w = img_w * 0.25f;
+    float scaled_h = img_h * 0.25f;
+
+    for (int i = 0; i < MAX_BULLETS; i++)
     {
-      aRectf_t dest = (aRectf_t){ bullets[i].x, bullets[i].y, img->surface->w, img->surface->h };
-      aRectf_t src = (aRectf_t){0, 0, img->surface->w, img->surface->h};
-      a_BlitRect(img, &src, &dest, 0.25);
+      if (bullets[i].active)
+      {
+        aRectf_t src = {0, 0, img_w, img_h};
+        aRectf_t dest = {bullets[i].x, bullets[i].y, scaled_w, scaled_h};
+
+        // scale = 1 because dest already has the scaled size
+        a_BlitRect(img, &src, &dest, 1);
+      }
     }
   }
 }
@@ -190,4 +236,32 @@ float player_get_x(void)
 float player_get_y(void)
 {
   return player_y + 16; // Return center Y
+}
+
+void player_get_bullet_velocity(int bullet_index, float* out_vx, float* out_vy)
+{
+  if (bullet_index >= 0 && bullet_index < MAX_BULLETS && bullets[bullet_index].active) {
+    *out_vx = bullets[bullet_index].vx;
+    *out_vy = bullets[bullet_index].vy;
+  } else {
+    *out_vx = 0;
+    *out_vy = 0;
+  }
+}
+
+void player_destroy_bullet(int bullet_index)
+{
+  if (bullet_index >= 0 && bullet_index < MAX_BULLETS) {
+    bullets[bullet_index].active = 0;
+  }
+}
+
+float player_get_vx(void)
+{
+  return player_vx;
+}
+
+float player_get_vy(void)
+{
+  return player_vy;
 }

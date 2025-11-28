@@ -345,7 +345,6 @@ typedef struct
 {
   SDL_Window* window;
   SDL_Renderer* renderer;
-  SDL_AudioDeviceID deviceID;
   aDelegate_t delegate;
   aOptions_t options;
   aDeltaTime_t time;
@@ -365,15 +364,19 @@ typedef struct
   char input_text[MAX_INPUT_LENGTH];
   int last_key_pressed;
   aRectf_t g_viewport;
+  struct {
+    int channel_count;       // Total number of mixing channels
+    int reserved_channels;   // Channels reserved from auto-allocation
+    int master_volume;       // Master volume for sound effects (0-128)
+    int music_volume;        // Music volume (0-128)
+  } audio;
 } aApp_t;
 
-typedef struct
-{
-  char filename[MAX_FILENAME_LENGTH];
-  SDL_AudioSpec spec;
-  uint32_t length;
-  uint8_t* buffer;
-} aAudioClip_t;
+typedef struct _textures{
+  char name[MAX_FILENAME_LENGTH];
+  SDL_Texture* texture;
+  struct _textures* next;
+} aTexture_t;
 
 /*
 ---------------------------------------------------------------
@@ -381,9 +384,416 @@ typedef struct
 ---------------------------------------------------------------
 */
 
-int a_InitAudio( void );
-void a_LoadSounds( const char *filename, aAudioClip_t *clip );
-void a_AudioPlayEffect( aAudioClip_t *clip );
+/**
+ * @brief Maximum volume level for audio playback
+ *
+ * This constant matches SDL_mixer's MIX_MAX_VOLUME (128).
+ * Volume values range from 0 (silent) to 128 (maximum).
+ */
+#define AUDIO_MAX_VOLUME 128
+
+/**
+ * @brief Audio channel assignments for organized sound management
+ *
+ * Reserved channels prevent auto-allocation and provide dedicated
+ * audio channels for specific sound types. This prevents UI sounds
+ * from interfering with gameplay sounds.
+ */
+typedef enum {
+  AUDIO_CHANNEL_AUTO = -1,     /**< Use any free channel (auto-allocation) */
+  AUDIO_CHANNEL_UI_HOVER = 0,  /**< Reserved for UI hover sounds */
+  AUDIO_CHANNEL_UI_CLICK = 1,  /**< Reserved for UI click sounds */
+  AUDIO_CHANNEL_PLAYER = 2,    /**< Reserved for player action sounds */
+  AUDIO_CHANNEL_ENEMY = 3,     /**< Reserved for enemy sounds */
+  AUDIO_CHANNEL_WEATHER = 4,   /**< Reserved for weather/ambient sounds */
+} aAudioChannel_t;
+
+/**
+ * @brief Sound effect handle
+ *
+ * Represents a loaded sound effect that can be played on any channel.
+ * Wraps SDL_mixer's Mix_Chunk* for memory-efficient sound playback.
+ *
+ * @note Call a_AudioFreeSound() when done to free memory
+ */
+typedef struct {
+  char filename[MAX_FILENAME_LENGTH];  /**< Path to the sound file */
+  Mix_Chunk* chunk;                    /**< SDL_mixer sound chunk */
+  int default_volume;                  /**< Default volume (0-128) */
+} aSoundEffect_t;
+
+/**
+ * @brief Music handle
+ *
+ * Represents loaded background music. Only one music track can play
+ * at a time. Supports streaming formats (OGG, MP3, FLAC, MOD, MID).
+ *
+ * @note Call a_AudioFreeMusic() when done to free memory
+ */
+typedef struct {
+  char filename[MAX_FILENAME_LENGTH];  /**< Path to the music file */
+  Mix_Music* music;                    /**< SDL_mixer music handle */
+  int default_volume;                  /**< Default volume (0-128) */
+} aMusic_t;
+
+/**
+ * @brief Playback options for sound effects
+ *
+ * Controls how a sound effect is played, including channel assignment,
+ * volume, looping, fade-in, and whether to interrupt existing sounds.
+ */
+typedef struct {
+  int channel;      /**< Channel to play on (-1 = auto-select free channel) */
+  int volume;       /**< Volume override (0-128, -1 = use sound's default) */
+  int loops;        /**< Loop count (0 = play once, -1 = loop forever) */
+  int fade_ms;      /**< Fade-in duration in milliseconds (0 = no fade) */
+  int interrupt;    /**< If true, halt channel before playing (prevents queuing) */
+} aAudioOptions_t;
+
+/**
+ * @brief Initialize the SDL_mixer audio system
+ *
+ * Sets up the audio mixer with the specified number of channels and
+ * sample rate. Must be called before any other audio functions.
+ *
+ * @param channels Number of mixing channels to allocate (recommended: 16)
+ * @param frequency Sample rate in Hz (recommended: 44100 or 48000)
+ * @return 0 on success, -1 on failure
+ *
+ * @note Call a_AudioQuit() during shutdown to clean up resources
+ * @note More channels = more simultaneous sounds, but higher memory usage
+ *
+ * @code
+ * // Initialize with 16 channels at 44.1kHz
+ * if (a_AudioInit(16, 44100) < 0) {
+ *     printf("Audio initialization failed\n");
+ * }
+ * @endcode
+ */
+int a_AudioInit(int channels, int frequency);
+
+/**
+ * @brief Clean up the audio system
+ *
+ * Frees all audio resources and shuts down SDL_mixer.
+ * Call this before SDL_Quit() during program shutdown.
+ *
+ * @note Automatically halts all playing sounds and music
+ */
+void a_AudioQuit(void);
+
+/**
+ * @brief Reserve channels from auto-allocation
+ *
+ * Reserves the first N channels (0 to num_reserved-1) for manual
+ * assignment. This prevents a_AudioPlaySound() with AUDIO_CHANNEL_AUTO
+ * from using these channels.
+ *
+ * @param num_reserved Number of channels to reserve from the start
+ *
+ * @code
+ * // Reserve channels 0-3 for UI sounds, leave 4-15 for auto-allocation
+ * a_AudioReserveChannels(4);
+ * @endcode
+ */
+void a_AudioReserveChannels(int num_reserved);
+
+/**
+ * @brief Load a sound effect from file
+ *
+ * Loads a sound effect into memory for playback. Supports WAV, OGG,
+ * and other formats depending on SDL_mixer configuration.
+ *
+ * @param filename Path to the sound file
+ * @param sound Output sound effect structure (will be populated)
+ * @return 0 on success, -1 on failure
+ *
+ * @note Loaded sounds are cached in memory - call a_AudioFreeSound() when done
+ * @note Default volume is set to AUDIO_MAX_VOLUME (128)
+ *
+ * @code
+ * aSoundEffect_t laser_sound;
+ * if (a_AudioLoadSound("resources/audio/laser.wav", &laser_sound) < 0) {
+ *     printf("Failed to load laser sound\n");
+ * }
+ * @endcode
+ */
+int a_AudioLoadSound(const char* filename, aSoundEffect_t* sound);
+
+/**
+ * @brief Play a sound effect with options
+ *
+ * Plays a sound effect with the specified playback options. Use NULL
+ * for default options (auto-channel, default volume, play once).
+ *
+ * @param sound Sound effect to play (must be loaded with a_AudioLoadSound)
+ * @param options Playback options (NULL = use defaults)
+ * @return Channel number playing the sound, or -1 on error
+ *
+ * @note If options->interrupt is true, halts the channel before playing
+ * @note Returns the channel number for later control (halt, volume adjust)
+ */
+int a_AudioPlaySound(aSoundEffect_t* sound, aAudioOptions_t* options);
+
+/**
+ * @brief Free a sound effect and release memory
+ *
+ * Frees the memory used by a loaded sound effect. The sound
+ * structure will be invalid after this call.
+ *
+ * @param sound Sound effect to free
+ *
+ * @note Safe to call multiple times (checks for NULL)
+ */
+void a_AudioFreeSound(aSoundEffect_t* sound);
+
+/**
+ * @brief Halt sound playback on a channel
+ *
+ * Immediately stops sound playback on the specified channel.
+ *
+ * @param channel Channel to halt (-1 = halt all channels)
+ */
+void a_AudioHaltChannel(int channel);
+
+/**
+ * @brief Check if a channel is currently playing
+ *
+ * @param channel Channel to check (-1 = check if any channel is playing)
+ * @return 1 if playing, 0 if not
+ *
+ * @code
+ * if (!a_AudioIsChannelPlaying(AUDIO_CHANNEL_PLAYER)) {
+ *     // Player stopped moving, footsteps finished
+ * }
+ * @endcode
+ */
+int a_AudioIsChannelPlaying(int channel);
+
+/**
+ * @brief Set volume for a specific channel
+ *
+ * Adjusts the volume for a channel. Affects currently playing sound
+ * and future sounds on that channel.
+ *
+ * @param channel Channel to adjust (-1 = all channels)
+ * @param volume Volume level (0 = silent, 128 = max)
+ *
+ * @code
+ * // Reduce volume of UI sounds
+ * a_AudioSetChannelVolume(AUDIO_CHANNEL_UI_HOVER, 64); // 50% volume
+ * @endcode
+ */
+void a_AudioSetChannelVolume(int channel, int volume);
+
+/**
+ * @brief Load music from file
+ *
+ * Loads background music for streaming playback. Supports OGG, MP3,
+ * WAV, FLAC, MOD, MID, and other formats.
+ *
+ * @param filename Path to the music file
+ * @param music Output music structure (will be populated)
+ * @return 0 on success, -1 on failure
+ *
+ * @note Music is streamed, not fully loaded into memory (efficient for large files)
+ * @note Only one music track can play at a time
+ * @note Default volume is set to AUDIO_MAX_VOLUME (128)
+ *
+ * @code
+ * aMusic_t menu_music;
+ * if (a_AudioLoadMusic("resources/music/menu_theme.ogg", &menu_music) < 0) {
+ *     printf("Failed to load menu music\n");
+ * }
+ * @endcode
+ */
+int a_AudioLoadMusic(const char* filename, aMusic_t* music);
+
+/**
+ * @brief Play music with optional fade-in and looping
+ *
+ * Starts music playback. Only one music track can play at a time;
+ * calling this stops any currently playing music.
+ *
+ * @param music Music to play (must be loaded with a_AudioLoadMusic)
+ * @param loops Number of times to loop (-1 = loop forever, 0 = play once)
+ * @param fade_ms Fade-in duration in milliseconds (0 = no fade)
+ * @return 0 on success, -1 on failure
+ *
+ * @code
+ * // Play menu music on loop with 2-second fade-in
+ * a_AudioPlayMusic(&menu_music, -1, 2000);
+ *
+ * // Play boss music once (no loop, no fade)
+ * a_AudioPlayMusic(&boss_music, 0, 0);
+ * @endcode
+ */
+int a_AudioPlayMusic(aMusic_t* music, int loops, int fade_ms);
+
+/**
+ * @brief Stop music with optional fade-out
+ *
+ * Stops currently playing music, optionally fading out over time.
+ *
+ * @param fade_ms Fade-out duration in milliseconds (0 = stop immediately)
+ *
+ * @code
+ * // Fade out music over 1 second
+ * a_AudioStopMusic(1000);
+ * @endcode
+ */
+void a_AudioStopMusic(int fade_ms);
+
+/**
+ * @brief Pause music playback
+ *
+ * Pauses the currently playing music. Resume with a_AudioResumeMusic().
+ *
+ * @note Does not reset playback position - resumes from where it paused
+ */
+void a_AudioPauseMusic(void);
+
+/**
+ * @brief Resume paused music
+ *
+ * Resumes music that was paused with a_AudioPauseMusic().
+ */
+void a_AudioResumeMusic(void);
+
+/**
+ * @brief Set music volume (independent from sound effects)
+ *
+ * Adjusts the volume for music playback only. Does not affect
+ * sound effect volumes.
+ *
+ * @param volume Volume level (0 = silent, 128 = max)
+ *
+ * @code
+ * // Set music to 50% volume
+ * a_AudioSetMusicVolume(64);
+ * @endcode
+ */
+void a_AudioSetMusicVolume(int volume);
+
+/**
+ * @brief Check if music is currently playing
+ *
+ * @return 1 if music is playing, 0 if not
+ *
+ * @code
+ * if (!a_AudioIsMusicPlaying()) {
+ *     // Music ended, start next track
+ *     a_AudioPlayMusic(&next_track, -1, 1000);
+ * }
+ * @endcode
+ */
+int a_AudioIsMusicPlaying(void);
+
+/**
+ * @brief Free music and release resources
+ *
+ * Frees the memory used by loaded music. The music structure
+ * will be invalid after this call.
+ *
+ * @param music Music to free
+ *
+ * @note Safe to call multiple times (checks for NULL)
+ * @note Automatically stops music if currently playing
+ */
+void a_AudioFreeMusic(aMusic_t* music);
+
+/**
+ * @brief Create default playback options
+ *
+ * Returns an aAudioOptions_t structure with sensible defaults:
+ * - Auto-select channel
+ * - Use sound's default volume
+ * - Play once (no loop)
+ * - No fade-in
+ * - Don't interrupt existing sound
+ *
+ * @return Default options structure
+ *
+ * @code
+ * aAudioOptions_t opts = a_AudioDefaultOptions();
+ * opts.interrupt = 1;  // Customize: interrupt existing sound
+ * a_AudioPlaySound(&ui_click, &opts);
+ * @endcode
+ */
+static inline aAudioOptions_t a_AudioDefaultOptions(void) {
+  return (aAudioOptions_t){
+    .channel = AUDIO_CHANNEL_AUTO,
+    .volume = -1,
+    .loops = 0,
+    .fade_ms = 0,
+    .interrupt = 0
+  };
+}
+
+/**
+ * @brief Quick play helper (simple wrapper for common case)
+ *
+ * Plays a sound effect with default options. Equivalent to
+ * a_AudioPlaySound(sound, NULL).
+ *
+ * @param sound Sound effect to play
+ * @return Channel number playing the sound, or -1 on error
+ *
+ * @code
+ * // Quick play explosion sound
+ * a_AudioQuickPlay(&explosion);
+ * @endcode
+ */
+static inline int a_AudioQuickPlay(aSoundEffect_t* sound) {
+  return a_AudioPlaySound(sound, NULL);
+}
+
+/*
+---------------------------------------------------------------
+---         DEPRECATED: Old Audio API (Backward Compat)     ---
+---------------------------------------------------------------
+*/
+
+/**
+ * @brief DEPRECATED: Old audio clip structure
+ *
+ * @deprecated Use aSoundEffect_t instead
+ * @note This type is kept for backward compatibility only
+ */
+typedef struct {
+  char filename[MAX_FILENAME_LENGTH];
+  SDL_AudioSpec spec;
+  uint32_t length;
+  uint8_t* buffer;
+} aAudioClip_t;
+
+/**
+ * @brief DEPRECATED: Initialize audio (old API)
+ *
+ * @deprecated Use a_AudioInit(channels, frequency) instead
+ * @return 0 on success, -1 on failure
+ */
+int a_InitAudio(void);
+
+/**
+ * @brief DEPRECATED: Load sound (old API)
+ *
+ * @deprecated Use a_AudioLoadSound() instead
+ * @param filename Path to WAV file
+ * @param clip Output audio clip structure
+ */
+void a_LoadSounds(const char *filename, aAudioClip_t *clip);
+
+/**
+ * @brief DEPRECATED: Play sound effect (old API)
+ *
+ * @deprecated Use a_AudioPlaySound() instead
+ * @param clip Audio clip to play
+ *
+ * @warning This function uses SDL_QueueAudio which causes sound queuing
+ *          issues. Use the new API for proper channel-based playback.
+ */
+void a_AudioPlayEffect(aAudioClip_t *clip);
 
 /*
 ---------------------------------------------------------------

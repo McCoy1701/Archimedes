@@ -45,10 +45,20 @@ static InitStatus_t a_ValidateSubsystems(void) {
         return INIT_ERROR_TTF;
     }
 
+    // Initialize SDL_mixer (support for OGG and MP3)
+    int mix_flags = MIX_INIT_OGG | MIX_INIT_MP3;
+    if ((Mix_Init(mix_flags) & mix_flags) != mix_flags) {
+        // SDL_mixer init failed, but we can still use WAV files
+        // Log warning but don't fail
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "SDL_mixer init warning: %s (WAV still supported)", Mix_GetError());
+    }
+
     return INIT_SUCCESS;
 }
 
 static void a_CleanupSubsystems(void) {
+    Mix_Quit();
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
@@ -96,7 +106,7 @@ int a_Init( const int width, const int height, const char *title )
   app.running = 1;
 
   // Initialize internal Archimedes Systems
-  a_InitAudio();
+  a_AudioInit(16, 44100);  // 16 channels at 44.1kHz
   a_ImageInit();
   a_InitFonts();
 
@@ -125,6 +135,9 @@ void a_Quit( void )
     free( app.img_cache );
     app.img_cache = NULL;
   }
+
+  // Clean up audio system (before SDL shutdown)
+  a_AudioQuit();
 
   // Destroy SDL resources (must come before subsystem shutdown)
   if ( app.renderer ) {

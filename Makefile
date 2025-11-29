@@ -29,7 +29,7 @@ OBJ_DIR_EM     = obj/em
 CINC = -I$(INC_DIR)/
 EDINC = -I$(EDITOR_INC_DIR)/
 LDLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm
-EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2
+EFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' -s USE_SDL_MIXER=2 -s USE_SDL_TTF=2 -sALLOW_MEMORY_GROWTH
 
 C_FLAGS = -Wall -Wextra $(CINC)
 ED_FLAGS = -Wall -Wextra $(EDINC) #editor flags

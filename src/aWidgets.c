@@ -1168,8 +1168,11 @@ static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root )
       i++;
     }
 
-    w->rect.w = max_component_x_plus_w - w->rect.x;
-    w->rect.h = max_component_y_plus_h - w->rect.y;
+    if ( w->flex == 1 || w->flex == 2 )
+    {
+      w->rect.w = max_component_x_plus_w - w->rect.x;
+      w->rect.h = max_component_y_plus_h - w->rect.y;
+    }
   }
 }
 

@@ -211,6 +211,7 @@ typedef struct _widget_t
   char name[MAX_FILENAME_LENGTH];
   aRectf_t rect;
   char label[MAX_FILENAME_LENGTH];
+  int toggle_label;
   int boxed;
   int hidden;
   int padding;
@@ -1357,7 +1358,7 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name );
  * @param filename The path to the file containing widget configuration data.
  */
 void a_WidgetsInit( const char* filename );
-int a_FreeWidgetCache( void );
+int a_WidgetCacheFree( void );
 aWidget_t a_WidgetGetHeadWidget( void );
 
 /*

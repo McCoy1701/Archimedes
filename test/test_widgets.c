@@ -228,6 +228,7 @@ static void e_Logic( float dt )
     app.active_widget = NULL;
 
     a_WidgetsInit( "resources/widgets/test.auf" );
+    app.active_widget = a_GetWidget( "inv_screen" );
   }
 
   a_DoWidget();

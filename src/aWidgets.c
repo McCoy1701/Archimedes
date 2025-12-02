@@ -17,11 +17,11 @@ static void LoadWidgets( const char* filename );
 static void ChangeWidgetValue( const int value );
 
 static void CreateWidget( aAUFNode_t* root );
-static void CreateButtonWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateButtonWidget( aWidget_t* w );
 static void CreateSelectWidget( aWidget_t* w, aAUFNode_t* root );
 static void CreateSliderWidget( aWidget_t* w, aAUFNode_t* root );
 static void CreateInputWidget( aWidget_t* w, aAUFNode_t* root );
-static void CreateControlWidget( aWidget_t* w, aAUFNode_t* root );
+static void CreateControlWidget( aWidget_t* w );
 static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root );
 
 static void DrawButtonWidget( aWidget_t* w );
@@ -36,9 +36,12 @@ static void DoControlWidget( void );
 static aWidget_t* GetCurrentWidget( void );
 static int WithinRange( int x, int y, aRectf_t rect );
 static void ClearWidgetsState( void );
+static void ContainerWidgetFree( aContainerWidget_t* con );
+
+static void WidgetColor( aWidget_t* w, aColor_t* c );
 
 static aWidget_t widget_head;
-static aWidget_t* widget_tail;
+static aWidget_t* widget_tail = NULL;
 
 static double slider_delay;
 static double cursor_blink;
@@ -232,6 +235,11 @@ void a_DrawWidgets( void )
 
 void a_WidgetsInit( const char* filename )
 {
+  if ( widget_tail != NULL )
+  {
+    a_WidgetCacheFree();
+  }
+
   memset( &widget_head, 0, sizeof( aWidget_t ) );
   widget_tail = &widget_head;
 
@@ -475,6 +483,7 @@ static void CreateWidget( aAUFNode_t* root )
     widget_tail = w;
 
     aAUFNode_t* temp_label   = a_AUFGetObjectItem( root, "label" );
+    aAUFNode_t* temp_toggle_label   = a_AUFGetObjectItem( root, "toggle_label" );
     aAUFNode_t* temp_x       = a_AUFGetObjectItem( root, "x" );
     aAUFNode_t* temp_y       = a_AUFGetObjectItem( root, "y" );
     aAUFNode_t* temp_boxed   = a_AUFGetObjectItem( root, "boxed" );
@@ -483,6 +492,8 @@ static void CreateWidget( aAUFNode_t* root )
     aAUFNode_t* temp_texture = a_AUFGetObjectItem( root, "texture" );
     aAUFNode_t* temp_fg      = a_AUFGetObjectItem( root, "fg" );
     aAUFNode_t* temp_bg      = a_AUFGetObjectItem( root, "bg" );
+    aAUFNode_t* temp_w   = a_AUFGetObjectItem( root, "w" );
+    aAUFNode_t* temp_h   = a_AUFGetObjectItem( root, "h" );
     aAUFNode_t* temp_background = a_AUFGetObjectItem( root, "background" );
     aAUFNode_t* temp_pressed    = a_AUFGetObjectItem( root, "pressed" );
     aAUFNode_t* temp_hovering   = a_AUFGetObjectItem( root, "hovering" );
@@ -500,6 +511,12 @@ static void CreateWidget( aAUFNode_t* root )
     {
       STRCPY( w->label, temp_label->value_string );
     }
+    
+    if ( temp_toggle_label != NULL )
+    {
+      w->toggle_label = temp_toggle_label->value_int;
+    }
+
     w->type = root->type;
 
     if ( temp_x != NULL )
@@ -530,6 +547,16 @@ static void CreateWidget( aAUFNode_t* root )
     if ( temp_texture != NULL )
     {
       w->texture = temp_texture->value_int;
+    }
+    
+    if ( temp_w != NULL )
+    {
+      w->rect.w = temp_w->value_int;
+    }
+    
+    if ( temp_h != NULL )
+    {
+      w->rect.h = temp_h->value_int;
     }
     
     w->action = NULL;
@@ -599,11 +626,12 @@ static void CreateWidget( aAUFNode_t* root )
     }
 
     w->state = 0;
+    w->data = NULL;
 
     switch ( w->type )
     {
       case WT_BUTTON:
-        CreateButtonWidget( w, root );
+        CreateButtonWidget( w );
         break;
 
       case WT_SELECT:
@@ -619,7 +647,7 @@ static void CreateWidget( aAUFNode_t* root )
         break;
       
       case WT_CONTROL:
-        CreateControlWidget( w, root );
+        CreateControlWidget( w );
         break;
       
       case WT_CONTAINER:
@@ -642,7 +670,7 @@ static void CreateWidget( aAUFNode_t* root )
  * @param w A pointer to the `aWidget_t` structure for the button.
  * @param root A aAUFNode_t object containing the configuration for the button.
  */
-static void CreateButtonWidget( aWidget_t* w, aAUFNode_t* root )
+static void CreateButtonWidget( aWidget_t* w )
 {
   a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
 }
@@ -708,8 +736,11 @@ static void CreateSelectWidget( aWidget_t* w, aAUFNode_t* root )
       i++;
     }
   }
-
-  a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  
+  if ( w->toggle_label )
+  {
+    a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  }
 
   s->rect.x = w->rect.x + 100;
   s->rect.y = w->rect.y;
@@ -740,7 +771,11 @@ static void CreateSliderWidget( aWidget_t* w, aAUFNode_t* root )
   s->wait_on_change = a_AUFGetObjectItem( root, "wait_on_change" )->value_int;
   s->value = 0;
 
-  a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  if ( w->toggle_label )
+  {
+    a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  }
+
   s->rect.x = w->rect.x + w->rect.w + 50;
 	s->rect.y = w->rect.y;
 	s->rect.w = w->rect.w;
@@ -773,7 +808,11 @@ static void CreateInputWidget( aWidget_t* w, aAUFNode_t* root )
 
   STRNCPY( input->text, "...", MAX_INPUT_LENGTH );
 
-  a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  if ( w->toggle_label )
+  {
+    a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  }
+
   input->rect.x = w->rect.x + w->rect.w + 50;
   input->rect.y = w->rect.y;
   a_CalcTextDimensions( input->text, app.font_type,
@@ -790,7 +829,7 @@ static void CreateInputWidget( aWidget_t* w, aAUFNode_t* root )
  * @param w A pointer to the `aWidget_t` structure for the control widget.
  * @param root A aAUFNode_t object containing the configuration for the control widget.
  */
-static void CreateControlWidget( aWidget_t* w, aAUFNode_t* root )
+static void CreateControlWidget( aWidget_t* w )
 {
   aControlWidget_t* control;
 
@@ -798,7 +837,10 @@ static void CreateControlWidget( aWidget_t* w, aAUFNode_t* root )
   memset( control, 0, sizeof( aControlWidget_t ) );
 
   w->data = control;
-  a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  if ( w->toggle_label )
+  {
+    a_CalcTextDimensions( w->label, app.font_type, &w->rect.w, &w->rect.h );
+  }
 }
 
 /**
@@ -816,7 +858,7 @@ static void CreateControlWidget( aWidget_t* w, aAUFNode_t* root )
  */
 static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root )
 {
-  aAUFNode_t* object, *node;
+  aAUFNode_t *node;
   int i;
   int temp_x, temp_y;
   aContainerWidget_t* container;
@@ -851,287 +893,293 @@ static void CreateContainerWidget( aWidget_t* w, aAUFNode_t* root )
     container->spacing = node_spaceing->value_int;
   }
 
-  w->rect.w = w->rect.h = 0;
   w->action = NULL;
 
   if ( node_container != NULL )
   {
     container->num_components = node_container->value_int;
+
+    container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) *
+                                                 container->num_components );
+
+    if ( container->components == NULL )
+    {
+      printf("Failed to allocate memory for components\n");
+      exit(1);
+    }
+
+    i = 0;
+    temp_x = w->rect.x;
+    temp_y = w->rect.y;
+
+    int max_component_x_plus_w = 0;
+    int max_component_y_plus_h = 0;
+
+    for ( node = node_container->child; node != NULL; node = node->next )
+    {
+      aAUFNode_t* node_label    = a_AUFGetObjectItem( node, "label" );
+      aAUFNode_t* node_toggle_label    = a_AUFGetObjectItem( node, "toggle_label" );
+      aAUFNode_t* node_x        = a_AUFGetObjectItem( node, "x" );
+      aAUFNode_t* node_y        = a_AUFGetObjectItem( node, "y" );
+      aAUFNode_t* node_boxed    = a_AUFGetObjectItem( node, "boxed" );
+      aAUFNode_t* node_hidden   = a_AUFGetObjectItem( node, "hidden" );
+      aAUFNode_t* node_padding  = a_AUFGetObjectItem( node, "padding" );
+      aAUFNode_t* node_texture  = a_AUFGetObjectItem( node, "texture" );
+      aAUFNode_t* node_fg       = a_AUFGetObjectItem( node, "fg" );
+      aAUFNode_t* node_bg       = a_AUFGetObjectItem( node, "bg" );
+      aAUFNode_t* node_w   = a_AUFGetObjectItem( node, "w" );
+      aAUFNode_t* node_h   = a_AUFGetObjectItem( node, "h" );
+      aAUFNode_t* node_background = a_AUFGetObjectItem( node, "background" );
+      aAUFNode_t* node_pressed    = a_AUFGetObjectItem( node, "pressed" );
+      aAUFNode_t* node_hovering   = a_AUFGetObjectItem( node, "hovering" );
+      aAUFNode_t* node_disabled   = a_AUFGetObjectItem( node, "disabled" );
+      aAUFNode_t* node_text_x   = a_AUFGetObjectItem( node, "text_x" );
+      aAUFNode_t* node_text_y   = a_AUFGetObjectItem( node, "text_y" );
+      aAUFNode_t* node_button_drop_offset = a_AUFGetObjectItem( node, "button_drop_offset" );
+      
+      aWidget_t* current = &container->components[i];
+
+      if ( node->value_string != NULL )
+      {
+        STRCPY( current->name, node->value_string );
+
+      }
+
+      if ( node_label != NULL )
+      {
+        STRCPY( current->label, node_label->value_string );
+
+      }
+
+      if ( node_toggle_label != NULL )
+      {
+        current->toggle_label = node_toggle_label->value_int;
+      }
+
+      current->type = node->type;
+
+      if ( node_boxed != NULL )
+      {
+        current->boxed = node_boxed->value_int;
+      }
+
+      if ( node_hidden != NULL )
+      {
+        current->hidden = node_hidden->value_int;
+      }
+
+      if ( node_padding != NULL )
+      {
+        current->padding = node_padding->value_int;
+      }
+
+      current->action = NULL;
+
+      aAUFNode_t* node_1;
+      if ( node_fg != NULL )
+      {
+        int j;
+        j = 0;
+        for ( node_1 = node_fg->child; node_1 != NULL; node_1 = node_1->next )
+        {
+          fg[j++] = node_1->value_int;
+        }
+        current->fg.r = fg[0];
+        current->fg.g = fg[1];
+        current->fg.b = fg[2];
+        current->fg.a = fg[3];
+      }
+
+      if ( node_bg != NULL )
+      {
+        int j = 0;
+        for ( node_1 = node_bg->child; node_1 != NULL; node_1 = node_1->next )
+        {
+          bg[j++] = node_1->value_int;
+        }
+        current->bg.r = bg[0];
+        current->bg.g = bg[1];
+        current->bg.b = bg[2];
+        current->bg.a = bg[3];
+      }
+      
+      if ( current->toggle_label )
+      {
+        a_CalcTextDimensions( current->label, app.font_type,
+                             &current->rect.w, &current->rect.h );
+      }
+
+      if ( w->flex == 1 || w->flex == 2 )
+      {
+        current->rect.x = temp_x;
+        current->rect.y = temp_y;
+
+        //temp_x += ( current->w + container->spacing );
+      }
+
+      else
+      {
+        if ( node_x != NULL )
+        {
+          current->rect.x = node_x->value_int;
+        }
+
+        if ( node_y != NULL)
+        {
+          current->rect.y = node_y->value_int;
+        }
+
+        if ( node_w != NULL )
+        {
+          current->rect.w = node_w->value_int;
+        }
+
+        if ( node_h != NULL)
+        {
+          current->rect.h = node_h->value_int;
+        }
+      }
+
+      if ( node_texture != NULL )
+      {
+        current->texture = node_texture->value_int;
+      }
+
+      int widget_effective_w = current->rect.w;
+      int widget_effective_h = current->rect.h;
+
+      int current_widget_max_x_extent = current->rect.x + current->rect.w;
+      int current_widget_max_y_extent = current->rect.y + current->rect.h;
+
+      if ( current->texture )
+      {
+        if ( node_background != NULL )
+        {
+          current->images[WI_BACKGROUND] = a_ImageLoad( node_background->value_string );
+        }
+
+        if ( node_pressed != NULL )
+        {
+          current->images[WI_PRESSED] = a_ImageLoad( node_pressed->value_string );
+        }
+
+        if ( node_hovering != NULL )
+        {
+          current->images[WI_HOVERING] = a_ImageLoad( node_hovering->value_string );
+        }
+
+        if ( node_disabled != NULL )
+        {
+          current->images[WI_DISABLED] = a_ImageLoad( node_disabled->value_string );
+        }
+      }
+
+      if ( node_text_x != NULL )
+      {
+        current->text_offset.x = node_text_x->value_int;
+
+      }
+
+      if ( node_text_y != NULL )
+      {
+        current->text_offset.y = node_text_y->value_int;
+      }
+
+      if ( node_button_drop_offset != NULL )
+      {
+        current->text_offset.z = node_button_drop_offset->value_int;
+      }
+
+      current->state = 0;
+
+      switch ( current->type )
+      {
+        case WT_BUTTON:
+          CreateButtonWidget( current );
+          current_widget_max_x_extent = current->rect.x + current->rect.w;
+          current_widget_max_y_extent = current->rect.y + current->rect.h;
+          break;
+
+        case WT_SELECT:
+          CreateSelectWidget( current, node );
+          select = (aSelectWidget_t*)current->data;
+
+          current_widget_max_x_extent = MAX( current_widget_max_x_extent,
+                                            ( select->rect.x + select->rect.w ) );
+          current_widget_max_y_extent = MAX( current_widget_max_y_extent,
+                                            ( select->rect.y + select->rect.h ) );
+          break;
+
+        case WT_SLIDER:
+          CreateSliderWidget( current, node );
+          slider = (aSliderWidget_t*)current->data;
+
+          current_widget_max_x_extent = MAX( current_widget_max_x_extent,
+                                            ( slider->rect.x + slider->rect.w ) );
+          current_widget_max_y_extent = MAX( current_widget_max_y_extent,
+                                            ( slider->rect.y + slider->rect.h ) );
+          break;
+
+        case WT_INPUT:
+          CreateInputWidget( current, node );
+          input = (aInputWidget_t*)current->data;
+
+          current_widget_max_x_extent = MAX( current_widget_max_x_extent,
+                                            ( input->rect.x + input->rect.w ) );
+          current_widget_max_y_extent = MAX( current_widget_max_y_extent,
+                                            ( input->rect.y + input->rect.h ) );
+          break;
+
+        case WT_CONTROL:
+          CreateControlWidget( current );
+          break;
+
+        case WT_CONTAINER:
+          CreateContainerWidget( current, node );
+          break;
+
+        default:
+          break;
+      }
+
+      widget_effective_w = current_widget_max_x_extent - current->rect.x;
+      widget_effective_h = current_widget_max_y_extent - current->rect.y;
+
+      if ( w->flex == 1 )
+      {
+        temp_x += ( widget_effective_w + container->spacing );
+      }
+
+      if ( w->flex == 2 )
+      {
+        temp_y += ( widget_effective_h + container->spacing );
+      }
+
+      if ( current_widget_max_x_extent > max_component_x_plus_w )
+      {
+        max_component_x_plus_w = current_widget_max_x_extent;
+      }
+
+      if ( current_widget_max_y_extent > max_component_y_plus_h )
+      {
+        max_component_y_plus_h = current_widget_max_y_extent;
+      }
+
+      i++;
+    }
+
+    w->rect.w = max_component_x_plus_w - w->rect.x;
+    w->rect.h = max_component_y_plus_h - w->rect.y;
   }
-
-  container->components = ( aWidget_t* )malloc( sizeof( aWidget_t ) *
-                                               container->num_components );
-
-  if ( container->components == NULL )
-  {
-    printf("Failed to allocate memory for components\n");
-    exit(1);
-  }
-
-  i = 0;
-  temp_x = w->rect.x;
-  temp_y = w->rect.y;
-
-  int max_component_x_plus_w = 0;
-  int max_component_y_plus_h = 0;
-
-  for ( node = node_container->child; node != NULL; node = node->next )
-  {
-    aAUFNode_t* node_label    = a_AUFGetObjectItem( node, "label" );
-    aAUFNode_t* node_x        = a_AUFGetObjectItem( node, "x" );
-    aAUFNode_t* node_y        = a_AUFGetObjectItem( node, "y" );
-    aAUFNode_t* node_boxed    = a_AUFGetObjectItem( node, "boxed" );
-    aAUFNode_t* node_hidden   = a_AUFGetObjectItem( node, "hidden" );
-    aAUFNode_t* node_padding  = a_AUFGetObjectItem( node, "padding" );
-    aAUFNode_t* node_texture  = a_AUFGetObjectItem( node, "texture" );
-    aAUFNode_t* node_fg       = a_AUFGetObjectItem( node, "fg" );
-    aAUFNode_t* node_bg       = a_AUFGetObjectItem( node, "bg" );
-    aAUFNode_t* node_background = a_AUFGetObjectItem( node, "background" );
-    aAUFNode_t* node_pressed    = a_AUFGetObjectItem( node, "pressed" );
-    aAUFNode_t* node_hovering   = a_AUFGetObjectItem( node, "hovering" );
-    aAUFNode_t* node_disabled   = a_AUFGetObjectItem( node, "disabled" );
-    aAUFNode_t* node_text_x   = a_AUFGetObjectItem( node, "text_x" );
-    aAUFNode_t* node_text_y   = a_AUFGetObjectItem( node, "text_y" );
-    aAUFNode_t* node_button_drop_offset = a_AUFGetObjectItem( node, "button_drop_offset" );
-
-    aWidget_t* current = &container->components[i];
-
-    if ( node->value_string != NULL )
-    {
-      STRCPY( current->name, node->value_string );
-
-    }
-    if ( node_label != NULL )
-    {
-      STRCPY( current->label, node_label->value_string );
-
-    }
-
-    current->type = node->type;
-
-    if ( node_boxed != NULL )
-    {
-      current->boxed = node_boxed->value_int;
-    }
-
-    if ( node_hidden != NULL )
-    {
-      current->hidden = node_hidden->value_int;
-    }
-
-    if ( node_padding != NULL )
-    {
-      current->padding = node_padding->value_int;
-    }
-
-    current->action = NULL;
-
-    aAUFNode_t* object_1, *node_1;
-    if ( node_fg != NULL )
-    {
-      int j;
-      j = 0;
-      for ( node_1 = node_fg->child; node_1 != NULL; node_1 = node_1->next )
-      {
-        fg[j++] = node_1->value_int;
-      }
-      current->fg.r = fg[0];
-      current->fg.g = fg[1];
-      current->fg.b = fg[2];
-      current->fg.a = fg[3];
-    }
-
-    if ( node_bg != NULL )
-    {
-      int j = 0;
-      for ( node_1 = node_bg->child; node_1 != NULL; node_1 = node_1->next )
-      {
-        bg[j++] = node_1->value_int;
-      }
-      current->bg.r = bg[0];
-      current->bg.g = bg[1];
-      current->bg.b = bg[2];
-      current->bg.a = bg[3];
-    }
-
-    a_CalcTextDimensions( current->label, app.font_type,
-                         &current->rect.w, &current->rect.h );
-
-    if ( w->flex == 1 || w->flex == 2 )
-    {
-      current->rect.x = temp_x;
-      current->rect.y = temp_y;
-
-      //temp_x += ( current->w + container->spacing );
-    }
-
-    else
-    {
-      if ( node_x != NULL )
-      {
-        current->rect.x = node_x->value_int;
-      }
-
-      if ( node_y != NULL)
-      {
-        current->rect.y = node_y->value_int;
-      }
-    }
-
-    if ( node_texture != NULL )
-    {
-      current->texture = node_texture->value_int;
-    }
-
-    int widget_effective_w = current->rect.w;
-    int widget_effective_h = current->rect.h;
-
-    int current_widget_max_x_extent = current->rect.x + current->rect.w;
-    int current_widget_max_y_extent = current->rect.y + current->rect.h;
-
-    if ( current->texture )
-    {
-      if ( node_background != NULL )
-      {
-        current->images[WI_BACKGROUND] = a_ImageLoad( node_background->value_string );
-      }
-
-      if ( node_pressed != NULL )
-      {
-        current->images[WI_PRESSED] = a_ImageLoad( node_pressed->value_string );
-      }
-
-      if ( node_hovering != NULL )
-      {
-        current->images[WI_HOVERING] = a_ImageLoad( node_hovering->value_string );
-      }
-
-      if ( node_disabled != NULL )
-      {
-        current->images[WI_DISABLED] = a_ImageLoad( node_disabled->value_string );
-      }
-    }
-    
-    if ( node_text_x != NULL )
-    {
-      current->text_offset.x = node_text_x->value_int;
-
-    }
-    
-    if ( node_text_y != NULL )
-    {
-      current->text_offset.y = node_text_y->value_int;
-    }
-
-    if ( node_button_drop_offset != NULL )
-    {
-      current->text_offset.z = node_button_drop_offset->value_int;
-    }
-
-    current->state = 0;
-
-    switch ( current->type )
-    {
-      case WT_BUTTON:
-        CreateButtonWidget( current, node );
-        current_widget_max_x_extent = current->rect.x + current->rect.w;
-        current_widget_max_y_extent = current->rect.y + current->rect.h;
-        break;
-
-      case WT_SELECT:
-        CreateSelectWidget( current, node );
-        select = (aSelectWidget_t*)current->data;
-
-        current_widget_max_x_extent = MAX( current_widget_max_x_extent,
-                                          ( select->rect.x + select->rect.w ) );
-        current_widget_max_y_extent = MAX( current_widget_max_y_extent,
-                                          ( select->rect.y + select->rect.h ) );
-        break;
-
-      case WT_SLIDER:
-        CreateSliderWidget( current, node );
-        slider = (aSliderWidget_t*)current->data;
-
-        current_widget_max_x_extent = MAX( current_widget_max_x_extent,
-                                          ( slider->rect.x + slider->rect.w ) );
-        current_widget_max_y_extent = MAX( current_widget_max_y_extent,
-                                          ( slider->rect.y + slider->rect.h ) );
-        break;
-
-      case WT_INPUT:
-        CreateInputWidget( current, node );
-        input = (aInputWidget_t*)current->data;
-
-        current_widget_max_x_extent = MAX( current_widget_max_x_extent,
-                                          ( input->rect.x + input->rect.w ) );
-        current_widget_max_y_extent = MAX( current_widget_max_y_extent,
-                                          ( input->rect.y + input->rect.h ) );
-        break;
-
-      case WT_CONTROL:
-        CreateControlWidget( current, node );
-        break;
-
-      case WT_CONTAINER:
-        CreateContainerWidget( current, node );
-        break;
-
-      default:
-        break;
-    }
-
-    widget_effective_w = current_widget_max_x_extent - current->rect.x;
-    widget_effective_h = current_widget_max_y_extent - current->rect.y;
-
-    if ( w->flex == 1 )
-    {
-      temp_x += ( widget_effective_w + container->spacing );
-    }
-
-    if ( w->flex == 2 )
-    {
-      temp_y += ( widget_effective_h + container->spacing );
-    }
-
-    if ( current_widget_max_x_extent > max_component_x_plus_w )
-    {
-      max_component_x_plus_w = current_widget_max_x_extent;
-    }
-
-    if ( current_widget_max_y_extent > max_component_y_plus_h )
-    {
-      max_component_y_plus_h = current_widget_max_y_extent;
-    }
-
-    i++;
-  }
-
-  w->rect.w = max_component_x_plus_w - w->rect.x;
-  w->rect.h = max_component_y_plus_h - w->rect.y;
 }
 
 static void DrawButtonWidget( aWidget_t* w )
 {
   aColor_t c;
   int offset = 0;
- 
-  if ( app.active_widget != NULL )
-  {
-    if ( strcmp( w->name, app.active_widget->name ) == 0 )
-    {
-      c.g = 255;
-      c.r = c.b = 0;
-    }
-  }
   
-  else
-  {
-    c.r = w->fg.r;
-    c.g = w->fg.g;
-    c.b = w->fg.b;
-  }
+  WidgetColor( w, &c );
 
-  
   if ( w->hidden != 1 )
   {
     if ( w->texture == 1 )
@@ -1168,7 +1216,12 @@ static void DrawButtonWidget( aWidget_t* w )
       }
     }
 
-    aTextStyle_t style = { .type = app.font_type, .fg = c, .bg = {0,0,0,0}, .align = TEXT_ALIGN_LEFT, .wrap_width = 0, .scale = 1.0f, .padding = 0 };
+    aTextStyle_t style = { .type = app.font_type,
+                           .fg = c, .bg = {0,0,0,0},
+                           .align = TEXT_ALIGN_LEFT,
+                           .wrap_width = 0,
+                           .scale = 1.0f,
+                           .padding = 0 };
     a_DrawText( w->label, w->rect.x + w->text_offset.x, w->rect.y + offset, style );
   }
 }
@@ -1180,21 +1233,7 @@ static void DrawSelectWidget( aWidget_t* w )
   aSelectWidget_t* s;
   s = ( aSelectWidget_t* ) w->data;
 
-  if ( app.active_widget != NULL )
-  {
-    if ( strcmp( w->name, app.active_widget->name ) == 0 )
-    {
-      c.g = 255;
-      c.r = c.b = 0;
-    }
-  }
-  
-  else
-  {
-    c.r = w->fg.r;
-    c.g = w->fg.g;
-    c.b = w->fg.b;
-  }
+  WidgetColor( w, &c );
 
   if ( w->hidden != 1 )
   {
@@ -1224,21 +1263,7 @@ static void DrawSliderWidget( aWidget_t* w )
 
   slider = ( aSliderWidget_t* )w->data;
 
-  if ( app.active_widget != NULL )
-  {
-    if ( strcmp( w->name, app.active_widget->name ) == 0 )
-    {
-      c.g = 255;
-      c.r = c.b = 0;
-    }
-  }
-  
-  else
-  {
-    c.r = w->fg.r;
-    c.g = w->fg.g;
-    c.b = w->fg.b;
-  }
+  WidgetColor( w, &c );
   
   if ( w->hidden != 1 )
   {
@@ -1280,21 +1305,7 @@ static void DrawInputWidget( aWidget_t* w )
 
   input = ( aInputWidget_t* )w->data;
 
-  if ( app.active_widget != NULL )
-  {
-    if ( strcmp( w->name, app.active_widget->name ) == 0 )
-    {
-      c.g = 255;
-      c.r = c.b = 0;
-    }
-  }
-
-  else
-  {
-    c.r = w->fg.r;
-    c.g = w->fg.g;
-    c.b = w->fg.b;
-  }
+  WidgetColor( w, &c );
   
   if ( w->hidden != 1 )
   {
@@ -1334,21 +1345,7 @@ static void DrawControlWidget( aWidget_t* w )
 
   control = ( aControlWidget_t* )w->data;
 
-  if ( app.active_widget != NULL )
-  {
-    if ( strcmp( w->name, app.active_widget->name ) == 0 )
-    {
-      c.g = 255;
-      c.r = c.b = 0;
-    }
-  }
-
-  else
-  {
-    c.r = w->fg.r;
-    c.g = w->fg.g;
-    c.b = w->fg.b;
-  }
+  WidgetColor( w, &c );
 
   if ( w->hidden != 1 )
   {
@@ -1454,7 +1451,7 @@ static void DrawContainerWidget( aWidget_t* w )
   }
 }
 
-int a_FreeWidgetCache( void )
+int a_WidgetCacheFree( void )
 {
   if ( widget_head.next == NULL )
   {
@@ -1464,7 +1461,17 @@ int a_FreeWidgetCache( void )
 
   else
   {
-    aWidget_t* current = &widget_head;
+    for ( int i = 0; i < MAX_WIDGET_IMAGE; i++ )
+    {
+      if ( widget_head.images[i] )
+      {
+        SDL_FreeSurface( widget_head.images[i]->surface );
+        SDL_DestroyTexture( widget_head.images[i]->texture );
+        free( widget_head.images[i]->filename );
+      }
+    }
+
+    aWidget_t* current = widget_head.next;
     aWidget_t* next = NULL;
 
     aSelectWidget_t* temp_select = NULL;
@@ -1499,6 +1506,7 @@ int a_FreeWidgetCache( void )
         
         case WT_CONTAINER:
           temp_container = (aContainerWidget_t*)current->data;
+          ContainerWidgetFree( temp_container );
           break;
         
         default:
@@ -1520,6 +1528,62 @@ int a_FreeWidgetCache( void )
   }
 
   return 0;
+}
+
+static void ContainerWidgetFree( aContainerWidget_t* con )
+{
+  aSelectWidget_t* temp_select = NULL;
+  aSliderWidget_t* temp_slider = NULL;
+  aInputWidget_t* temp_input = NULL;
+  aControlWidget_t* temp_control = NULL;
+  
+  for ( int i = 0; i < con->num_components; i++ )
+  {
+    aWidget_t* current = &con->components[i];
+
+    if ( current->action != NULL )
+    {
+      current->action = NULL;
+    }
+
+    switch ( current->type )
+    {
+      case WT_SELECT:
+        temp_select = (aSelectWidget_t*)current->data;
+
+        for ( int i = 0; i < temp_select->num_options; i++ )
+        {
+          free( temp_select->options[i] );
+        }
+
+        free( temp_select->options );
+        break;
+
+      case WT_INPUT:
+        temp_input = (aInputWidget_t*)current->data;
+        free( temp_input->text );
+        break;
+      
+      case WT_BUTTON:
+        break;
+      
+      case WT_SLIDER:
+        temp_slider = (aSliderWidget_t*)current->data;
+        free( temp_slider );
+        break;
+      
+      case WT_CONTROL:
+        temp_control = (aControlWidget_t*)current->data;
+        free( temp_control );
+        break;
+
+      default:
+        break;
+    }
+
+  }
+
+  free( con->components );
 }
 
 static aWidget_t* GetCurrentWidget( void )
@@ -1598,17 +1662,32 @@ static void ClearWidgetsState( void )
             component->state = 0;
           }
         }
-
       }
-
       else
       {
         current->state = 0;
       }
-      
     }
 
     current = current->next;
+  }
+}
+
+static void WidgetColor( aWidget_t* w, aColor_t* c )
+{
+  if ( app.active_widget != NULL )
+  {
+    if ( strcmp( w->name, app.active_widget->name ) == 0 )
+    {
+      c->g = 255;
+      c->r = c->b = 0;
+    }
+    else
+    {
+      c->r = w->fg.r;
+      c->g = w->fg.g;
+      c->b = w->fg.b;
+    }
   }
 }
 

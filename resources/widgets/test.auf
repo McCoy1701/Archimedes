@@ -1,12 +1,12 @@
-[WT_BUTTON.inv_screen]
+[WT_CONTAINER.inv_screen]
 (x,y):(20,20)
 label:"InventoryScreen"
+toggle_label:0
 boxed:1
 hidden:0
 padding:6
-flex:0
-spacing:10
 texture:1
+(w,h):(200,200)
 background:"resources/assets/UI/inventory/InventoryScreen.png"
 fg:[255,255,0,255]
 bg:[129,151,150,255]

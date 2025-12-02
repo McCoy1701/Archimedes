@@ -12,7 +12,7 @@
 
 aTimer_t* a_TimerCreate( void )
 {
-  aTimer_t* new_timer = malloc( sizeof( aTimer_t* ) );
+  aTimer_t* new_timer = malloc( sizeof( aTimer_t ) );
   if ( new_timer == NULL )
   {
     printf( "Failed to allocate memory for new_timer: %s, %d\n", __FILE__, __LINE__ );

@@ -112,6 +112,7 @@ $(INDEX_DIR):
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR) $(INDEX_DIR)
+	rm core.*
 	@clear
 
 bear:

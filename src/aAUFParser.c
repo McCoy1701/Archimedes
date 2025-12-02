@@ -22,12 +22,15 @@ static void handle_widget_definition( aAUFNode_t* node, const char* string );
 static aAUFNode_t* g_container = NULL;
 static aAUFNode_t* g_temp_container = NULL;
 
+static int widget_count = 0;
+
 aAUF_t* a_AUFParser( const char* filename )
 {
   char** line;
   char* file_string;
   int file_size = 0;
   int newline_count = 0;
+  widget_count = 0;
  
   aAUF_t* new_root = a_AUFCreation();
 
@@ -50,13 +53,14 @@ static int ParserLineToRoot( aAUF_t* root, char** line, int nl_count )
 {
   for ( int i = 0; i < nl_count; i++ )
   {
-    if ( line[i] != NULL )
+    if ( line[i] != NULL && widget_count < MAX_WIDGET_COUNT )
     {
       char* string = line[i];
 
       if ( string[0] == '[' && string[1] != '[' )
       {
         aAUFNode_t* new_AUF = a_AUFNodeCreation();
+        widget_count++;
         handle_widget_definition( new_AUF, string );
 
         if ( a_AUFAddNode( root, new_AUF ) < 0 )
@@ -87,7 +91,7 @@ static int ParserWidgetToNode( aAUFNode_t* node, char** line, int nl_count, int 
   int count = 0;
   for ( int i = idx; i < nl_count; i++ )
   {
-    if ( line[i] != NULL )
+    if ( line[i] != NULL && count < MAX_WIDGET_COUNT )
     {
       char* string = line[i];
       int str_len  = strlen( string );
@@ -99,12 +103,14 @@ static int ParserWidgetToNode( aAUFNode_t* node, char** line, int nl_count, int 
       if ( string[1] == '[' )
       {
       aAUFNode_t* child = a_AUFNodeCreation();
+      widget_count++;
       handle_widget_definition( child, string );
 
       if ( g_container == NULL )
       {
       aAUFNode_t* container = a_AUFNodeCreation();
       container->string = strdup( "container" );
+      widget_count++;
       a_AUFNodeAddChild( node, container );
       g_container = container;
       g_temp_container = container;
@@ -129,15 +135,24 @@ static int ParserWidgetToNode( aAUFNode_t* node, char** line, int nl_count, int 
       
       case '(':
       handle_parenthesis( node, string, str_len );
+      widget_count++;
       continue;
 
       default:
       handle_char( node, string, str_len );
+      widget_count++;
       continue;
       }
     }
 
     count = i;
+  }
+
+  if ( widget_count >= MAX_WIDGET_COUNT )
+  {
+    LOG( "CRASH: Do you really have 256 widgets? Or are you in a infinite loop because did you forget to add a newline at the end of the file?" );
+    printf("widget_count: %d\n", widget_count);
+    exit(1);
   }
 
   return count;

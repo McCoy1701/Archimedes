@@ -40,7 +40,7 @@ void aInitGame( void )
   test = a_AnimationCreate( "resources/assets/coins.png", 16.0f, 16.0f, 5, 100 );
   stick = a_AnimationCreate( "resources/assets/BasicStickAnim.png", 16.0f, 32.0f, 6, 200 );
 
-  a_InitWidgets( "resources/widgets/world.auf" );
+  a_WidgetsInit( "resources/widgets/world.auf" );
 
   app.active_widget = a_GetWidget( "tab_bar" );
   app.options.frame_cap = 1;
@@ -219,7 +219,15 @@ static void e_Logic( float dt )
     app.keyboard[ A_R ] = 0;
     app.active_widget = NULL;
 
-    a_InitWidgets( "resources/widgets/inventory.auf" );
+    a_WidgetsInit( "resources/widgets/inventory.auf" );
+  }
+  
+  if ( app.keyboard[ A_T ] == 1 )
+  {
+    app.keyboard[ A_T ] = 0;
+    app.active_widget = NULL;
+
+    a_WidgetsInit( "resources/widgets/test.auf" );
   }
 
   a_DoWidget();

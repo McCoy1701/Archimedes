@@ -53,6 +53,7 @@
 #define MAX_WORD_LENGTH 32
 #define MAX_LINE_LENGTH 1024
 #define MAX_WIDGET_IMAGE 4
+#define MAX_WIDGET_COUNT 256
 
 // Text system error codes
 #define ARCH_TEXT_SUCCESS 0
@@ -1355,7 +1356,7 @@ aContainerWidget_t* a_GetContainerFromWidget( const char* name );
  *
  * @param filename The path to the file containing widget configuration data.
  */
-void a_InitWidgets( const char* filename );
+void a_WidgetsInit( const char* filename );
 int a_FreeWidgetCache( void );
 aWidget_t a_WidgetGetHeadWidget( void );
 

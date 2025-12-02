@@ -230,7 +230,7 @@ void a_DrawWidgets( void )
   }
 }
 
-void a_InitWidgets( const char* filename )
+void a_WidgetsInit( const char* filename )
 {
   memset( &widget_head, 0, sizeof( aWidget_t ) );
   widget_tail = &widget_head;

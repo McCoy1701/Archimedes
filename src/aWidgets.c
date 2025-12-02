@@ -1114,11 +1114,14 @@ static void DrawButtonWidget( aWidget_t* w )
 {
   aColor_t c;
   int offset = 0;
-  
-  if ( strcmp( w->name, app.active_widget->name ) == 0 )
+ 
+  if ( app.active_widget != NULL )
   {
-    c.g = 255;
-    c.r = c.b = 0;
+    if ( strcmp( w->name, app.active_widget->name ) == 0 )
+    {
+      c.g = 255;
+      c.r = c.b = 0;
+    }
   }
   
   else
@@ -1177,10 +1180,13 @@ static void DrawSelectWidget( aWidget_t* w )
   aSelectWidget_t* s;
   s = ( aSelectWidget_t* ) w->data;
 
-  if ( strcmp( w->name, app.active_widget->name ) == 0 )
+  if ( app.active_widget != NULL )
   {
-    c.g = 255;
-    c.r = c.b = 0;
+    if ( strcmp( w->name, app.active_widget->name ) == 0 )
+    {
+      c.g = 255;
+      c.r = c.b = 0;
+    }
   }
   
   else
@@ -1218,11 +1224,15 @@ static void DrawSliderWidget( aWidget_t* w )
 
   slider = ( aSliderWidget_t* )w->data;
 
-  if ( strcmp( w->name, app.active_widget->name ) == 0 )
+  if ( app.active_widget != NULL )
   {
-    c.g = 255;
-    c.r = c.b = 0;
+    if ( strcmp( w->name, app.active_widget->name ) == 0 )
+    {
+      c.g = 255;
+      c.r = c.b = 0;
+    }
   }
+  
   else
   {
     c.r = w->fg.r;
@@ -1270,10 +1280,13 @@ static void DrawInputWidget( aWidget_t* w )
 
   input = ( aInputWidget_t* )w->data;
 
-  if ( strcmp( w->name, app.active_widget->name ) == 0 )
+  if ( app.active_widget != NULL )
   {
-    c.g = 255;
-    c.r = c.b = 0;
+    if ( strcmp( w->name, app.active_widget->name ) == 0 )
+    {
+      c.g = 255;
+      c.r = c.b = 0;
+    }
   }
 
   else
@@ -1321,10 +1334,13 @@ static void DrawControlWidget( aWidget_t* w )
 
   control = ( aControlWidget_t* )w->data;
 
-  if ( strcmp( w->name, app.active_widget->name ) == 0 )
+  if ( app.active_widget != NULL )
   {
-    c.g = 255;
-    c.r = c.b = 0;
+    if ( strcmp( w->name, app.active_widget->name ) == 0 )
+    {
+      c.g = 255;
+      c.r = c.b = 0;
+    }
   }
 
   else

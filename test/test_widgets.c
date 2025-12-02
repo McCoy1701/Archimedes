@@ -213,6 +213,14 @@ static void e_Logic( float dt )
     app.keyboard[SDL_SCANCODE_ESCAPE] = 0;
     app.running = 0;
   }
+  
+  if ( app.keyboard[ A_R ] == 1 )
+  {
+    app.keyboard[ A_R ] = 0;
+    app.active_widget = NULL;
+
+    a_InitWidgets( "resources/widgets/inventory.auf" );
+  }
 
   a_DoWidget();
   //printf( "DT: %f\n", dt );

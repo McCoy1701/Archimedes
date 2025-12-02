@@ -216,9 +216,11 @@ void a_Blit( aImage_t* img, int x, int y )
 
 void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const float scale )
 {
+  SDL_Rect temp_dest = {0};
+  SDL_Rect temp_src = {0};
+
   if ( !img ) return;
 
-  SDL_Rect temp_dest, temp_src;
   if ( dest != NULL )
   {
     temp_dest = (SDL_Rect){ .x = dest->x,
@@ -229,7 +231,7 @@ void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const float scale
   
   else
   {
-    temp_dest = (SDL_Rect){0};
+    SDL_QueryTexture( img->texture, NULL, NULL, &temp_dest.w, &temp_dest.h );
   }
 
   if ( src != NULL )
@@ -242,7 +244,7 @@ void a_BlitRect( aImage_t* img, aRectf_t* src, aRectf_t* dest, const float scale
   
   else
   {
-    temp_src = (SDL_Rect){0};
+    SDL_QueryTexture( img->texture, NULL, NULL, &temp_src.w, &temp_src.h );
   }
 
   SDL_RenderCopy( app.renderer, img->texture, &temp_src, &temp_dest );
